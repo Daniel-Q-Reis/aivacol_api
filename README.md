@@ -4,6 +4,8 @@ Backend para o modulo de Gestao de Frota da Aivacol, planejado com Clean Archite
 
 Status atual: fase de planejamento concluida e calibrada. A implementacao comeca pela Fase 1 do `task.md`.
 
+Importante: este repositorio esta em fase de planejamento. Nenhum codigo de aplicacao foi implementado ate este ponto.
+
 ## Visao Geral
 
 - Arquitetura: Clean Architecture (Ports and Adapters)
@@ -22,29 +24,29 @@ Status atual: fase de planejamento concluida e calibrada. A implementacao comeca
 
 | Criterio | Status | Observacao |
 |---|---|---|
-| Arquitetura limpa | ✅ Planejado | Definida no `MASTER.md` com DIP e portas |
-| CRUD Vehicles | ✅ Planejado | Fases 4-7 |
-| CRUD Models | ✅ Planejado | Fases 4-7 |
-| CRUD Brands | ✅ Planejado | Fases 4-7 |
-| Users e relacionamento | ✅ Planejado | Seed, autenticacao e consultas protegidas |
-| JWT em rotas | ✅ Planejado | Guard global + `@Public()` apenas login/health |
-| Redis cache em vehicles | ✅ Planejado | TTL configuravel + invalidacao automatica |
-| Swagger/OpenAPI | ✅ Planejado | `/api/docs` com decorators obrigatorios |
-| Postman collection | ✅ Planejado | Entrega prevista na raiz |
-| Observabilidade | ✅ Planejado | Correlation ID, logging interceptor e filter global |
-| RabbitMQ | ✅ Planejado | Eventos de criacao/atualizacao de vehicles |
-| Auditoria MongoDB | ✅ Planejado | Interacoes de servico com resiliencia |
-| Docker multistage + Compose | ✅ Planejado | Fase 1 |
-| Testes >= 90% | ✅ Planejado | Fase 7 |
-| Benchmark | ✅ Planejado | Autocannon em runner dedicado |
-| CI (GitHub Actions) | ✅ Planejado | lint + typecheck + test |
-| Lint, lint:fix, typecheck | ✅ Planejado | Scripts e gates por fase |
+| Arquitetura limpa | 📋 Planejado | Definida no `MASTER.md` com DIP e portas |
+| CRUD Vehicles | 📋 Planejado | Fases 4-7 |
+| CRUD Models | 📋 Planejado | Fases 4-7 |
+| CRUD Brands | 📋 Planejado | Fases 4-7 |
+| Users e relacionamento | 📋 Planejado | Seed, autenticacao e consultas protegidas |
+| JWT em rotas | 📋 Planejado | Guard global + `@Public()` apenas login/health |
+| Redis cache em vehicles | 📋 Planejado | TTL configuravel + invalidacao automatica |
+| Swagger/OpenAPI | 📋 Planejado | `/api/docs` com decorators obrigatorios |
+| Postman collection | 📋 Planejado | Entrega prevista na raiz |
+| Observabilidade | 📋 Planejado | Correlation ID, logging interceptor e filter global |
+| RabbitMQ | 📋 Planejado | Estrategia de producao: confirmacao, retry, DLQ e idempotencia |
+| Auditoria MongoDB | 📋 Planejado | Default em auth+mutações; leitura configuravel por nivel |
+| Docker multistage + Compose | 📋 Planejado | Fase 1 |
+| Testes >= 90% | 📋 Planejado | Fase 7 |
+| Benchmark | 📋 Planejado | Autocannon em runner dedicado |
+| CI (GitHub Actions) | 📋 Planejado | lint + typecheck + test |
+| Lint, lint:fix, typecheck | 📋 Planejado | Scripts e gates por fase |
 
 ## 🚀 Diferenciais de Engenharia
 
 - Decisoes arquiteturais registradas em ADRs desde o inicio para reduzir ambiguidade de execucao.
 - Estrategia de resiliencia: falha de RabbitMQ/MongoDB nao interrompe CRUD no SQL Server.
-- Estrategia de ciclo de vida de dados: soft delete no relacional para historico e compliance, com trilha complementar no MongoDB.
+- Estrategia de ciclo de vida de dados: soft delete no relacional para historico e compliance, com politica de unicidade para registros ativos.
 - Planejamento orientado a evidencia (Definition of Done por fase + `struct.md` como fonte de verdade de arquivos).
 - Versionamento de API e paginacao previstos desde a base para evolucao sem breaking changes.
 

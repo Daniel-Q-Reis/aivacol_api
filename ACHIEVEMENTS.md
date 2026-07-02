@@ -19,6 +19,7 @@
 - Polimento final de planejamento aplicado: README com checklist/diferenciais, API versionada (`/api/v1`), paginacao prevista, benchmark em runner dedicado e reforco de `.gitignore`
 - ADRs criados desde o planejamento em `docs/adr/` com contexto, decisao, beneficios e drawbacks
 - Decisao de ciclo de vida de dados revisada para soft delete no SQL Server com trilha complementar no MongoDB (compliance e rastreabilidade)
+- Correcoes de plano production-first aplicadas: mensageria com confirm/retry/DLQ/idempotencia, VOs obrigatorios, contingencia operacional e ajuste de auditoria por nivel
 
 ### 📝 Decisões Tomadas
 - Clean Architecture com Ports & Adapters

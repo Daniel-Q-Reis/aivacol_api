@@ -136,7 +136,12 @@ Service (Application Layer)
 
 ### 3.5 Escopo de Auditoria
 
-Auditoria em MongoDB é obrigatória para **todas as interações de serviço**: autenticação, consultas e mutações de Vehicles, Models, Brands e Users. A mensageria RabbitMQ permanece restrita aos eventos de veículos exigidos no desafio.
+Auditoria em MongoDB é obrigatória e configurável por nível:
+
+- Padrão de produção: `AUTH` + `MUTATION` (login e operações de escrita)
+- Opcional por ambiente: `READ` (consultas), com sampling para controle de volume
+
+A mensageria RabbitMQ permanece restrita aos eventos de veículos exigidos no desafio.
 
 ### 3.6 Versionamento e Paginação
 
@@ -233,6 +238,21 @@ src/
     └── e2e/
 ```
 
+### 3.8 Estratégia de Produção para Mensageria
+
+- Publicação RabbitMQ com confirmação de entrega (`publisher confirms`) e roteamento obrigatório.
+- Retry com backoff exponencial para falhas transitórias.
+- Dead Letter Queue (DLQ) para mensagens inválidas ou sem processamento após limite de tentativas.
+- Idempotência no consumidor com `eventId` e deduplicação por janela temporal.
+- Falha de mensageria nunca interrompe a transação principal de CRUD.
+
+### 3.9 Estratégia de Produção para Dados
+
+- Soft delete no SQL Server com `deleted_at`.
+- Unicidade de negócio aplicada somente para registros ativos.
+- Em SQL Server, usar índice único filtrado (ex.: `WHERE deleted_at IS NULL`) para `license_plate`, `chassis` e `renavam`.
+- Regra documentada em migration e validada por testes de integração.
+
 ---
 
 ## 4. Regras Invioláveis
@@ -249,6 +269,9 @@ src/
 | R8 | **PowerShell** — Todos os comandos compatíveis com PowerShell no Windows |
 | R9 | **struct.md** — Atualizar a cada ciclo com `git status`, registrar todo arquivo criado |
 | R10 | **Nenhum código sem plano** — Seguir `task.md` marcando ticks a cada etapa |
+| R11 | **Value Objects obrigatórios** — Placa, chassi e renavam devem ser VOs no domínio |
+| R12 | **Mensageria production-first** — Confirm, retry, DLQ e idempotência desde a primeira versão |
+| R13 | **Unicidade com soft delete** — Constraints devem considerar apenas registros ativos |
 
 ---
 
@@ -378,6 +401,12 @@ SEED_USER_PASSWORD=<CHANGE_ME_SEED_USER_PASSWORD>
 | ADR-001 | Clean Architecture com Ports & Adapters | Desacoplamento total entre domínio e infraestrutura; facilita troca de tecnologias e testabilidade |
 | ADR-002 | EventEmitter2 para desacoplamento interno | Permite que mensageria (RabbitMQ) e auditoria (MongoDB) funcionem como observers sem acoplar ao fluxo principal de CRUD |
 | ADR-003 | Ciclo de vida de dados com soft delete + auditoria | Preserva histórico no banco relacional para compliance e operação, com trilha complementar no MongoDB |
+
+### 7.1 Diretriz de Implementação Crítica
+
+- Campos de negócio únicos (`license_plate`, `chassis`, `renavam`) devem funcionar com reutilização após soft delete.
+- A migration deve criar índices únicos filtrados para registros ativos.
+- O plano de testes deve incluir cenários de criação, soft delete e recriação com a mesma chave de negócio.
 
 ---
 

@@ -29,6 +29,7 @@ Ao final de CADA ciclo de trabalho:
 | `docs/adr/ADR-001-clean-architecture.md` | ADR da decisao de arquitetura limpa com ports and adapters |
 | `docs/adr/ADR-002-event-driven-decoupling.md` | ADR da estrategia de desacoplamento interno com eventos |
 | `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md` | ADR da estrategia de soft delete e auditoria complementar |
+| `docs/runbooks/infra-contingency.md` | Runbook de contingencia para falhas de infraestrutura e recuperacao operacional |
 | `.agents/` | Diretorio de apoio do ambiente de agentes; sem impacto funcional na aplicacao |
 
 ---

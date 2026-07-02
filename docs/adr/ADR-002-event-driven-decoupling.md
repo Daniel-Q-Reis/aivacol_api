@@ -17,6 +17,13 @@ Usar EventEmitter2 como barramento interno. Services publicam eventos de dominio
 
 Listeners sao resilientes: erros sao logados e nao relancados.
 
+Para primeira versao em padrao de producao:
+
+- Publicacao com `publisher confirms`
+- Retry com backoff exponencial para falhas transientes
+- Mensagens nao processadas seguem para DLQ apos limite de tentativas
+- Eventos incluem `eventId` para idempotencia no consumo
+
 ## Consequencias Positivas
 
 - CRUD principal permanece disponivel mesmo com falhas externas
@@ -28,6 +35,12 @@ Listeners sao resilientes: erros sao logados e nao relancados.
 - Fluxo assincrono exige observabilidade e correlacao robustas
 - Maior complexidade de troubleshooting em cenarios de perda de evento
 - Exige idempotencia e estrategia clara de retry quando aplicavel
+
+## Guardrails de Implementacao
+
+- Definir contratos de evento versionados
+- Incluir metadados minimos (`eventId`, `occurredAt`, `entityId`, `correlationId`)
+- Testar cenarios de duplicidade, falha temporaria e roteamento para DLQ
 
 ## Alternativas Consideradas
 

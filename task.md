@@ -94,6 +94,7 @@
 ### Validação Fase 1
 - [ ] `docker compose up --build` sobe todos os 5 serviços sem erros
 - [ ] `docker compose ps` mostra todos healthy/running
+- [ ] Criar `docs/runbooks/infra-contingency.md` com plano de contingência operacional
 - [ ] Atualizar `struct.md`
 - [ ] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `chore: setup Docker infrastructure`
@@ -159,6 +160,7 @@
 ### Validação Fase 2
 - [ ] App sobe no container sem erros
 - [ ] `http://localhost:3000/api/docs` carrega Swagger UI (vazio)
+- [ ] Scaffold NestJS executa sem interação (headless-safe)
 - [ ] `npm run lint` passa sem erros
 - [ ] `npm run lint:fix` passa sem erros
 - [ ] `npm run typecheck` passa sem erros
@@ -264,7 +266,7 @@
 - [ ] `src/modules/users/domain/interfaces/user-repository.interface.ts`
   - [ ] `IUserRepository` + Symbol `USER_REPOSITORY`
 
-### Value Objects (opcional mas recomendado)
+### Value Objects (obrigatório)
 - [ ] `src/common/domain/value-objects/license-plate.vo.ts` — validação de placa brasileira (Mercosul)
 - [ ] `src/common/domain/value-objects/chassis.vo.ts` — validação de chassi (17 caracteres)
 - [ ] `src/common/domain/value-objects/renavam.vo.ts` — validação de renavam
@@ -273,6 +275,7 @@
 - [ ] Nenhum import de `@nestjs/*`, `typeorm`, `mongoose` nos arquivos de domínio
 - [ ] Todas as entidades têm método `validate()`
 - [ ] Todas as interfaces definem contratos claros
+- [ ] Value Objects de placa, chassi e renavam aplicados no domínio (não apenas em DTO)
 - [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [ ] Atualizar `struct.md`
 - [ ] Atualizar `ACHIEVEMENTS.md`
@@ -327,6 +330,10 @@
   - [ ] Implementa `IEventPublisher`
   - [ ] Usa `@golevelup/nestjs-rabbitmq` (`AmqpConnection`)
   - [ ] Publica em exchange `fleet-events` com routing key por tipo de evento
+  - [ ] Publisher confirms habilitado para confirmação de entrega
+  - [ ] Publicação com roteamento obrigatório e tratamento de unroutable messages
+  - [ ] Retry com backoff exponencial para falhas transitórias
+  - [ ] Estratégia de DLQ para mensagens que excederem tentativas
   - [ ] Graceful: se RabbitMQ cair, loga erro (não quebra app)
 - [ ] `src/infrastructure/messaging/messaging.module.ts`
   - [ ] `RabbitMQModule.forRootAsync()` com `connectionInitOptions: { wait: false }`
@@ -345,12 +352,13 @@
 ### Event Listeners (Desacoplamento)
 - [ ] `src/infrastructure/audit/listeners/service-audit.listener.ts`
   - [ ] `@OnEvent('audit.service_interaction', { async: true })`
-  - [ ] Registra autenticação, consultas e mutações de Vehicles, Models, Brands e Users
+  - [ ] Registra `AUTH` + `MUTATION` por padrão; `READ` habilitável por ambiente com sampling
   - [ ] Chama `IAuditLogger.log()` dentro de try-catch
   - [ ] **NUNCA relança exceção**
 - [ ] `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`
   - [ ] `@OnEvent('vehicle.*', { async: true })`
   - [ ] Chama `IEventPublisher.publish()` dentro de try-catch
+  - [ ] Inclui `eventId` para idempotência de consumo
   - [ ] **NUNCA relança exceção**
 
 ### Migrations
@@ -358,6 +366,8 @@
 - [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateBrandsTable.ts`
 - [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateModelsTable.ts` (FK para brands)
 - [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateVehiclesTable.ts` (FK para models)
+- [ ] Adicionar `deleted_at` nas entidades com soft delete
+- [ ] Implementar unicidade para registros ativos (`deleted_at IS NULL`) em `license_plate`, `chassis` e `renavam`
 
 ### Seed
 - [ ] `src/infrastructure/database/seeds/seed.ts`
@@ -379,6 +389,7 @@
 - [ ] Redis conecta e responde a PING
 - [ ] RabbitMQ conecta (ou falha gracefully)
 - [ ] MongoDB conecta (ou falha gracefully)
+- [ ] Cenário validado: criar veículo, soft delete, recriar com mesma placa/chassi/renavam sem violar unicidade de ativo
 - [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [ ] Atualizar `struct.md`
 - [ ] Atualizar `ACHIEVEMENTS.md`
@@ -508,6 +519,8 @@
 - [ ] Eventos de auditoria são emitidos por Auth, Vehicles, Models, Brands e Users
 - [ ] Auditoria de todas as interações de serviço é gravada no MongoDB
 - [ ] Mensagens chegam no RabbitMQ
+- [ ] Contrato Swagger de rotas protegidas usa `@ApiBearerAuth()`
+- [ ] `403` documentado em endpoints com regra de autorização (quando aplicável)
 - [ ] Rotas sem token retornam 401
 - [ ] Erros retornam formato padronizado
 - [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
@@ -542,6 +555,7 @@
 - [ ] `redis-cache.service.spec.ts` — mock ioredis, get/set/del/delByPattern
 - [ ] `mongo-audit-logger.spec.ts` — mock mongoose model, log entry
 - [ ] `rabbitmq-event-publisher.spec.ts` — mock AmqpConnection, publish
+  - [ ] Cobre publisher confirm, retry/backoff e fallback para DLQ
 - [ ] `service-audit.listener.spec.ts` — verifica que exceções são engolidas e não interrompem o fluxo principal
 - [ ] `vehicle-messaging.listener.spec.ts` — verifica que exceções são engolidas
 - [ ] `typeorm-vehicle.repository.spec.ts` — mock Repository, findById/create/update/delete
@@ -561,6 +575,7 @@
   - [ ] CRUD completo via HTTP (create → read → update → delete)
   - [ ] Validação de campos obrigatórios → 400
   - [ ] Buscar veículo inexistente → 404
+  - [ ] Criar veículo, soft delete e recriar com mesma placa/chassi/renavam
 - [ ] `models.e2e-spec.ts` — CRUD completo via HTTP
 - [ ] `brands.e2e-spec.ts` — CRUD completo via HTTP
 - [ ] `health.e2e-spec.ts` — `GET /api/v1/health` → 200
@@ -604,7 +619,7 @@
   - [ ] Contexto, decisão, consequências, alternativas consideradas
 - [ ] `docs/adr/ADR-002-event-driven-decoupling.md`
   - [ ] Por que EventEmitter2, por que não acoplamento direto
-  - [ ] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
+- [ ] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
   - [ ] Soft delete no SQL Server + trilha complementar no MongoDB (compliance e trade-offs)
 
 ### Benchmark
@@ -613,6 +628,14 @@
   - [ ] Teste 2: `GET /api/v1/vehicles` com cache frio (Redis limpo)
   - [ ] Output: comparação de latência e throughput
 - [ ] Documentar comando de benchmark no README
+
+### Runbook Operacional
+- [ ] `docs/runbooks/infra-contingency.md`
+  - [ ] Conflito de portas no Docker Compose
+  - [ ] Falha de pull/build de imagem
+  - [ ] Scaffold headless fallback
+  - [ ] Rollback de migration parcial
+  - [ ] Mitigação para falta de memória/disco no Windows
 
 ### Postman Collection
 - [ ] `aivacol-postman-collection.json` na raiz do projeto

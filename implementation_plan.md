@@ -52,7 +52,7 @@
 | 3 | **Autenticação** | ✅ Login por `nickname + password` | O `objetivos.md` referencia o seed como `aivacol` (nickname). Mais prático para sistemas internos de frota. |
 | 4 | **Estratégia de delete** | ✅ Soft delete no SQL Server + auditoria MongoDB | Mantém histórico operacional no relacional, reforça compliance (ex: LGPD e trilhas de auditoria), e complementa rastreabilidade no MongoDB sem perda de contexto do dado principal. |
 | 5 | **Users** | ✅ Consulta, autenticação e relacionamento via `created_by` | O desafio exige `users` e seus relacionamentos, mas não lista Gestão de Users como CRUD funcional obrigatório. Evita expor mutação de usuários fora do escopo. |
-| 6 | **Auditoria** | ✅ Global para interações de serviço | MongoDB deve registrar autenticação, consultas e mutações de Vehicles, Models, Brands e Users. RabbitMQ permanece restrito a eventos de veículos. |
+| 6 | **Auditoria** | ✅ Configurável por nível | Produção por padrão audita `AUTH` e `MUTATION`; `READ` é opcional por ambiente com sampling. RabbitMQ permanece restrito a eventos de veículos. |
 
 ---
 
@@ -138,7 +138,15 @@ Executa migrations do TypeORM dentro do container.
 Executa seed do banco dentro do container.
 
 #### [NEW] `scripts/benchmark.ps1`
-Executa benchmark Autocannon dentro do container.
+Executa benchmark Autocannon em runner dedicado (container separado da app).
+
+#### [NEW] `docs/runbooks/infra-contingency.md`
+Runbook de contingência para execução local em produção-like:
+- Conflito de portas no host e remapeamento seguro.
+- Falha de pull/build de imagens com procedimento de recuperação.
+- Falha de scaffold em ambiente headless com alternativa não interativa.
+- Falha parcial em migrations com rollback e restauração.
+- Saturação de memória/disco no Windows (checklist de mitigação).
 
 ---
 
@@ -292,6 +300,8 @@ Implementação concreta das portas do domínio.
 #### [NEW] `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`
 Entidade TypeORM com decorators `@Entity`, `@Column`, `@ManyToOne`, `@CreateDateColumn`, etc.
 
+Inclui coluna `deleted_at` para soft delete.
+
 #### [NEW] `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts`
 Implementação de `IVehicleRepository` usando `Repository<VehicleOrmEntity>`.
 
@@ -319,6 +329,8 @@ Implementação de `ICacheService` com `ioredis`. Métodos: `get`, `set`, `del`,
 #### [NEW] `src/infrastructure/messaging/rabbitmq-event-publisher.ts`
 Implementação de `IEventPublisher` com `@golevelup/nestjs-rabbitmq`.
 
+Estratégia production-first: publisher confirms, retry com backoff, roteamento obrigatório e suporte a DLQ.
+
 #### [NEW] `src/infrastructure/audit/schemas/audit-log.schema.ts`
 Schema Mongoose para logs de auditoria.
 
@@ -331,6 +343,8 @@ Migrations TypeORM:
 2. `CreateBrandsTable`
 3. `CreateModelsTable` (com FK para `brands`)
 4. `CreateVehiclesTable` (com FK para `models`)
+
+As migrations devem incluir unicidade para registros ativos com soft delete (índices únicos filtrados por `deleted_at IS NULL` para campos de negócio).
 
 #### [NEW] `src/infrastructure/database/seeds/seed.ts`
 Script de seed que cria:
@@ -348,7 +362,7 @@ Arquivo JSON na raiz com dados mock de veículos.
 
 Use Cases, DTOs, Controllers, Swagger.
 
-Todos os controllers devem documentar contratos de entrada, parâmetros e respostas com Swagger de forma verificável: `@ApiBody` em rotas com body, `@ApiParam` em rotas com `:id`, respostas de sucesso `200/201`, `@ApiResponse(401)` em rotas protegidas e erros `400/404` quando aplicáveis.
+Todos os controllers devem documentar contratos de entrada, parâmetros e respostas com Swagger de forma verificável: `@ApiBody` em rotas com body, `@ApiParam` em rotas com `:id`, respostas de sucesso `200/201`, `@ApiResponse(401)` em rotas protegidas e erros `400/404` quando aplicáveis. Para rotas protegidas, `@ApiBearerAuth()` é obrigatório. `403` deve ser documentado quando existir regra de autorização além da autenticação.
 
 #### [NEW] `src/modules/auth/application/services/auth.service.ts`
 Serviço de autenticação: `login(nickname, password) → { access_token }`.
@@ -391,7 +405,7 @@ Controller REST com decorators Swagger completos:
 - `DELETE /api/v1/vehicles/:id` — remover (soft delete)
 
 #### [NEW] `src/infrastructure/audit/listeners/service-audit.listener.ts`
-Listener `@OnEvent('audit.service_interaction')` que grava no MongoDB todas as interações de serviço via `IAuditLogger`. Cobre autenticação, consultas e mutações de Vehicles, Models, Brands e Users. **Nunca relança exceção.**
+Listener `@OnEvent('audit.service_interaction')` que grava no MongoDB via `IAuditLogger` com nível configurável por ambiente: padrão `AUTH` + `MUTATION`; `READ` opcional com sampling. **Nunca relança exceção.**
 
 #### [NEW] `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`
 Listener `@OnEvent('vehicle.*')` que publica no RabbitMQ via `IEventPublisher`. **Nunca relança exceção.**
