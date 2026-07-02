@@ -1,14 +1,58 @@
-# aivacol_api
+# Aivacol Fleet Management API
 
-Repositório inicial do projeto Aivacol Fleet Management API.
+Backend para o modulo de Gestao de Frota da Aivacol, planejado com Clean Architecture estrita, foco em seguranca, observabilidade, escalabilidade e qualidade de entrega.
 
-Este commit contém a base de planejamento e orquestração:
+Status atual: fase de planejamento concluida e calibrada. A implementacao comeca pela Fase 1 do `task.md`.
+
+## Visao Geral
+
+- Arquitetura: Clean Architecture (Ports and Adapters)
+- Stack alvo: NestJS 10+, TypeORM, SQL Server, Redis, RabbitMQ, MongoDB, JWT, Jest
+- Entidades principais: vehicles, models, brands, users
+- Requisitos de qualidade: cobertura >= 90%, Swagger em `/api/docs`, Docker Compose completo, CI de qualidade
+
+## Como o projeto sera executado
+
+- Ambiente alvo: Windows 11 + PowerShell 7.5+ + Docker Desktop
+- Desenvolvimento: 100% via Docker Compose
+- Rotas da API: prefixo versionado em `/api/v1`
+- Documentacao interativa: `/api/docs`
+
+## ✅ Checklist do Desafio
+
+| Criterio | Status | Observacao |
+|---|---|---|
+| Arquitetura limpa | ✅ Planejado | Definida no `MASTER.md` com DIP e portas |
+| CRUD Vehicles | ✅ Planejado | Fases 4-7 |
+| CRUD Models | ✅ Planejado | Fases 4-7 |
+| CRUD Brands | ✅ Planejado | Fases 4-7 |
+| Users e relacionamento | ✅ Planejado | Seed, autenticacao e consultas protegidas |
+| JWT em rotas | ✅ Planejado | Guard global + `@Public()` apenas login/health |
+| Redis cache em vehicles | ✅ Planejado | TTL configuravel + invalidacao automatica |
+| Swagger/OpenAPI | ✅ Planejado | `/api/docs` com decorators obrigatorios |
+| Postman collection | ✅ Planejado | Entrega prevista na raiz |
+| Observabilidade | ✅ Planejado | Correlation ID, logging interceptor e filter global |
+| RabbitMQ | ✅ Planejado | Eventos de criacao/atualizacao de vehicles |
+| Auditoria MongoDB | ✅ Planejado | Interacoes de servico com resiliencia |
+| Docker multistage + Compose | ✅ Planejado | Fase 1 |
+| Testes >= 90% | ✅ Planejado | Fase 7 |
+| Benchmark | ✅ Planejado | Autocannon em runner dedicado |
+| CI (GitHub Actions) | ✅ Planejado | lint + typecheck + test |
+| Lint, lint:fix, typecheck | ✅ Planejado | Scripts e gates por fase |
+
+## 🚀 Diferenciais de Engenharia
+
+- Decisoes arquiteturais registradas em ADRs desde o inicio para reduzir ambiguidade de execucao.
+- Estrategia de resiliencia: falha de RabbitMQ/MongoDB nao interrompe CRUD no SQL Server.
+- Estrategia de ciclo de vida de dados: soft delete no relacional para historico e compliance, com trilha complementar no MongoDB.
+- Planejamento orientado a evidencia (Definition of Done por fase + `struct.md` como fonte de verdade de arquivos).
+- Versionamento de API e paginacao previstos desde a base para evolucao sem breaking changes.
+
+## Artefatos de planejamento
 
 - `MASTER.md`
 - `implementation_plan.md`
 - `task.md`
 - `struct.md`
 - `ACHIEVEMENTS.md`
-- `objetivos.md`
-
-Próximo passo: iniciar a implementação técnica conforme o plano.
+- `docs/adr/`

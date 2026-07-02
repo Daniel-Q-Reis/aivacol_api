@@ -2,6 +2,7 @@
 
 > **Atualizado automaticamente pelas IAs executoras ao final de cada ciclo.**
 > Última atualização: 2026-07-02 (Fase 0 — Planejamento)
+> Nota: este arquivo lista somente o que ja existe no repositorio (nao e roadmap preditivo).
 
 ## Regra de Atualização
 
@@ -23,6 +24,12 @@ Ao final de CADA ciclo de trabalho:
 | `task.md` | Checklist granular de tarefas para tracking de progresso |
 | `struct.md` | Este arquivo — mapa de arquivos do projeto (fonte de verdade) |
 | `ACHIEVEMENTS.md` | Registro do que foi implementado em cada fase/bloco |
+| `README.md` | Documentacao inicial do projeto com checklist e diferenciais |
+| `.gitignore` | Regras de exclusao de arquivos locais/temporarios do Git |
+| `docs/adr/ADR-001-clean-architecture.md` | ADR da decisao de arquitetura limpa com ports and adapters |
+| `docs/adr/ADR-002-event-driven-decoupling.md` | ADR da estrategia de desacoplamento interno com eventos |
+| `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md` | ADR da estrategia de soft delete e auditoria complementar |
+| `.agents/` | Diretorio de apoio do ambiente de agentes; sem impacto funcional na aplicacao |
 
 ---
 

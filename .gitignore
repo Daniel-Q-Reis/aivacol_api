@@ -4,20 +4,27 @@ node_modules/
 # Build artifacts
 dist/
 coverage/
+*.tsbuildinfo
 
 # Environment files
 .env
 .env.*
 !.env.example
+.env.local
+.env.production
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+typeorm*.log
 
 # OS / Editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+
+# Package manager and local tooling
+.npmrc

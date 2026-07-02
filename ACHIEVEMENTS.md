@@ -16,6 +16,9 @@
 - Revisão CTO aplicada nos pontos de auditoria global, Users, Swagger, lint, Git Fase 0 e decisões fechadas
 - Refinamento CTO aplicado: matriz de rastreabilidade, placeholders de segurança, padronização PowerShell/paths e Definition of Done por fase
 - Fase 0 — Preparação do Repositório concluída: Git inicializado e commit inicial criado
+- Polimento final de planejamento aplicado: README com checklist/diferenciais, API versionada (`/api/v1`), paginacao prevista, benchmark em runner dedicado e reforco de `.gitignore`
+- ADRs criados desde o planejamento em `docs/adr/` com contexto, decisao, beneficios e drawbacks
+- Decisao de ciclo de vida de dados revisada para soft delete no SQL Server com trilha complementar no MongoDB (compliance e rastreabilidade)
 
 ### 📝 Decisões Tomadas
 - Clean Architecture com Ports & Adapters
@@ -28,6 +31,8 @@
 - Auditoria MongoDB registra todas as interações de serviço; RabbitMQ permanece restrito a eventos de veículos
 - Exemplos de variáveis sensíveis usam placeholders `<CHANGE_ME_...>`
 - Testes padronizados em `test/unit` e `test/e2e`, com specs colocalizados permitidos quando fizer sentido
+- API versionada em `/api/v1` desde a fase de base
+- Listagens planejadas com paginação (`page`, `limit`, `sort`, `order`) e limites defensivos
 
 ### 🔜 Próximos Passos
 - Iniciar Fase 1 — Scaffolding e Infraestrutura Docker

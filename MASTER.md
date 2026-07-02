@@ -37,7 +37,7 @@ Plataforma de **Gestão de Frota** para a empresa Aivacol. Backend **pronto para
 | Auditoria | MongoDB (todas as interações de serviço) |
 | Observabilidade | Logs estruturados, Correlation IDs, Interceptor de requisições, ExceptionFilter global |
 | Testes | Jest — cobertura ≥ 90% (unitários + e2e) |
-| Benchmark | Autocannon — cache vs banco direto |
+| Benchmark | Autocannon — cache vs banco direto em runner dedicado |
 | Documentação | Swagger/OpenAPI + Coleção Postman |
 | CI | GitHub Actions (lint, typecheck, test) |
 | Containerização | Docker multistage + Docker Compose completo |
@@ -138,7 +138,13 @@ Service (Application Layer)
 
 Auditoria em MongoDB é obrigatória para **todas as interações de serviço**: autenticação, consultas e mutações de Vehicles, Models, Brands e Users. A mensageria RabbitMQ permanece restrita aos eventos de veículos exigidos no desafio.
 
-### 3.6 Estrutura de Pastas
+### 3.6 Versionamento e Paginação
+
+- Todas as rotas HTTP seguirão prefixo versionado: `/api/v1`.
+- Endpoints de listagem usarão paginação explícita (`page`, `limit`, `sort`, `order`) com limites defensivos.
+- Swagger deve documentar parâmetros de paginação e seus defaults.
+
+### 3.7 Estrutura de Pastas
 
 ```
 src/
@@ -290,7 +296,7 @@ Erro:
   "statusCode": 404,
   "message": "Vehicle not found",
   "timestamp": "2026-07-02T15:00:00.000Z",
-  "path": "/api/vehicles/123",
+  "path": "/api/v1/vehicles/123",
   "correlationId": "uuid-here"
 }
 ```
@@ -365,13 +371,13 @@ SEED_USER_PASSWORD=<CHANGE_ME_SEED_USER_PASSWORD>
 
 ## 7. Decisões Arquiteturais (ADRs)
 
-> ADRs completos serão criados no diretório `/docs/adr/` durante a implementação.
+> ADRs base já foram criados no diretório `/docs/adr/` e podem ser refinados durante a implementação.
 
 | ADR | Decisão | Justificativa |
 |---|---|---|
 | ADR-001 | Clean Architecture com Ports & Adapters | Desacoplamento total entre domínio e infraestrutura; facilita troca de tecnologias e testabilidade |
 | ADR-002 | EventEmitter2 para desacoplamento interno | Permite que mensageria (RabbitMQ) e auditoria (MongoDB) funcionem como observers sem acoplar ao fluxo principal de CRUD |
-| ADR-003 | ioredis direto (não cache-manager) | Controle fino sobre invalidação por pattern, reconnect, e operações avançadas; encapsulado atrás de `ICacheService` |
+| ADR-003 | Ciclo de vida de dados com soft delete + auditoria | Preserva histórico no banco relacional para compliance e operação, com trilha complementar no MongoDB |
 
 ---
 

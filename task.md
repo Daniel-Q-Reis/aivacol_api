@@ -89,7 +89,7 @@
 - [ ] `scripts/lint.ps1` — executa `npm run lint` + `npm run lint:fix` + `npm run typecheck` dentro do container
 - [ ] `scripts/migrate.ps1` — executa migrations TypeORM dentro do container
 - [ ] `scripts/seed.ps1` — executa seed do banco dentro do container
-- [ ] `scripts/benchmark.ps1` — executa Autocannon dentro do container
+- [ ] `scripts/benchmark.ps1` — executa Autocannon em runner dedicado (container separado da app)
 
 ### Validação Fase 1
 - [ ] `docker compose up --build` sobe todos os 5 serviços sem erros
@@ -103,7 +103,8 @@
 ## Fase 2 — Projeto NestJS Base + Configuração
 
 ### Scaffolding
-- [ ] Inicializar projeto NestJS dentro do container (`docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --strict`)
+- [ ] Inicializar projeto NestJS dentro do container (`docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --skip-install --strict`)
+- [ ] Garantir modo nao interativo do scaffolding no container (headless-safe)
 - [ ] Instalar dependências core:
   - [ ] `@nestjs/typeorm typeorm tedious` (SQL Server)
   - [ ] `@nestjs/mongoose mongoose` (MongoDB)
@@ -121,7 +122,7 @@
 - [ ] Configurar `src/main.ts`:
   - [ ] `ValidationPipe` global (whitelist, transform, forbidNonWhitelisted)
   - [ ] Swagger setup em `/api/docs` com Bearer Auth
-  - [ ] Prefixo global `/api`
+  - [ ] Prefixo global `/api/v1`
   - [ ] CORS habilitado
   - [ ] `enableShutdownHooks()`
   - [ ] Logger do NestJS
@@ -207,12 +208,12 @@
 
 ### Health Check
 - [ ] `src/common/controllers/health.controller.ts`
-  - [ ] `GET /api/health` — rota pública, retorna status de cada serviço
+  - [ ] `GET /api/v1/health` — rota pública, retorna status de cada serviço
   - [ ] Verificar conexões: SQL Server, Redis, RabbitMQ, MongoDB
 
 ### Validação Fase 3
 - [ ] Todas as rotas requerem JWT (401 sem token)
-- [ ] Rota `/api/health` funciona sem autenticação
+- [ ] Rota `/api/v1/health` funciona sem autenticação
 - [ ] Erros retornam formato padronizado com correlationId
 - [ ] Logs no console mostram método, rota, tempo, status
 - [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
@@ -401,7 +402,7 @@
   - [ ] Extrai token do header Authorization (Bearer)
   - [ ] Valida payload e retorna user
 - [ ] `src/modules/auth/presentation/controllers/auth.controller.ts`
-  - [ ] `POST /api/auth/login` — `@Public()`, `@ApiBody`, `@ApiOperation`
+  - [ ] `POST /api/v1/auth/login` — `@Public()`, `@ApiBody`, `@ApiOperation`
   - [ ] Retorna `{ access_token }` com `@ApiResponse(201)`
   - [ ] Documenta erros com `@ApiResponse(400)` e `@ApiResponse(401)`
 - [ ] `src/modules/auth/auth.module.ts`
@@ -415,8 +416,9 @@
     - [ ] Invalida cache Redis (`vehicles:*`)
     - [ ] Emite evento `vehicle.created` via EventEmitter2
     - [ ] Emite evento `audit.service_interaction`
-  - [ ] `findAll()`:
-    - [ ] Tenta buscar do cache (`vehicles:list`)
+  - [ ] `findAll(query)`:
+    - [ ] Suporta paginacao (`page`, `limit`, `sort`, `order`) com limites defensivos
+    - [ ] Tenta buscar do cache (`vehicles:list:{page}:{limit}:{sort}:{order}`)
     - [ ] Se miss, busca do DB, cacheia resultado
     - [ ] Retorna lista
     - [ ] Emite evento `audit.service_interaction`
@@ -434,7 +436,7 @@
     - [ ] Emite evento `audit.service_interaction`
   - [ ] `delete(id, userId)`:
     - [ ] Verifica existência
-    - [ ] Remove do DB
+    - [ ] Executa soft delete no DB relacional
     - [ ] Invalida cache
     - [ ] Emite evento `vehicle.deleted`
     - [ ] Emite evento `audit.service_interaction`
@@ -452,11 +454,11 @@
 - [ ] `src/modules/vehicles/presentation/controllers/vehicle.controller.ts`
   - [ ] `@ApiTags('vehicles')`, `@ApiBearerAuth()`, `@Controller('vehicles')`
   - [ ] Todos os endpoints com `@ApiOperation` e `@ApiResponse(401)`
-  - [ ] `GET /api/vehicles` — `@ApiResponse(200)`
-  - [ ] `GET /api/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)`
-  - [ ] `POST /api/vehicles` — `@ApiBody`, `@ApiResponse(201)`, `@ApiResponse(400)`
-  - [ ] `PATCH /api/vehicles/:id` — `@ApiParam('id')`, `@ApiBody`, `@ApiResponse(200)`, `@ApiResponse(400)`, `@ApiResponse(404)`
-  - [ ] `DELETE /api/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)`
+  - [ ] `GET /api/v1/vehicles` — `@ApiResponse(200)` + query params de paginacao
+  - [ ] `GET /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)`
+  - [ ] `POST /api/v1/vehicles` — `@ApiBody`, `@ApiResponse(201)`, `@ApiResponse(400)`
+  - [ ] `PATCH /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiBody`, `@ApiResponse(200)`, `@ApiResponse(400)`, `@ApiResponse(404)`
+  - [ ] `DELETE /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)` (soft delete)
   - [ ] Usa `@CurrentUser()` para extrair userId do JWT
 
 ### Model — CRUD completo
@@ -466,7 +468,7 @@
 - [ ] `src/modules/models/application/dtos/update-model.dto.ts`
 - [ ] `src/modules/models/application/dtos/model-response.dto.ts`
 - [ ] `src/modules/models/presentation/controllers/model.controller.ts`
-  - [ ] `POST /api/models`, `GET /api/models`, `GET /api/models/:id`, `PATCH /api/models/:id`, `DELETE /api/models/:id`
+  - [ ] `POST /api/v1/models`, `GET /api/v1/models`, `GET /api/v1/models/:id`, `PATCH /api/v1/models/:id`, `DELETE /api/v1/models/:id`
   - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
   - [ ] Rotas com `:id` documentadas com `@ApiParam('id')`
   - [ ] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
@@ -479,7 +481,7 @@
 - [ ] `src/modules/brands/application/dtos/update-brand.dto.ts`
 - [ ] `src/modules/brands/application/dtos/brand-response.dto.ts`
 - [ ] `src/modules/brands/presentation/controllers/brand.controller.ts`
-  - [ ] `POST /api/brands`, `GET /api/brands`, `GET /api/brands/:id`, `PATCH /api/brands/:id`, `DELETE /api/brands/:id`
+  - [ ] `POST /api/v1/brands`, `GET /api/v1/brands`, `GET /api/v1/brands/:id`, `PATCH /api/v1/brands/:id`, `DELETE /api/v1/brands/:id`
   - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
   - [ ] Rotas com `:id` documentadas com `@ApiParam('id')`
   - [ ] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
@@ -490,14 +492,15 @@
   - [ ] Emite evento `audit.service_interaction` em findAll e findById
 - [ ] `src/modules/users/application/dtos/user-response.dto.ts`
 - [ ] `src/modules/users/presentation/controllers/user.controller.ts`
-  - [ ] `GET /api/users`, `GET /api/users/:id`
+  - [ ] `GET /api/v1/users`, `GET /api/v1/users/:id`
   - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
-  - [ ] `GET /api/users` documentado com `@ApiResponse(200)`
-  - [ ] `GET /api/users/:id` documentado com `@ApiParam('id')`, `@ApiResponse(200)` e `@ApiResponse(404)`
+  - [ ] `GET /api/v1/users` documentado com `@ApiResponse(200)`
+  - [ ] `GET /api/v1/users/:id` documentado com `@ApiParam('id')`, `@ApiResponse(200)` e `@ApiResponse(404)`
 
 ### Validação Fase 6
-- [ ] Login funciona: `POST /api/auth/login` retorna JWT
+- [ ] Login funciona: `POST /api/v1/auth/login` retorna JWT
 - [ ] CRUD completo de vehicles funciona via Swagger
+- [ ] Listagens usam paginacao e limites defensivos
 - [ ] CRUD completo de models funciona via Swagger
 - [ ] CRUD completo de brands funciona via Swagger
 - [ ] Consulta de users funciona via Swagger
@@ -560,7 +563,7 @@
   - [ ] Buscar veículo inexistente → 404
 - [ ] `models.e2e-spec.ts` — CRUD completo via HTTP
 - [ ] `brands.e2e-spec.ts` — CRUD completo via HTTP
-- [ ] `health.e2e-spec.ts` — `GET /api/health` → 200
+- [ ] `health.e2e-spec.ts` — `GET /api/v1/health` → 200
 
 ### Coverage
 - [ ] Executar `npm run test:cov`
@@ -601,13 +604,13 @@
   - [ ] Contexto, decisão, consequências, alternativas consideradas
 - [ ] `docs/adr/ADR-002-event-driven-decoupling.md`
   - [ ] Por que EventEmitter2, por que não acoplamento direto
-- [ ] `docs/adr/ADR-003-redis-ioredis-direct.md`
-  - [ ] Por que ioredis direto em vez de cache-manager
+  - [ ] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
+  - [ ] Soft delete no SQL Server + trilha complementar no MongoDB (compliance e trade-offs)
 
 ### Benchmark
-- [ ] `scripts/benchmark.ts` (script Autocannon dentro do container)
-  - [ ] Teste 1: `GET /api/vehicles` com cache quente (Redis populado)
-  - [ ] Teste 2: `GET /api/vehicles` com cache frio (Redis limpo)
+- [ ] `scripts/benchmark.ts` (script Autocannon em runner dedicado)
+  - [ ] Teste 1: `GET /api/v1/vehicles` com cache quente (Redis populado)
+  - [ ] Teste 2: `GET /api/v1/vehicles` com cache frio (Redis limpo)
   - [ ] Output: comparação de latência e throughput
 - [ ] Documentar comando de benchmark no README
 

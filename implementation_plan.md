@@ -50,7 +50,7 @@
 | 1 | **Relacionamento `models ↔ brands`** | ✅ `models` terá FK `brand_id` → `brands` | O `objetivos.md` exige *"Associar models a uma brand"*. Relacionamento natural do domínio (ex: "Gol" pertence a "Volkswagen"). |
 | 2 | **Seed de veículos** | ✅ Dados brasileiros realistas | Placas Mercosul (`ABC1D23`), marcas nacionais (Fiat, VW, Chevrolet, Toyota), modelos reais (Argo, Gol, Onix, Corolla). Demonstra domínio do negócio. |
 | 3 | **Autenticação** | ✅ Login por `nickname + password` | O `objetivos.md` referencia o seed como `aivacol` (nickname). Mais prático para sistemas internos de frota. |
-| 4 | **Estratégia de delete** | ✅ Hard delete + auditoria MongoDB | O projeto já tem auditoria completa no MongoDB que registra todo delete com payload. Soft delete adicionaria complexidade desnecessária (filtros em toda query, conflitos de unique constraints). |
+| 4 | **Estratégia de delete** | ✅ Soft delete no SQL Server + auditoria MongoDB | Mantém histórico operacional no relacional, reforça compliance (ex: LGPD e trilhas de auditoria), e complementa rastreabilidade no MongoDB sem perda de contexto do dado principal. |
 | 5 | **Users** | ✅ Consulta, autenticação e relacionamento via `created_by` | O desafio exige `users` e seus relacionamentos, mas não lista Gestão de Users como CRUD funcional obrigatório. Evita expor mutação de usuários fora do escopo. |
 | 6 | **Auditoria** | ✅ Global para interações de serviço | MongoDB deve registrar autenticação, consultas e mutações de Vehicles, Models, Brands e Users. RabbitMQ permanece restrito a eventos de veículos. |
 
@@ -148,15 +148,17 @@ Inicialização do projeto NestJS e configuração de todos os módulos de infra
 
 #### [NEW] Projeto NestJS (via CLI no container)
 ```powershell
-docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --strict
+docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --skip-install --strict
 ```
+
+Observação: manter execução não interativa no container para evitar bloqueios em ambiente headless.
 
 #### [NEW] `src/main.ts`
 Bootstrap com:
 - `ValidationPipe` global
 - Swagger setup em `/api/docs`
 - CORS configurado
-- Prefixo `/api`
+- Prefixo `/api/v1`
 - Logger do NestJS
 
 #### [NEW] `src/app.module.ts`
@@ -358,17 +360,17 @@ DTO com `nickname` e `password`, validado com `class-validator`.
 Passport JWT Strategy para validar tokens.
 
 #### [NEW] `src/modules/auth/presentation/controllers/auth.controller.ts`
-`POST /api/auth/login` — rota pública.
+`POST /api/v1/auth/login` — rota pública.
 
 ---
 
 #### [NEW] `src/modules/vehicles/application/services/vehicle.service.ts`
 Use case completo:
 - `create(dto, userId)` — cria veículo, invalida cache, emite evento
-- `findAll()` — busca do cache, se miss busca do DB e cacheia
+- `findAll(query)` — paginação (`page`, `limit`, `sort`, `order`), busca do cache, se miss busca do DB e cacheia
 - `findById(id)` — busca do cache, se miss busca do DB e cacheia
 - `update(id, dto, userId)` — atualiza, invalida cache, emite evento
-- `delete(id, userId)` — remove, invalida cache, emite evento
+- `delete(id, userId)` — soft delete, invalida cache, emite evento
 - Todos os métodos emitem `audit.service_interaction`
 
 #### [NEW] `src/modules/vehicles/application/dtos/create-vehicle.dto.ts`
@@ -382,11 +384,11 @@ Mapper bidirecional: Domain ↔ ORM Entity ↔ Response DTO.
 
 #### [NEW] `src/modules/vehicles/presentation/controllers/vehicle.controller.ts`
 Controller REST com decorators Swagger completos:
-- `GET /api/vehicles` — listar todos
-- `GET /api/vehicles/:id` — buscar por ID
-- `POST /api/vehicles` — criar
-- `PATCH /api/vehicles/:id` — atualizar
-- `DELETE /api/vehicles/:id` — remover
+- `GET /api/v1/vehicles` — listar com paginação
+- `GET /api/v1/vehicles/:id` — buscar por ID
+- `POST /api/v1/vehicles` — criar
+- `PATCH /api/v1/vehicles/:id` — atualizar
+- `DELETE /api/v1/vehicles/:id` — remover (soft delete)
 
 #### [NEW] `src/infrastructure/audit/listeners/service-audit.listener.ts`
 Listener `@OnEvent('audit.service_interaction')` que grava no MongoDB todas as interações de serviço via `IAuditLogger`. Cobre autenticação, consultas e mutações de Vehicles, Models, Brands e Users. **Nunca relança exceção.**
@@ -458,13 +460,13 @@ ADR sobre escolha de Clean Architecture.
 #### [NEW] `docs/adr/ADR-002-event-driven-decoupling.md`
 ADR sobre EventEmitter2 para desacoplamento.
 
-#### [NEW] `docs/adr/ADR-003-redis-ioredis-direct.md`
-ADR sobre uso direto de ioredis.
+#### [NEW] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
+ADR sobre ciclo de vida de dados (soft delete no relacional + trilha complementar no MongoDB), incluindo ganhos e trade-offs.
 
 #### [NEW] `scripts/benchmark.ps1` (já previsto na Fase 1)
-Script que executa Autocannon contra:
-1. `GET /api/vehicles` (com cache quente)
-2. `GET /api/vehicles` (com cache frio / invalidado)
+Script que executa Autocannon em runner dedicado (container separado da app) contra:
+1. `GET /api/v1/vehicles` (com cache quente)
+2. `GET /api/v1/vehicles` (com cache frio / invalidado)
 
 #### [NEW] `aivacol-postman-collection.json`
 Coleção Postman exportada do Swagger JSON, na raiz do projeto.
