@@ -28,3 +28,6 @@ Thumbs.db
 
 # Package manager and local tooling
 .npmrc
+
+# Agent workspace artifacts
+.agents/

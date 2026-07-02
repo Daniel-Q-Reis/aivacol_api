@@ -92,6 +92,8 @@
 - [ ] Configurar rede interna `aivacol-network`
 - [ ] Configurar named volumes para persistência de dados
 - [ ] Configurar `depends_on` com conditions (health checks)
+- [ ] Implementar espera ativa no `app` para dependências (`sqlserver`, `redis`, `rabbitmq`, `mongodb`) antes do bootstrap
+- [ ] Garantir ordem determinística de subida: `migrate.ps1` -> `seed.ps1` -> `dev.ps1`
 
 ### Dockerfile
 - [ ] Criar `Dockerfile` multistage:
@@ -116,6 +118,7 @@
 - [ ] `scripts/migrate.ps1` — executa migrations TypeORM dentro do container
 - [ ] `scripts/seed.ps1` — executa seed do banco dentro do container
 - [ ] `scripts/benchmark.ps1` — executa Autocannon em runner dedicado (container separado da app)
+- [ ] `scripts/benchmark.ts` — implementa cenários Autocannon; chamado pelo `scripts/benchmark.ps1`
 
 ### Validação Fase 1
 - [ ] `docker compose up --build` sobe todos os 5 serviços sem erros
@@ -175,6 +178,8 @@
 - [ ] Configurar `tsconfig.json` com strict mode e paths aliases
 - [ ] Configurar `tsconfig.build.json`
 - [ ] Configurar `nest-cli.json` com Swagger CLI plugin
+- [ ] Fixar versões exatas de dependências diretas no `package.json` (sem `^` e sem `~`)
+- [ ] Garantir `package-lock.json` versionado e consistente com a árvore de dependências
 - [ ] Adicionar scripts no `package.json`:
   - [ ] `lint`, `lint:fix`, `typecheck`
   - [ ] `test`, `test:cov`, `test:watch`
@@ -236,12 +241,12 @@
 
 ### Health Check
 - [ ] `src/common/controllers/health.controller.ts`
-  - [ ] `GET /api/v1/health` — rota pública, retorna status de cada serviço
+  - [ ] `GET /api/v1/health` — rota protegida por JWT, retorna status de cada serviço
   - [ ] Verificar conexões: SQL Server, Redis, RabbitMQ, MongoDB
 
 ### Validação Fase 3
 - [ ] Todas as rotas requerem JWT (401 sem token)
-- [ ] Rota `/api/v1/health` funciona sem autenticação
+- [ ] Rota `/api/v1/health` exige autenticação e retorna 401 sem token
 - [ ] Erros retornam formato padronizado com correlationId
 - [ ] Logs no console mostram método, rota, tempo, status
 - [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
@@ -322,7 +327,8 @@
 - [ ] `src/modules/brands/infrastructure/persistence/entities/brand.orm-entity.ts`
   - [ ] `@Entity('brands')`
 - [ ] `src/modules/users/infrastructure/persistence/entities/user.orm-entity.ts`
-  - [ ] `@Entity('users')` com campo `password_hash`
+  - [ ] `@Entity('users')` com `nickname`, `name`, `email`, metadados (`created_at`, `updated_at`, `created_by`) e campo técnico `password_hash`
+  - [ ] Documentar no README que `password_hash` é extensão técnica para autenticação JWT e não faz parte do contrato público
 
 ### Mappers (Domain ↔ ORM)
 - [ ] `src/modules/vehicles/application/mappers/vehicle.mapper.ts` — toDomain / toOrm
@@ -355,6 +361,7 @@
 - [ ] `src/infrastructure/messaging/rabbitmq-event-publisher.ts`
   - [ ] Implementa `IEventPublisher`
   - [ ] Usa `@golevelup/nestjs-rabbitmq` (`AmqpConnection`)
+  - [ ] Registrar trade-off da escolha (`@golevelup/nestjs-rabbitmq` vs `@nestjs/microservices`) em ADR e README
   - [ ] Publica em exchange `fleet-events` com routing key por tipo de evento
   - [ ] Publisher confirms habilitado para confirmação de entrega
   - [ ] Publicação com roteamento obrigatório e tratamento de unroutable messages
@@ -378,11 +385,12 @@
 ### Event Listeners (Desacoplamento)
 - [ ] `src/infrastructure/audit/listeners/service-audit.listener.ts`
   - [ ] `@OnEvent('audit.service_interaction', { async: true })`
-  - [ ] Registra `AUTH` + `MUTATION` por padrão; `READ` habilitável por ambiente com sampling
+  - [ ] Registra `AUTH`, `READ` e `MUTATION` (todas as interações de serviço)
   - [ ] Chama `IAuditLogger.log()` dentro de try-catch
   - [ ] **NUNCA relança exceção**
 - [ ] `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`
-  - [ ] `@OnEvent('vehicle.*', { async: true })`
+  - [ ] `@OnEvent('vehicle.created', { async: true })`
+  - [ ] `@OnEvent('vehicle.updated', { async: true })`
   - [ ] Chama `IEventPublisher.publish()` dentro de try-catch
   - [ ] Inclui `eventId` para idempotência de consumo
   - [ ] **NUNCA relança exceção**
@@ -475,7 +483,7 @@
     - [ ] Verifica existência
     - [ ] Executa soft delete no DB relacional
     - [ ] Invalida cache
-    - [ ] Emite evento `vehicle.deleted`
+    - [ ] Não publica evento RabbitMQ (escopo obrigatório limitado a `vehicle.created` e `vehicle.updated`)
     - [ ] Emite evento `audit.service_interaction`
 
 ### Vehicle — DTOs
@@ -605,6 +613,8 @@
 - [ ] `models.e2e-spec.ts` — CRUD completo via HTTP
 - [ ] `brands.e2e-spec.ts` — CRUD completo via HTTP
 - [ ] `health.e2e-spec.ts` — `GET /api/v1/health` → 200
+  - [ ] Sem token → 401
+  - [ ] Com token válido → 200
 
 ### Coverage
 - [ ] Executar `npm run test:cov`
@@ -654,6 +664,7 @@
   - [ ] Teste 2: `GET /api/v1/vehicles` com cache frio (Redis limpo)
   - [ ] Output: comparação de latência e throughput
 - [ ] Documentar comando de benchmark no README
+- [ ] Garantir `scripts/benchmark.ps1` como ponto de entrada oficial chamando `scripts/benchmark.ts`
 
 ### Runbook Operacional
 - [ ] `docs/runbooks/infra-contingency.md`

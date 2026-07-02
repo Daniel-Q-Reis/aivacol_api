@@ -29,13 +29,13 @@ Importante: este repositorio esta em fase de planejamento. Nenhum codigo de apli
 | CRUD Models | 📋 Planejado | Fases 4-7 |
 | CRUD Brands | 📋 Planejado | Fases 4-7 |
 | Users e relacionamento | 📋 Planejado | Seed, autenticacao e consultas protegidas |
-| JWT em rotas | 📋 Planejado | Guard global + `@Public()` apenas login/health |
+| JWT em rotas | 📋 Planejado | Guard global + `@Public()` apenas login |
 | Redis cache em vehicles | 📋 Planejado | TTL configuravel + invalidacao automatica |
 | Swagger/OpenAPI | 📋 Planejado | `/api/docs` com decorators obrigatorios |
 | Postman collection | 📋 Planejado | Entrega prevista na raiz |
 | Observabilidade | 📋 Planejado | Correlation ID, logging interceptor e filter global |
 | RabbitMQ | 📋 Planejado | Estrategia de producao: confirmacao, retry, DLQ e idempotencia |
-| Auditoria MongoDB | 📋 Planejado | Default em auth+mutações; leitura configuravel por nivel |
+| Auditoria MongoDB | 📋 Planejado | Todas as interacoes de servico: AUTH, READ e MUTATION |
 | Docker multistage + Compose | 📋 Planejado | Fase 1 |
 | Testes >= 90% | 📋 Planejado | Fase 7 |
 | Benchmark | 📋 Planejado | Autocannon em runner dedicado |
@@ -49,6 +49,15 @@ Importante: este repositorio esta em fase de planejamento. Nenhum codigo de apli
 - Estrategia de ciclo de vida de dados: soft delete no relacional para historico e compliance, com politica de unicidade para registros ativos.
 - Planejamento orientado a evidencia (Definition of Done por fase + `struct.md` como fonte de verdade de arquivos).
 - Versionamento de API e paginacao previstos desde a base para evolucao sem breaking changes.
+- `scripts/benchmark.ps1` e o entrypoint oficial e delega a carga para `scripts/benchmark.ts`, evitando ambiguidade entre shell e script de benchmark.
+- Campo tecnico `password_hash` em users foi adicionado apenas para viabilizar JWT, sem exposicao no contrato publico.
+- Trade-off de mensageria documentado: `@golevelup/nestjs-rabbitmq` priorizado sobre `@nestjs/microservices` para melhor ergonomia com confirm, retry e DLQ.
+
+### Observacao operacional sobre healthcheck
+
+- Para aderencia literal ao desafio (`todas as rotas devem ser protegidas`), o endpoint de health permanece protegido por JWT.
+- A verificacao de liveness no Docker/infra deve ser feita por checks de container/processo, sem expor endpoint publico adicional.
+- A verificacao funcional detalhada (readiness com dependencias) usa o endpoint autenticado em fluxos internos de teste e validacao.
 
 ## Artefatos de planejamento
 

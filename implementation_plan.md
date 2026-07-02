@@ -28,7 +28,7 @@
 > **Decisões técnicas aprovadas antes da execução:**
 > 1. O projeto será inicializado com `@nestjs/cli` via Docker (sem necessidade de Node.js local)
 > 2. `ioredis` será usado diretamente (em vez de `cache-manager`) para controle fino de invalidação por pattern
-> 3. `@golevelup/nestjs-rabbitmq` será o pacote para RabbitMQ (mais NestJS-nativo que `@nestjs/microservices`)
+> 3. `@golevelup/nestjs-rabbitmq` será o pacote para RabbitMQ (mais aderente a confirmação de publicação, DLQ e controle fino que `@nestjs/microservices` para este caso)
 > 4. Entidades de domínio serão classes TypeScript puras, separadas das ORM Entities do TypeORM
 > 5. `EventEmitter2` será o mecanismo de desacoplamento entre CRUD e listeners de auditoria/mensageria
 > 6. Benchmark usará Autocannon (Node.js nativo, mais simples que k6 em Docker)
@@ -52,7 +52,11 @@
 | 3 | **Autenticação** | ✅ Login por `nickname + password` | O `objetivos.md` referencia o seed como `aivacol` (nickname). Mais prático para sistemas internos de frota. |
 | 4 | **Estratégia de delete** | ✅ Soft delete no SQL Server + auditoria MongoDB | Mantém histórico operacional no relacional, reforça compliance (ex: LGPD e trilhas de auditoria), e complementa rastreabilidade no MongoDB sem perda de contexto do dado principal. |
 | 5 | **Users** | ✅ Consulta, autenticação e relacionamento via `created_by` | O desafio exige `users` e seus relacionamentos, mas não lista Gestão de Users como CRUD funcional obrigatório. Evita expor mutação de usuários fora do escopo. |
-| 6 | **Auditoria** | ✅ Configurável por nível | Produção por padrão audita `AUTH` e `MUTATION`; `READ` é opcional por ambiente com sampling. RabbitMQ permanece restrito a eventos de veículos. |
+| 6 | **Auditoria** | ✅ Todas as interações de serviço | `AUTH`, `READ` e `MUTATION` serão auditados no MongoDB para aderir literalmente ao requisito de registrar todas as interações. |
+| 7 | **Campo `password_hash` em users** | ✅ Extensão técnica necessária | Embora o escopo mínimo de `users` cite `id`, `nickname`, `name` e `email`, o campo técnico `password_hash` é obrigatório para JWT e não será exposto nos contratos públicos. |
+| 8 | **Benchmark** | ✅ Contrato único de execução | `scripts/benchmark.ps1` é o ponto de entrada oficial; ele chama `scripts/benchmark.ts` (Autocannon) para evitar ambiguidade entre shell e script de carga. |
+| 9 | **Startup orchestration Docker** | ✅ Determinístico com espera ativa | O `app` só inicia após dependências saudáveis e após checagens de conectividade; migrations e seed rodam em ordem controlada para evitar falhas intermitentes. |
+| 10 | **Versionamento de dependências** | ✅ Versões fixas | Dependências diretas no `package.json` sem `^`/`~`, lockfile versionado e atualização controlada por PR dedicado. |
 
 ---
 
@@ -101,6 +105,11 @@ Docker Compose com 5 serviços:
 
 Health checks em todos os serviços. Named volumes para persistência. Rede interna `aivacol-network`.
 
+Orquestração de startup obrigatória:
+- `depends_on` com `condition: service_healthy` para `sqlserver`, `redis`, `rabbitmq` e `mongodb`.
+- `app` deve executar wait ativo antes de subir (ex.: script `wait-for-deps.ps1`/Node) validando porta TCP + tentativa simples de conexão por serviço.
+- Migrations e seed **não** rodam automaticamente no boot cego da aplicação; execução em sequência controlada via scripts (`migrate.ps1` -> `seed.ps1` -> `dev.ps1`).
+
 #### [NEW] `Dockerfile`
 Multistage build:
 - **Stage 1 (dev)**: `node:18-alpine`, instala deps, monta volume para hot-reload
@@ -138,7 +147,10 @@ Executa migrations do TypeORM dentro do container.
 Executa seed do banco dentro do container.
 
 #### [NEW] `scripts/benchmark.ps1`
-Executa benchmark Autocannon em runner dedicado (container separado da app).
+Ponto de entrada oficial para benchmark. Executa `scripts/benchmark.ts` (Autocannon) em runner dedicado (container separado da app).
+
+#### [NEW] `scripts/benchmark.ts`
+Script Node/TypeScript com os cenários de carga (cache quente e cache frio) chamado pelo `scripts/benchmark.ps1`.
 
 #### [NEW] `docs/runbooks/infra-contingency.md`
 Runbook de contingência para execução local em produção-like:
@@ -160,6 +172,11 @@ docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-g
 ```
 
 Observação: manter execução não interativa no container para evitar bloqueios em ambiente headless.
+
+Política de versionamento para reprodutibilidade:
+- Dependências diretas devem ser fixadas com versões exatas no `package.json` (sem `^` e sem `~`).
+- `package-lock.json` é obrigatório e versionado.
+- Atualizações de versão devem ocorrer por PR dedicado com evidência de regressão inexistente (lint, typecheck, testes).
 
 #### [NEW] `src/main.ts`
 Bootstrap com:
@@ -241,7 +258,7 @@ Custom decorator `@CurrentUser()` para extrair user do JWT.
 Guard global que protege todas as rotas (exceto as marcadas com `@Public()`).
 
 #### [NEW] `src/common/decorators/public.decorator.ts`
-Decorator `@Public()` para marcar rotas abertas (login, health).
+Decorator `@Public()` para marcar rotas abertas (somente login no escopo atual).
 
 ---
 
@@ -318,7 +335,7 @@ Entidade TypeORM para `brands`.
 Implementação de `IBrandRepository`.
 
 #### [NEW] `src/modules/users/infrastructure/persistence/entities/user.orm-entity.ts`
-Entidade TypeORM para `users` (com campo `password_hash`).
+Entidade TypeORM para `users` com metadados obrigatórios (`created_at`, `updated_at`, `created_by`) e campo técnico `password_hash` (não exposto na API).
 
 #### [NEW] `src/modules/users/infrastructure/persistence/repositories/typeorm-user.repository.ts`
 Implementação de `IUserRepository`.
@@ -384,7 +401,7 @@ Use case completo:
 - `findAll(query)` — paginação (`page`, `limit`, `sort`, `order`), busca do cache, se miss busca do DB e cacheia
 - `findById(id)` — busca do cache, se miss busca do DB e cacheia
 - `update(id, dto, userId)` — atualiza, invalida cache, emite evento
-- `delete(id, userId)` — soft delete, invalida cache, emite evento
+- `delete(id, userId)` — soft delete, invalida cache, sem publicação RabbitMQ (fora do escopo obrigatório)
 - Todos os métodos emitem `audit.service_interaction`
 
 #### [NEW] `src/modules/vehicles/application/dtos/create-vehicle.dto.ts`
@@ -405,17 +422,17 @@ Controller REST com decorators Swagger completos:
 - `DELETE /api/v1/vehicles/:id` — remover (soft delete)
 
 #### [NEW] `src/infrastructure/audit/listeners/service-audit.listener.ts`
-Listener `@OnEvent('audit.service_interaction')` que grava no MongoDB via `IAuditLogger` com nível configurável por ambiente: padrão `AUTH` + `MUTATION`; `READ` opcional com sampling. **Nunca relança exceção.**
+Listener `@OnEvent('audit.service_interaction')` que grava no MongoDB via `IAuditLogger` para todas as interações (`AUTH`, `READ`, `MUTATION`). **Nunca relança exceção.**
 
 #### [NEW] `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`
-Listener `@OnEvent('vehicle.*')` que publica no RabbitMQ via `IEventPublisher`. **Nunca relança exceção.**
+Listener `@OnEvent('vehicle.created|vehicle.updated')` que publica no RabbitMQ via `IEventPublisher`. **Nunca relança exceção.**
 
 ---
 
 > **Models, Brands e Users seguem a mesma estrutura de Vehicle**, com as seguintes diferenças:
 > - **Models**: CRUD + associação com brand (`brand_id`)
 > - **Brands**: CRUD simples
-> - **Users**: Consulta protegida, autenticação e relacionamento via `created_by` (sem CRUD público completo)
+> - **Users**: Consulta protegida, autenticação e relacionamento via `created_by` (sem CRUD público completo), incluindo `password_hash` apenas para autenticação
 > - **Models, Brands e Users**: Sem mensageria RabbitMQ; auditoria global obrigatória via `audit.service_interaction`
 
 ---
@@ -478,7 +495,7 @@ ADR sobre EventEmitter2 para desacoplamento.
 ADR sobre ciclo de vida de dados (soft delete no relacional + trilha complementar no MongoDB), incluindo ganhos e trade-offs.
 
 #### [NEW] `scripts/benchmark.ps1` (já previsto na Fase 1)
-Script que executa Autocannon em runner dedicado (container separado da app) contra:
+Script oficial de execução que chama `scripts/benchmark.ts` e executa Autocannon em runner dedicado (container separado da app) contra:
 1. `GET /api/v1/vehicles` (com cache quente)
 2. `GET /api/v1/vehicles` (com cache frio / invalidado)
 
@@ -541,6 +558,7 @@ jobs:
 6. **NUNCA** pular testes — cada fase inclui validação
 7. **NUNCA** acoplar domínio a infraestrutura
 8. **Manter lint:fix e typecheck** passando a cada commit
+9. **Fixar versões de dependências diretas** no `package.json` (sem `^`/`~`) e manter lockfile versionado
 
 ---
 

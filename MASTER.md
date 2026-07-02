@@ -34,8 +34,8 @@ Plataforma de **Gestão de Frota** para a empresa Aivacol. Backend **pronto para
 | Capacidade | Descrição |
 |---|---|
 | CRUD obrigatório | Vehicles, Models, Brands |
-| Users | Seed, autenticação, relacionamento via `created_by` e consultas protegidas |
-| Autenticação | JWT em todas as rotas |
+| Users | Seed, autenticação, relacionamento via `created_by` e consultas protegidas (`password_hash` técnico, não exposto) |
+| Autenticação | JWT em todas as rotas de negócio (login é exceção técnica) |
 | Cache | Redis com invalidação automática |
 | Mensageria | RabbitMQ (eventos de criação/atualização de veículos) |
 | Auditoria | MongoDB (todas as interações de serviço) |
@@ -67,7 +67,7 @@ Plataforma de **Gestão de Frota** para a empresa Aivacol. Backend **pronto para
 | Clean Architecture e DIP | Fases 3, 4, 5 e 6 do `task.md` | Domínio sem imports de framework; services dependem de portas |
 | CRUD Vehicles, Models e Brands | Fases 4, 5, 6 e 7 do `task.md` | Endpoints protegidos, migrations, services, testes e Swagger |
 | Users e relacionamentos | Fases 4, 5, 6 e 7 do `task.md` | Seed `aivacol`, autenticação, consultas protegidas e `created_by` |
-| JWT em rotas protegidas | Fases 3, 6 e 7 do `task.md` | Guard global, `@Public()` apenas em login/health, testes 401 |
+| JWT em rotas protegidas | Fases 3, 6 e 7 do `task.md` | Guard global, `@Public()` apenas em login, testes 401 |
 | Redis Cache em veículos | Fases 5, 6, 7 e 8 do `task.md` | Cache hit/miss, TTL configurável, invalidação e benchmark |
 | Swagger e Postman | Fases 6 e 8 do `task.md` | `/api/docs`, decorators completos e coleção JSON na raiz |
 | Observabilidade e erros | Fases 3, 6 e 7 do `task.md` | Correlation ID, logs estruturados, interceptor e exception filter |
@@ -140,10 +140,11 @@ Service (Application Layer)
 
 ### 3.5 Escopo de Auditoria
 
-Auditoria em MongoDB é obrigatória e configurável por nível:
+Auditoria em MongoDB é obrigatória para **todas as interações de serviço**:
 
-- Padrão de produção: `AUTH` + `MUTATION` (login e operações de escrita)
-- Opcional por ambiente: `READ` (consultas), com sampling para controle de volume
+- `AUTH` (autenticação)
+- `READ` (consultas)
+- `MUTATION` (operações de escrita)
 
 A mensageria RabbitMQ permanece restrita aos eventos de veículos exigidos no desafio.
 
@@ -267,7 +268,7 @@ src/
 | R2 | **Inversão de Dependência** — Services dependem APENAS de interfaces/portas |
 | R3 | **Resiliência** — Falha em RabbitMQ/MongoDB NUNCA interrompe CRUD |
 | R4 | **Metadados** — `created_at`, `updated_at`, `created_by` em TODAS as entidades |
-| R5 | **JWT** — TODAS as rotas protegidas (exceto login e health) |
+| R5 | **JWT** — TODAS as rotas protegidas (exceto login) |
 | R6 | **Cobertura** — Testes ≥ 90% (unitários + e2e) |
 | R7 | **Docker** — Todo desenvolvimento via Docker Compose, ZERO instalação local extra |
 | R8 | **PowerShell** — Todos os comandos compatíveis com PowerShell no Windows |
@@ -394,6 +395,18 @@ SEED_USER_PASSWORD=<CHANGE_ME_SEED_USER_PASSWORD>
 | ESLint + Prettier | — | Linting e formatação |
 | Docker + Docker Compose | — | Containerização |
 | GitHub Actions | — | CI |
+
+### 6.1 Política de Versionamento
+
+- Dependências diretas do `package.json` devem usar versões fixas (sem `^` e sem `~`) para garantir reprodutibilidade entre sessões de IA.
+- `package-lock.json` deve permanecer versionado e atualizado a cada alteração de dependência.
+- Atualizações de versão devem ser feitas em PR dedicado com validação completa (`lint`, `typecheck`, `test`, `test:e2e`).
+
+### 6.2 Trade-off de Mensageria
+
+- Escolha atual: `@golevelup/nestjs-rabbitmq` para melhor suporte prático a `publisher confirms`, configuração de DLQ e integração orientada a publicação.
+- Alternativa considerada: `@nestjs/microservices` (oficial Nest), com maior padronização, porém com menor ergonomia para os requisitos específicos de publicação resiliente definidos neste projeto.
+- A decisão e seus trade-offs devem permanecer rastreados em ADR e no README.
 
 ---
 
