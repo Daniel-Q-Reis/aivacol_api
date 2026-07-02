@@ -13,8 +13,8 @@
 - Criação do `task.md` (checklist granular com ~200 itens)
 - Criação do `struct.md` (mapa de arquivos)
 - Criação do `ACHIEVEMENTS.md` (este arquivo)
-- Revisão CTO aplicada nos pontos de auditoria global, Users, Swagger, lint, Git Fase 0 e decisões fechadas
-- Refinamento CTO aplicado: matriz de rastreabilidade, placeholders de segurança, padronização PowerShell/paths e Definition of Done por fase
+- Auto-revisão de consistência aplicada nos pontos de auditoria global, Users, Swagger, lint, Git Fase 0 e decisões fechadas
+- Refinamento de planejamento aplicado: matriz de rastreabilidade, placeholders de segurança, padronização PowerShell/paths e Definition of Done por fase
 - Fase 0 — Preparação do Repositório concluída: Git inicializado e commit inicial criado
 - Polimento final de planejamento aplicado: README com checklist/diferenciais, API versionada (`/api/v1`), paginacao prevista, benchmark em runner dedicado e reforco de `.gitignore`
 - ADRs criados desde o planejamento em `docs/adr/` com contexto, decisao, beneficios e drawbacks
