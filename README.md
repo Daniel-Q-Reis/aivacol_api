@@ -11,7 +11,7 @@ Importante: este repositorio esta em fase de planejamento. Nenhum codigo de apli
 - Arquitetura: Clean Architecture (Ports and Adapters)
 - Stack alvo: NestJS 10+, TypeORM, SQL Server, Redis, RabbitMQ, MongoDB, JWT, Jest
 - Entidades principais: vehicles, models, brands, users
-- Requisitos de qualidade: cobertura >= 90%, Swagger em `/api/docs`, Docker Compose completo, CI de qualidade
+- Requisitos de qualidade: cobertura >= 90%, Swagger em `/api/docs`, Docker Compose completo, CI de qualidade, throttling global
 
 ## Como o projeto sera executado
 
@@ -47,6 +47,8 @@ Politica final de autenticacao e Swagger:
 | Benchmark | 📋 Planejado | Autocannon em runner dedicado |
 | CI (GitHub Actions) | 📋 Planejado | lint + typecheck + test |
 | Lint, lint:fix, typecheck | 📋 Planejado | Scripts e gates por fase |
+| Catálogo de erros versionável | 📋 Planejado | `code` estável por erro + tabela no README |
+| Throttling / Rate limiting | 📋 Planejado | Limites por env + retorno `429` |
 
 ## 🚀 Diferenciais de Engenharia
 
@@ -61,9 +63,24 @@ Politica final de autenticacao e Swagger:
 
 ### Observacao operacional sobre healthcheck
 
-- Para aderencia literal ao desafio (`todas as rotas devem ser protegidas`), o endpoint de health permanece protegido por JWT.
-- A verificacao de liveness no Docker/infra deve ser feita por checks de container/processo, sem expor endpoint publico adicional.
-- A verificacao funcional detalhada (readiness com dependencias) usa o endpoint autenticado em fluxos internos de teste e validacao.
+Para aderencia literal ao desafio (`todas as rotas devem ser protegidas`), o endpoint de health permanece protegido por JWT; liveness da infraestrutura e feito por healthchecks de container/processo, enquanto a verificacao funcional de dependencias ocorre via endpoint autenticado em testes internos.
+
+### Benchmark runner
+
+- O benchmark usa runner dedicado no Docker (`benchmark-runner`) para evitar interferencia no processo da API.
+- O alvo padrao do Autocannon e `http://app:3000` na rede interna do Compose.
+
+### Postman collection (padrao de entrega)
+
+- Variaveis obrigatorias: `base_url`, `nickname`, `password`, `token`.
+- Pre-request script em nivel de collection para obter/renovar token automaticamente.
+- Exemplos de request/response para cenarios de sucesso e principais erros.
+
+### Erros e limites
+
+- O projeto mantera catalogo de erros versionavel com `code` estavel por contrato.
+- Conflitos de unicidade (placa/chassi/renavam) serao tratados como `409 Conflict`.
+- Rate limiting global sera aplicado com retorno `429` (`RATE_LIMIT_EXCEEDED`) quando o limite for excedido.
 
 ## Artefatos de planejamento
 

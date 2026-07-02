@@ -289,6 +289,7 @@ src/
 | R16 | **Config fail-fast** — Variáveis obrigatórias devem ser validadas no startup; ausência/inconsistência deve bloquear bootstrap |
 | R17 | **Sem magic numbers/strings de domínio** — Regras e constantes de negócio devem ser centralizadas e nomeadas |
 | R18 | **Catálogo de erros versionável** — Todo erro de API deve ter `code` único, estável e rastreável |
+| R19 | **Rate limiting obrigatório** — Rotas de API devem aplicar throttling com resposta `429` e código estável |
 
 ---
 
@@ -349,6 +350,23 @@ Erro:
 }
 ```
 
+### 5.4 Catálogo de Erros (versão inicial)
+
+| Code | HTTP | Mensagem PT-BR | Contexto |
+|---|---:|---|---|
+| `INVALID_CREDENTIALS` | 401 | Nickname ou senha inválidos | Login com credenciais incorretas |
+| `UNAUTHORIZED` | 401 | Token ausente ou inválido | Acesso sem JWT válido |
+| `FORBIDDEN` | 403 | Você não tem permissão para este recurso | Regra de autorização negada |
+| `VEHICLE_NOT_FOUND` | 404 | Veículo não encontrado | Consulta por ID inexistente |
+| `MODEL_NOT_FOUND` | 404 | Modelo não encontrado | Consulta por ID inexistente |
+| `BRAND_NOT_FOUND` | 404 | Marca não encontrada | Consulta por ID inexistente |
+| `USER_NOT_FOUND` | 404 | Usuário não encontrado | Consulta por ID inexistente |
+| `DUPLICATE_LICENSE_PLATE` | 409 | Placa já cadastrada | Conflito de unicidade para ativo |
+| `DUPLICATE_CHASSIS` | 409 | Chassi já cadastrado | Conflito de unicidade para ativo |
+| `DUPLICATE_RENAVAM` | 409 | Renavam já cadastrado | Conflito de unicidade para ativo |
+| `RATE_LIMIT_EXCEEDED` | 429 | Limite de requisições excedido, tente novamente em instantes | Proteção contra abuso |
+| `INTERNAL_SERVER_ERROR` | 500 | Erro interno do servidor | Falha não mapeada |
+
 ### 5.5 Política de Idioma (Código x Usuário Final)
 
 | Contexto | Regra obrigatória |
@@ -376,12 +394,13 @@ Guardrails:
 | Erros de API | Usar catálogo versionável com `code` único por caso de erro |
 | Estabilidade de contrato | `code` não deve mudar sem justificativa e versão/documentação |
 
-### 5.4 Variáveis de Ambiente
+### 5.7 Variáveis de Ambiente
 
 ```env
 # Application
 APP_PORT=3000
 NODE_ENV=development
+CORS_ORIGINS=http://localhost:3000
 
 # SQL Server
 DB_HOST=sqlserver
@@ -389,6 +408,9 @@ DB_PORT=1433
 DB_USERNAME=sa
 DB_PASSWORD=<CHANGE_ME_DB_PASSWORD>
 DB_DATABASE=aivacol_fleet
+DB_POOL_MIN=2
+DB_POOL_MAX=10
+DB_CONNECTION_TIMEOUT_MS=30000
 
 # Redis
 REDIS_HOST=redis
@@ -407,6 +429,10 @@ MONGO_URI=mongodb://mongodb:27017/aivacol_audit
 # JWT
 JWT_SECRET=<CHANGE_ME_JWT_SECRET>
 JWT_EXPIRES_IN=1h
+
+# Rate limiting
+THROTTLE_TTL_SECONDS=60
+THROTTLE_LIMIT=100
 
 # Seed User
 SEED_USER_NICKNAME=aivacol
@@ -465,6 +491,7 @@ SEED_USER_PASSWORD=<CHANGE_ME_SEED_USER_PASSWORD>
 | ADR-001 | Clean Architecture com Ports & Adapters | Desacoplamento total entre domínio e infraestrutura; facilita troca de tecnologias e testabilidade |
 | ADR-002 | EventEmitter2 para desacoplamento interno | Permite que mensageria (RabbitMQ) e auditoria (MongoDB) funcionem como observers sem acoplar ao fluxo principal de CRUD |
 | ADR-003 | Ciclo de vida de dados com soft delete + auditoria | Preserva histórico no banco relacional para compliance e operação, com trilha complementar no MongoDB |
+| ADR-004 | Índices únicos filtrados no SQL Server via migration raw | Garante unicidade de ativos com soft delete apesar de limitação prática de decorators no TypeORM |
 
 ### 7.1 Diretriz de Implementação Crítica
 
@@ -554,13 +581,14 @@ Ao final de cada bloco/fase de implementação, a IA executora DEVE atualizar o 
 | Gate | Comando | Exigência |
 |------|---------|-----------|
 | Lint | `npm run lint` | Zero erros |
-| Lint Fix | `npm run lint:fix` | Zero erros residuais |
+| Lint Fix (local) | `npm run lint:fix` | Executar antes do commit para auto-correção local |
 | Typecheck | `npm run typecheck` | Zero erros de tipo |
 | Testes unitários | `npm run test` | 100% passando |
 | Cobertura | `npm run test:cov` | ≥ 90% (lines, functions, statements) |
 | Testes E2E | `npm run test:e2e` | 100% passando |
 
 > Os comandos acima devem ser executados dentro do container Docker via scripts PowerShell em `scripts/`.
+> No CI, validar somente (`lint`, `typecheck`, `test` e `test:e2e` quando aplicável), sem auto-correção.
 
 ### 12.2 Justificativa
 

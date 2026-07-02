@@ -49,7 +49,7 @@
 
 - [ ] **Fase 0 (planejamento)** pode ocorrer diretamente em `main` para acelerar alinhamento inicial
 - [ ] **A partir da Fase 1**, todo trabalho deve ocorrer em branch dedicada com PR para `main`
-- [ ] CI obrigatório em todo PR: `lint`, `lint:fix`, `typecheck`, `test` (e `test:e2e` quando aplicável)
+- [ ] CI obrigatório em todo PR: `lint`, `typecheck`, `test` (e `test:e2e` quando aplicável)
 - [ ] Merge em `main` apenas com CI verde e checklist da fase preenchido
 
 ### Convenção de branches por fase
@@ -83,13 +83,19 @@
 ## Fase 1 — Scaffolding e Infraestrutura Docker
 
 ### Docker Compose
-- [ ] Criar `docker-compose.yml` com 5 serviços:
+- [ ] Criar `docker-compose.yml` com 5 serviços core + 1 serviço auxiliar (`benchmark-runner`):
   - [ ] `app` — Node.js 18 Alpine, hot-reload com volumes, porta 3000
   - [ ] `sqlserver` — `mcr.microsoft.com/mssql/server:2022-latest`, porta 1433, health check
   - [ ] `redis` — `redis:7-alpine`, porta 6379, persistência com AOF
   - [ ] `rabbitmq` — `rabbitmq:3-management-alpine`, portas 5672/15672, health check
   - [ ] `mongodb` — `mongo:7`, porta 27017
 - [ ] Configurar rede interna `aivacol-network`
+- [ ] Explicitar port mappings no host para UX/debug do examinador:
+  - [ ] `3000:3000` (app)
+  - [ ] `1433:1433` (sqlserver)
+  - [ ] `6379:6379` (redis)
+  - [ ] `5672:5672` e `15672:15672` (rabbitmq)
+  - [ ] `27017:27017` (mongodb)
 - [ ] Configurar named volumes para persistência de dados
 - [ ] Configurar `depends_on` com conditions (health checks)
 - [ ] Implementar espera ativa no `app` para dependências (`sqlserver`, `redis`, `rabbitmq`, `mongodb`) antes do bootstrap
@@ -119,6 +125,8 @@
 - [ ] `scripts/seed.ps1` — executa seed do banco dentro do container
 - [ ] `scripts/benchmark.ps1` — executa Autocannon em runner dedicado (container separado da app)
 - [ ] `scripts/benchmark.ts` — implementa cenários Autocannon; chamado pelo `scripts/benchmark.ps1`
+- [ ] `scripts/benchmark.ps1` deve usar `docker compose --profile tools run --rm benchmark-runner`
+- [ ] `scripts/benchmark.ts` deve apontar para `http://app:3000` por padrão (env `BENCHMARK_BASE_URL` opcional)
 
 ### Validação Fase 1
 - [ ] `docker compose up --build` sobe todos os 5 serviços sem erros
@@ -153,8 +161,9 @@
   - [ ] `ValidationPipe` global (whitelist, transform, forbidNonWhitelisted)
   - [ ] Swagger setup em `/api/docs` com Bearer Auth
   - [ ] Prefixo global `/api/v1`
-  - [ ] CORS habilitado
+  - [ ] CORS por allowlist via env `CORS_ORIGINS`
   - [ ] `enableShutdownHooks()`
+  - [ ] Encerramento graceful no shutdown para conexões externas
   - [ ] Logger do NestJS
 - [ ] Configurar `src/app.module.ts`:
   - [ ] `ConfigModule.forRoot({ isGlobal: true })`
@@ -165,10 +174,13 @@
 
 ### Arquivos de Configuração
 - [ ] `src/config/database.config.ts` — TypeORM + SQL Server config factory
+  - [ ] Configurar pool explícito por env (`DB_POOL_MIN`, `DB_POOL_MAX`, `DB_CONNECTION_TIMEOUT_MS`)
 - [ ] `src/config/cache.config.ts` — Redis config factory (host, port, TTL)
 - [ ] `src/config/messaging.config.ts` — RabbitMQ config factory
 - [ ] `src/config/audit.config.ts` — MongoDB config factory
 - [ ] `src/config/auth.config.ts` — JWT config factory (secret, expiresIn)
+- [ ] `src/config/cors.config.ts` — parse/validação de `CORS_ORIGINS`
+- [ ] `src/config/throttle.config.ts` — parse/validação de `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`
 
 ### Tooling
 - [ ] Configurar ESLint (flat config ou `.eslintrc.js`) com `@typescript-eslint` + Prettier
@@ -228,6 +240,9 @@
 - [ ] `src/common/guards/jwt-auth.guard.ts`
   - [ ] Extends `AuthGuard('jwt')`
   - [ ] Respeita decorator `@Public()` para pular autenticação
+- [ ] `src/common/guards/throttler.guard.ts`
+  - [ ] Guard global de rate limiting para rotas HTTP
+  - [ ] Limites vindos de `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`
 
 ### Decorators
 - [ ] `src/common/decorators/current-user.decorator.ts` — extrai user do JWT request
@@ -238,6 +253,13 @@
 - [ ] Registrar `LoggingInterceptor` como interceptor global
 - [ ] Registrar `CorrelationIdMiddleware` no `AppModule.configure()`
 - [ ] Registrar `JwtAuthGuard` como guard global
+- [ ] Registrar guard global de throttling
+
+### Lifecycle
+- [ ] `src/infrastructure/lifecycle/graceful-shutdown.service.ts`
+  - [ ] Fechar conexão Redis no shutdown
+  - [ ] Fechar conexão RabbitMQ no shutdown
+  - [ ] Fechar conexão MongoDB no shutdown
 
 ### Health Check
 - [ ] `src/common/controllers/health.controller.ts`
@@ -248,6 +270,7 @@
 - [ ] Todas as rotas requerem JWT (401 sem token)
 - [ ] Rota `/api/v1/health` exige autenticação e retorna 401 sem token
 - [ ] Erros retornam formato padronizado com correlationId
+- [ ] Excesso de requisições retorna `429` com `code: RATE_LIMIT_EXCEEDED`
 - [ ] Logs no console mostram método, rota, tempo, status
 - [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [ ] Atualizar `struct.md`
@@ -402,6 +425,8 @@
 - [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateVehiclesTable.ts` (FK para models)
 - [ ] Adicionar `deleted_at` nas entidades com soft delete
 - [ ] Implementar unicidade para registros ativos (`deleted_at IS NULL`) em `license_plate`, `chassis` e `renavam`
+- [ ] Implementar índices filtrados com SQL raw via `queryRunner.query(...)` (não via decorator TypeORM)
+- [ ] Garantir `down` explícito removendo os índices filtrados
 
 ### Seed
 - [ ] `src/infrastructure/database/seeds/seed.ts`
@@ -501,9 +526,10 @@
   - [ ] Todos os endpoints com `@ApiOperation` e `@ApiResponse(401)`
   - [ ] `GET /api/v1/vehicles` — `@ApiResponse(200)` + query params de paginacao
   - [ ] `GET /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)`
-  - [ ] `POST /api/v1/vehicles` — `@ApiBody`, `@ApiResponse(201)`, `@ApiResponse(400)`
-  - [ ] `PATCH /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiBody`, `@ApiResponse(200)`, `@ApiResponse(400)`, `@ApiResponse(404)`
+  - [ ] `POST /api/v1/vehicles` — `@ApiBody`, `@ApiResponse(201)`, `@ApiResponse(400)`, `@ApiResponse(409)`
+  - [ ] `PATCH /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiBody`, `@ApiResponse(200)`, `@ApiResponse(400)`, `@ApiResponse(404)`, `@ApiResponse(409)`
   - [ ] `DELETE /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)` (soft delete)
+  - [ ] Endpoints documentam `@ApiResponse(429)` para throttling
   - [ ] Usa `@CurrentUser()` para extrair userId do JWT
 
 ### Model — CRUD completo
@@ -517,7 +543,7 @@
   - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
   - [ ] Rotas com `:id` documentadas com `@ApiParam('id')`
   - [ ] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
-  - [ ] Respostas documentadas: sucesso `200/201`, erros `400` e `404` quando aplicáveis
+  - [ ] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
 
 ### Brand — CRUD completo
 - [ ] `src/modules/brands/application/services/brand.service.ts`
@@ -530,7 +556,13 @@
   - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
   - [ ] Rotas com `:id` documentadas com `@ApiParam('id')`
   - [ ] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
-  - [ ] Respostas documentadas: sucesso `200/201`, erros `400` e `404` quando aplicáveis
+  - [ ] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
+
+### Catálogo de Erros
+- [ ] `src/common/errors/error-catalog.ts`
+  - [ ] Definir códigos estáveis (ex.: `VEHICLE_NOT_FOUND`, `DUPLICATE_LICENSE_PLATE`, `INVALID_CREDENTIALS`, `RATE_LIMIT_EXCEEDED`)
+  - [ ] Mapear `code` -> `httpStatus` -> `messagePtBr`
+  - [ ] Integrar `GlobalExceptionFilter` para serializar `code` sempre que aplicável
 
 ### Users — Consulta
 - [ ] `src/modules/users/application/services/user.service.ts` — findAll, findById
@@ -554,6 +586,8 @@
 - [ ] Auditoria de todas as interações de serviço é gravada no MongoDB
 - [ ] Mensagens chegam no RabbitMQ
 - [ ] Contrato Swagger de rotas protegidas usa `@ApiBearerAuth()`
+- [ ] Swagger documenta `409` em conflitos de unicidade
+- [ ] Swagger documenta `429` em rotas sujeitas a throttling
 - [ ] `403` documentado em endpoints com regra de autorização (quando aplicável)
 - [ ] Rotas sem token retornam 401
 - [ ] Erros retornam formato padronizado
@@ -598,6 +632,7 @@
 - [ ] `global-exception.filter.spec.ts` — DomainException→404, HttpException→status, Error→500
 - [ ] `logging.interceptor.spec.ts` — verifica log output
 - [ ] `jwt-auth.guard.spec.ts` — verifica @Public() bypass
+- [ ] `throttler.guard.spec.ts` — limite excedido retorna 429
 
 ### Testes E2E
 - [ ] `auth.e2e-spec.ts`
@@ -615,6 +650,8 @@
 - [ ] `health.e2e-spec.ts` — `GET /api/v1/health` → 200
   - [ ] Sem token → 401
   - [ ] Com token válido → 200
+- [ ] `rate-limit.e2e-spec.ts`
+  - [ ] Exceder limite no intervalo -> `429` + `RATE_LIMIT_EXCEEDED`
 
 ### Coverage
 - [ ] Executar `npm run test:cov`
@@ -647,6 +684,7 @@
 - [ ] Como rodar benchmark
 - [ ] Endpoints disponíveis (tabela)
 - [ ] Variáveis de ambiente (tabela)
+- [ ] Catálogo de erros (tabela `code` x `status` x `message`)
 - [ ] Seção `✅ Checklist do Desafio` (tabela com todos os requisitos)
 - [ ] Seção `🚀 Diferenciais de Engenharia` (decisões, trade-offs, evolução)
 
@@ -657,6 +695,9 @@
   - [ ] Por que EventEmitter2, por que não acoplamento direto
 - [ ] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
   - [ ] Soft delete no SQL Server + trilha complementar no MongoDB (compliance e trade-offs)
+- [ ] `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md`
+  - [ ] Limitação prática de decorators TypeORM para índice filtrado no SQL Server
+  - [ ] Decisão de implementar índices filtrados com `queryRunner.query(...)` e `down` explícito
 
 ### Benchmark
 - [ ] `scripts/benchmark.ts` (script Autocannon em runner dedicado)
@@ -665,6 +706,7 @@
   - [ ] Output: comparação de latência e throughput
 - [ ] Documentar comando de benchmark no README
 - [ ] Garantir `scripts/benchmark.ps1` como ponto de entrada oficial chamando `scripts/benchmark.ts`
+- [ ] Garantir benchmark em `benchmark-runner` na mesma rede Docker da API (target `http://app:3000`)
 
 ### Runbook Operacional
 - [ ] `docs/runbooks/infra-contingency.md`
@@ -676,14 +718,20 @@
 
 ### Postman Collection
 - [ ] `aivacol-postman-collection.json` na raiz do projeto
-  - [ ] Exportar do Swagger JSON ou criar manualmente
+  - [ ] Gerar a partir do Swagger e ajustar manualmente os fluxos de autenticação
   - [ ] Incluir variáveis de ambiente (base_url, token)
+  - [ ] Incluir variáveis adicionais (`nickname`, `password`) para fluxo de login
+  - [ ] Adicionar pre-request script em nível de collection para obter/renovar token automaticamente
   - [ ] Incluir exemplos de request/response para cada endpoint
 
 ### GitHub Actions CI
 - [ ] `.github/workflows/ci.yml`
   - [ ] Trigger: push/PR na branch `main`
   - [ ] Steps: checkout → setup node → npm ci → lint → typecheck → test
+
+### Segurança de API (mínimo de produção)
+- [ ] Habilitar rate limiting global com limites por env
+- [ ] Documentar no README política de throttling e resposta `429`
 
 ### seed_vehicles.json
 - [ ] Arquivo na raiz com dados mock de veículos realistas

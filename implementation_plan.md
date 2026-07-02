@@ -80,6 +80,20 @@ Cada fase só pode ser marcada como concluída quando entregar:
 
 ---
 
+### Riscos Técnicos Antecipados por Fase (com mitigação)
+
+| Fase | Risco principal | Mitigação obrigatória |
+|---|---|---|
+| Fase 1 | Ambiguidade do benchmark em runner separado | Definir `benchmark-runner` no compose e target interno `http://app:3000` |
+| Fase 1 | Dificuldade de debug por portas não explícitas | Publicar port mappings de todos os serviços para host |
+| Fase 2 | CORS aberto ou mal configurado | Adotar allowlist via `CORS_ORIGINS` com validação fail-fast |
+| Fase 5 | Índices filtrados com soft delete não suportados por decorators do TypeORM | Implementar com SQL raw em migration (`queryRunner.query(...)`) e `down` explícito |
+| Fase 6 | Contrato de erro inconsistente entre endpoints | Centralizar `error-catalog` versionável e mapear `409`/`429` no Swagger |
+| Fase 3/Fase 6 | Ausência de proteção anti-abuso | Habilitar throttling global por env (`THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT`) |
+| Fase 8 | Collection Postman inconsistente | Entregar template fechado com variáveis, pre-request script de token e examples |
+
+---
+
 ### Fase 0 — Preparação do Repositório
 
 Passo inicial executado uma única vez antes da Fase 1.
@@ -96,19 +110,28 @@ Passo inicial executado uma única vez antes da Fase 1.
 Setup completo do ambiente sem código de negócio.
 
 #### [NEW] `docker-compose.yml`
-Docker Compose com 5 serviços:
+Docker Compose com 5 serviços core + 1 serviço auxiliar de benchmark:
 - **app**: Node.js 18 Alpine + NestJS (com hot-reload via volumes)
 - **sqlserver**: `mcr.microsoft.com/mssql/server:2022-latest` (porta 1433)
 - **redis**: `redis:7-alpine` (porta 6379)
 - **rabbitmq**: `rabbitmq:3-management-alpine` (portas 5672, 15672)
 - **mongodb**: `mongo:7` (porta 27017)
+- **benchmark-runner** (auxiliar): container Node para executar Autocannon na rede interna (target `http://app:3000`)
 
 Health checks em todos os serviços. Named volumes para persistência. Rede interna `aivacol-network`.
+
+Mapeamentos de porta no host (explícitos para UX do examinador):
+- `app`: `3000:3000`
+- `sqlserver`: `1433:1433`
+- `redis`: `6379:6379`
+- `rabbitmq`: `5672:5672` e `15672:15672`
+- `mongodb`: `27017:27017`
 
 Orquestração de startup obrigatória:
 - `depends_on` com `condition: service_healthy` para `sqlserver`, `redis`, `rabbitmq` e `mongodb`.
 - `app` deve executar wait ativo antes de subir (ex.: script `wait-for-deps.ps1`/Node) validando porta TCP + tentativa simples de conexão por serviço.
 - Migrations e seed **não** rodam automaticamente no boot cego da aplicação; execução em sequência controlada via scripts (`migrate.ps1` -> `seed.ps1` -> `dev.ps1`).
+- `benchmark-runner` roda sob profile `tools` e **não** participa do boot padrão da API.
 
 #### [NEW] `Dockerfile`
 Multistage build:
@@ -147,10 +170,11 @@ Executa migrations do TypeORM dentro do container.
 Executa seed do banco dentro do container.
 
 #### [NEW] `scripts/benchmark.ps1`
-Ponto de entrada oficial para benchmark. Executa `scripts/benchmark.ts` (Autocannon) em runner dedicado (container separado da app).
+Ponto de entrada oficial para benchmark. Executa `scripts/benchmark.ts` (Autocannon) em runner dedicado via `docker compose run --rm benchmark-runner`, consumindo a API por `http://app:3000` na rede interna.
 
 #### [NEW] `scripts/benchmark.ts`
 Script Node/TypeScript com os cenários de carga (cache quente e cache frio) chamado pelo `scripts/benchmark.ps1`.
+Base URL padrão no runner: `http://app:3000` (sobrescrevível por env `BENCHMARK_BASE_URL`).
 
 #### [NEW] `docs/runbooks/infra-contingency.md`
 Runbook de contingência para execução local em produção-like:
@@ -182,9 +206,10 @@ Política de versionamento para reprodutibilidade:
 Bootstrap com:
 - `ValidationPipe` global
 - Swagger setup em `/api/docs`
-- CORS configurado
+- CORS configurado por env (`CORS_ORIGINS`)
 - Prefixo `/api/v1`
 - Logger do NestJS
+- `enableShutdownHooks()` e encerramento graceful de conexões externas
 
 #### [NEW] `src/app.module.ts`
 Root module importando:
@@ -195,7 +220,7 @@ Root module importando:
 - Módulos de feature (vehicles, models, brands, users, auth)
 
 #### [NEW] `src/config/database.config.ts`
-TypeORM config factory (SQL Server via `mssql`).
+TypeORM config factory (SQL Server via `mssql`) com pool explícito por env (`DB_POOL_MIN`, `DB_POOL_MAX`, `DB_CONNECTION_TIMEOUT_MS`).
 
 #### [NEW] `src/config/cache.config.ts`
 Redis config factory (host, port, TTL do `.env`).
@@ -208,6 +233,12 @@ MongoDB config factory.
 
 #### [NEW] `src/config/auth.config.ts`
 JWT config factory (secret, expiresIn do `.env`).
+
+#### [NEW] `src/config/cors.config.ts`
+Config factory para `CORS_ORIGINS` (lista allowlist separada por vírgula).
+
+#### [NEW] `src/config/throttle.config.ts`
+Config factory para rate limiting (`THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT`).
 
 #### [NEW] `.eslintrc.js` + `.prettierrc`
 ESLint com `@typescript-eslint`, integração Prettier.
@@ -246,6 +277,9 @@ Módulo de infraestrutura compartilhada.
 Interceptor global que registra:
 - Método HTTP, Rota, User ID, Tempo de execução (ms), Status Code
 
+#### [NEW] `src/common/filters/throttler-exception.filter.ts`
+Padroniza resposta `429` com `code: RATE_LIMIT_EXCEEDED`.
+
 #### [NEW] `src/common/middleware/correlation-id.middleware.ts`
 Middleware que:
 - Gera UUID v4 se não vier no header `X-Correlation-ID`
@@ -256,6 +290,12 @@ Custom decorator `@CurrentUser()` para extrair user do JWT.
 
 #### [NEW] `src/common/guards/jwt-auth.guard.ts`
 Guard global que protege todas as rotas (exceto as marcadas com `@Public()`).
+
+#### [NEW] `src/common/guards/throttler.guard.ts`
+Guard global de rate limiting para rotas HTTP com limites configuráveis por env.
+
+#### [NEW] `src/infrastructure/lifecycle/graceful-shutdown.service.ts`
+Hook de desligamento para fechar conexões de Redis, RabbitMQ e MongoDB sem perda de telemetria/logs finais.
 
 #### [NEW] `src/common/decorators/public.decorator.ts`
 Decorator `@Public()` para marcar rotas abertas (somente login no escopo atual).
@@ -363,6 +403,11 @@ Migrations TypeORM:
 
 As migrations devem incluir unicidade para registros ativos com soft delete (índices únicos filtrados por `deleted_at IS NULL` para campos de negócio).
 
+Regra explícita de implementação (SQL Server + TypeORM):
+- **Não usar decorators para índices filtrados** (limitação prática para `WHERE` em índice único filtrado no SQL Server).
+- Criar os índices via migration com SQL raw usando `queryRunner.query(...)` no `up` e remoção explícita no `down`.
+- Cobrir no `ACHIEVEMENTS.md` a evidência do DDL aplicado e do cenário `create -> soft delete -> recreate`.
+
 #### [NEW] `src/infrastructure/database/seeds/seed.ts`
 Script de seed que cria:
 - Usuário padrão `aivacol`
@@ -379,7 +424,7 @@ Arquivo JSON na raiz com dados mock de veículos.
 
 Use Cases, DTOs, Controllers, Swagger.
 
-Todos os controllers devem documentar contratos de entrada, parâmetros e respostas com Swagger de forma verificável: `@ApiBody` em rotas com body, `@ApiParam` em rotas com `:id`, respostas de sucesso `200/201`, `@ApiResponse(401)` em rotas protegidas e erros `400/404` quando aplicáveis. Para rotas protegidas, `@ApiBearerAuth()` é obrigatório. `403` deve ser documentado quando existir regra de autorização além da autenticação.
+Todos os controllers devem documentar contratos de entrada, parâmetros e respostas com Swagger de forma verificável: `@ApiBody` em rotas com body, `@ApiParam` em rotas com `:id`, respostas de sucesso `200/201`, `@ApiResponse(401)` em rotas protegidas e erros `400/404` quando aplicáveis. Para rotas protegidas, `@ApiBearerAuth()` é obrigatório. `403` deve ser documentado quando existir regra de autorização além da autenticação. `409` deve ser documentado para conflitos de unicidade e `429` para throttling.
 
 #### [NEW] `src/modules/auth/application/services/auth.service.ts`
 Serviço de autenticação: `login(nickname, password) → { access_token }`.
@@ -420,6 +465,9 @@ Controller REST com decorators Swagger completos:
 - `POST /api/v1/vehicles` — criar
 - `PATCH /api/v1/vehicles/:id` — atualizar
 - `DELETE /api/v1/vehicles/:id` — remover (soft delete)
+
+#### [NEW] `src/common/errors/error-catalog.ts`
+Catálogo versionável de códigos de erro (code -> status -> mensagem PT-BR) com no mínimo os códigos-base definidos no `MASTER.md`.
 
 #### [NEW] `src/infrastructure/audit/listeners/service-audit.listener.ts`
 Listener `@OnEvent('audit.service_interaction')` que grava no MongoDB via `IAuditLogger` para todas as interações (`AUTH`, `READ`, `MUTATION`). **Nunca relança exceção.**
@@ -482,6 +530,7 @@ README completo com:
 - Como rodar testes
 - Como rodar benchmark
 - Endpoints disponíveis
+- Catálogo de erros (tabela `code` x `status`)
 - Seção `✅ Checklist do Desafio` (tabela)
 - Seção `🚀 Diferenciais de Engenharia`
 
@@ -494,13 +543,27 @@ ADR sobre EventEmitter2 para desacoplamento.
 #### [NEW] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
 ADR sobre ciclo de vida de dados (soft delete no relacional + trilha complementar no MongoDB), incluindo ganhos e trade-offs.
 
+#### [NEW] `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md`
+ADR sobre limitação prática de decorators do TypeORM para índices únicos filtrados no SQL Server e decisão de usar migrations com SQL raw.
+
+
+
 #### [NEW] `scripts/benchmark.ps1` (já previsto na Fase 1)
 Script oficial de execução que chama `scripts/benchmark.ts` e executa Autocannon em runner dedicado (container separado da app) contra:
 1. `GET /api/v1/vehicles` (com cache quente)
 2. `GET /api/v1/vehicles` (com cache frio / invalidado)
 
+Pré-condições explícitas:
+- `docker compose up -d app redis sqlserver rabbitmq mongodb`
+- execução do benchmark via `docker compose --profile tools run --rm benchmark-runner`
+- target interno obrigatório: `http://app:3000`
+
 #### [NEW] `aivacol-postman-collection.json`
-Coleção Postman exportada do Swagger JSON, na raiz do projeto.
+Coleção Postman na raiz, com estratégia fechada de entrega:
+- Variáveis obrigatórias: `base_url`, `nickname`, `password`, `token`
+- Collection-level pre-request script para obter/renovar token automaticamente quando ausente/expirado
+- Requests com exemplos de payload e examples de response para caminhos felizes e erros principais
+- Organização por pastas: `Auth`, `Vehicles`, `Models`, `Brands`, `Users`, `Health`
 
 #### [NEW] `.github/workflows/ci.yml`
 GitHub Actions CI:
@@ -557,7 +620,7 @@ jobs:
 5. **NUNCA** criar código bash no host — apenas PowerShell
 6. **NUNCA** pular testes — cada fase inclui validação
 7. **NUNCA** acoplar domínio a infraestrutura
-8. **Manter lint:fix e typecheck** passando a cada commit
+8. **Executar lint:fix localmente e manter lint/typecheck/test** passando a cada commit (CI valida sem auto-correção)
 9. **Fixar versões de dependências diretas** no `package.json` (sem `^`/`~`) e manter lockfile versionado
 
 ---
