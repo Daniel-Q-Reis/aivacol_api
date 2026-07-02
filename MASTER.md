@@ -278,6 +278,10 @@ src/
 | R12 | **Mensageria production-first** — Confirm, retry, DLQ e idempotência desde a primeira versão |
 | R13 | **Unicidade com soft delete** — Constraints devem considerar apenas registros ativos |
 | R14 | **Qualidade como gate** — Nenhum ciclo é válido sem lint, typecheck e testes passando (Seção 12) |
+| R15 | **Política de idioma** — Código interno em inglês; mensagens de erro retornadas ao usuário final em PT-BR |
+| R16 | **Config fail-fast** — Variáveis obrigatórias devem ser validadas no startup; ausência/inconsistência deve bloquear bootstrap |
+| R17 | **Sem magic numbers/strings de domínio** — Regras e constantes de negócio devem ser centralizadas e nomeadas |
+| R18 | **Catálogo de erros versionável** — Todo erro de API deve ter `code` único, estável e rastreável |
 
 ---
 
@@ -310,11 +314,18 @@ docs: update README with checklist
 
 ### 5.3 Respostas HTTP Padronizadas
 
+Política aplicada a contratos HTTP:
+
+- Campos estruturais e códigos internos devem ser estáveis e em inglês (`code`, nomes de campos, identificadores técnicos).
+- Mensagens retornadas ao usuário final devem estar em PT-BR quando exibirem erro de negócio/validação.
+- Logs técnicos, stack traces e mensagens internas de observabilidade permanecem em inglês.
+
 Sucesso:
 ```json
 {
   "statusCode": 200,
-  "message": "Vehicles retrieved successfully",
+  "code": "VEHICLES_LISTED",
+  "message": "Veículos listados com sucesso",
   "data": [...]
 }
 ```
@@ -323,12 +334,40 @@ Erro:
 ```json
 {
   "statusCode": 404,
-  "message": "Vehicle not found",
+  "code": "VEHICLE_NOT_FOUND",
+  "message": "Veículo não encontrado",
   "timestamp": "2026-07-02T15:00:00.000Z",
   "path": "/api/v1/vehicles/123",
   "correlationId": "uuid-here"
 }
 ```
+
+### 5.5 Política de Idioma (Código x Usuário Final)
+
+| Contexto | Regra obrigatória |
+|---|---|
+| Código-fonte (classes, funções, variáveis, arquivos) | Inglês |
+| Comentários técnicos no código | Inglês |
+| Testes (nomes de suites/cases) | Inglês |
+| Logs técnicos e observabilidade | Inglês |
+| Mensagens de erro para cliente API (frontend/consumidor) | PT-BR |
+| Códigos de erro (`code`) | Inglês, estável e versionável |
+
+Guardrails:
+
+- Não hardcodar mensagens de erro em múltiplos pontos; centralizar catálogo de erros PT-BR por `error code`.
+- Testes de API devem validar `statusCode` + `code`; validar `message` PT-BR apenas nos cenários críticos de contrato.
+- Exceptions de domínio podem carregar `code` em inglês, e a tradução para PT-BR deve ocorrer na borda HTTP (filter/mapper).
+
+### 5.6 Configuração, Constantes e Erros
+
+| Tema | Regra obrigatória |
+|---|---|
+| Configuração (`.env`) | Validar schema no startup (ex.: porta, secrets, credenciais e hosts obrigatórios) |
+| Fail-fast | Se configuração crítica estiver inválida/ausente, a aplicação deve encerrar com log claro |
+| Constantes de negócio | Centralizar em módulos/VOs dedicados; evitar literais repetidos em services/controllers |
+| Erros de API | Usar catálogo versionável com `code` único por caso de erro |
+| Estabilidade de contrato | `code` não deve mudar sem justificativa e versão/documentação |
 
 ### 5.4 Variáveis de Ambiente
 
@@ -525,6 +564,10 @@ Ao final de cada bloco/fase de implementação, a IA executora DEVE atualizar o 
 | **Achievements.md** | Rastreia o que foi feito em cada ciclo — essencial quando IAs executoras trabalham em múltiplas sessões sem contexto compartilhado. |
 | **Benchmark (Autocannon)** | Detecta regressão silenciosa de performance no cache Redis vs. banco direto. |
 | **CI (GitHub Actions)** | Automatiza os gates em todo push/PR para main. Previne que código fora do padrão seja mergeado. |
+| **Política de idioma** | Mantém consistência global para manutenção técnica (inglês) e experiência do usuário final (PT-BR nos erros). |
+| **Config fail-fast** | Evita ambientes quebrados “parecendo saudáveis” e reduz falhas tardias em runtime. |
+| **Constantes centralizadas** | Reduz divergência de regra de negócio e minimiza regressão por literals duplicados. |
+| **Catálogo de erros** | Padroniza integração com frontend e facilita troubleshooting por `error code`. |
 
 ### 12.3 Benchmark de Performance
 
@@ -565,6 +608,10 @@ A IA executora DEVE:
 3. Registrar evidências (saída de comandos, coverage report) no `ACHIEVEMENTS.md`
 4. Se qualquer gate falhar, **parar** e corrigir antes de prosseguir
 5. Atualizar `struct.md` com arquivos criados/deletados
+6. Validar política de idioma: código/comentários/logs em inglês e mensagens de erro de API em PT-BR
+7. Validar configuração obrigatória no startup (fail-fast) antes de considerar fase concluída
+8. Evitar literals de domínio repetidos; centralizar constantes e registrar decisão quando necessário
+9. Garantir `error code` único e estável para novos erros expostos pela API
 
 > **Regra de ouro:** Um ciclo sem qualidade não é um ciclo completo. É dívida técnica.
 
