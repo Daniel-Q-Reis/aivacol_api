@@ -20,6 +20,12 @@ Importante: este repositorio esta em fase de planejamento. Nenhum codigo de apli
 - Rotas da API: prefixo versionado em `/api/v1`
 - Documentacao interativa: `/api/docs`
 
+Politica final de autenticacao e Swagger:
+
+- Unica rota publica da API: `POST /api/v1/auth/login`.
+- Todas as rotas de `/api/v1/**` exigem JWT e retornam `401` sem token valido.
+- O Swagger em `/api/docs` permanece acessivel para avaliacao, mas a execucao dos endpoints exige Bearer token.
+
 ## ✅ Checklist do Desafio
 
 | Criterio | Status | Observacao |

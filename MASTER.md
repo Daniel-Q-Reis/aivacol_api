@@ -154,6 +154,13 @@ A mensageria RabbitMQ permanece restrita aos eventos de veículos exigidos no de
 - Endpoints de listagem usarão paginação explícita (`page`, `limit`, `sort`, `order`) com limites defensivos.
 - Swagger deve documentar parâmetros de paginação e seus defaults.
 
+Política final de autenticação e Swagger:
+
+- Única rota pública da API: `POST /api/v1/auth/login`.
+- Todas as rotas de `/api/v1/**` exigem JWT e devem retornar `401` sem token válido.
+- O Swagger permanece exposto em `/api/docs` para avaliação, com esquema Bearer configurado.
+- No Swagger, a execução dos endpoints da API requer token Bearer; sem token, o retorno esperado é `401` nas rotas protegidas.
+
 ### 3.7 Estrutura de Pastas
 
 ```
@@ -268,7 +275,7 @@ src/
 | R2 | **Inversão de Dependência** — Services dependem APENAS de interfaces/portas |
 | R3 | **Resiliência** — Falha em RabbitMQ/MongoDB NUNCA interrompe CRUD |
 | R4 | **Metadados** — `created_at`, `updated_at`, `created_by` em TODAS as entidades |
-| R5 | **JWT** — TODAS as rotas protegidas (exceto login) |
+| R5 | **JWT** — Todas as rotas de `/api/v1/**` protegidas (única exceção: `POST /api/v1/auth/login`) |
 | R6 | **Cobertura** — Testes ≥ 90% (unitários + e2e) |
 | R7 | **Docker** — Todo desenvolvimento via Docker Compose, ZERO instalação local extra |
 | R8 | **PowerShell** — Todos os comandos compatíveis com PowerShell no Windows |
