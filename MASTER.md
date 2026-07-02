@@ -7,6 +7,9 @@
 
 ## ⚠️ PROTOCOLO DE INÍCIO DE SESSÃO (OBRIGATÓRIO)
 
+> **Regra de negócio:** Todo ciclo de trabalho DEVE respeitar as diretrizes de qualidade definidas na Seção 12.
+> Nenhum código entra no repositório sem passar por lint, typecheck e testes. O não cumprimento desqualifica o ciclo.
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Execute NESTA ORDEM antes de qualquer outra ação:
@@ -18,6 +21,7 @@
   5. Leia  →  ACHIEVEMENTS.md        (o que foi implementado no bloco/fase atual)
   6. Execute →  git status
   7. Execute →  git log --oneline -5
+  8. Revise  →  Seção 12 (Qualidade e Governança)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -272,6 +276,7 @@ src/
 | R11 | **Value Objects obrigatórios** — Placa, chassi e renavam devem ser VOs no domínio |
 | R12 | **Mensageria production-first** — Confirm, retry, DLQ e idempotência desde a primeira versão |
 | R13 | **Unicidade com soft delete** — Constraints devem considerar apenas registros ativos |
+| R14 | **Qualidade como gate** — Nenhum ciclo é válido sem lint, typecheck e testes passando (Seção 12) |
 
 ---
 
@@ -477,6 +482,78 @@ Ao final de cada bloco/fase de implementação, a IA executora DEVE atualizar o 
 - Testes que passaram
 - Problemas encontrados e resolvidos
 - Próximos passos
+
+---
+
+## 12. Qualidade e Governança
+
+> Diretrizes obrigatórias para todo ciclo de implementação.
+> A não observância de qualquer item abaixo desqualifica o ciclo e impede o commit.
+
+### 12.1 Gates Obrigatórios por Ciclo
+
+| Gate | Comando | Exigência |
+|------|---------|-----------|
+| Lint | `npm run lint` | Zero erros |
+| Lint Fix | `npm run lint:fix` | Zero erros residuais |
+| Typecheck | `npm run typecheck` | Zero erros de tipo |
+| Testes unitários | `npm run test` | 100% passando |
+| Cobertura | `npm run test:cov` | ≥ 90% (lines, functions, statements) |
+| Testes E2E | `npm run test:e2e` | 100% passando |
+
+> Os comandos acima devem ser executados dentro do container Docker via scripts PowerShell em `scripts/`.
+
+### 12.2 Justificativa
+
+| Prática | Por que é obrigatória |
+|---------|----------------------|
+| **Lint + typecheck como gate** | Elimina revisão humana de estilo e erros óbvios. Review foca 100% em lógica e arquitetura. |
+| **Cobertura ≥ 90%** | Garante que regras de negócio, serviços e validações estão protegidos contra regressão. |
+| **Achievements.md** | Rastreia o que foi feito em cada ciclo — essencial quando IAs executoras trabalham em múltiplas sessões sem contexto compartilhado. |
+| **Benchmark (Autocannon)** | Detecta regressão silenciosa de performance no cache Redis vs. banco direto. |
+| **CI (GitHub Actions)** | Automatiza os gates em todo push/PR para main. Previne que código fora do padrão seja mergeado. |
+
+### 12.3 Benchmark de Performance
+
+O script `scripts/benchmark.ps1` executa Autocannon em runner Docker dedicado:
+
+1. `GET /api/v1/vehicles` com cache **quente** (Redis populado)
+2. `GET /api/v1/vehicles` com cache **frio** (Redis limpo)
+
+O output deve ser registrado no `ACHIEVEMENTS.md` da fase para evidenciar a eficiência do cache. Qualquer degradação superior a 30% no throughput em relação à execução anterior deve disparar investigação.
+
+### 12.4 Pipeline de CI
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 18 }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test -- --coverage
+```
+
+### 12.5 Responsabilidade do Ciclo
+
+A IA executora DEVE:
+
+1. Executar lint + lint:fix + typecheck **antes** de qualquer commit
+2. Executar testes **antes** de marcar qualquer fase como concluída
+3. Registrar evidências (saída de comandos, coverage report) no `ACHIEVEMENTS.md`
+4. Se qualquer gate falhar, **parar** e corrigir antes de prosseguir
+5. Atualizar `struct.md` com arquivos criados/deletados
+
+> **Regra de ouro:** Um ciclo sem qualidade não é um ciclo completo. É dívida técnica.
 
 ---
 
