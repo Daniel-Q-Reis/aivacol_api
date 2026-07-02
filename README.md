@@ -58,3 +58,22 @@ Importante: este repositorio esta em fase de planejamento. Nenhum codigo de apli
 - `struct.md`
 - `ACHIEVEMENTS.md`
 - `docs/adr/`
+
+## Contexto rapido para IA (recomendado)
+
+Se voce vai continuar este projeto com apoio de IA e quer minimizar alucinacao, retrabalho e consumo de contexto, inicie cada sessao com este protocolo:
+
+1. Leia -> `MASTER.md`
+2. Leia -> `implementation_plan.md`
+3. Leia -> `task.md`
+4. Leia -> `struct.md`
+5. Leia -> `ACHIEVEMENTS.md`
+6. Execute -> `git status`
+7. Execute -> `git log --oneline -5`
+8. Revise -> Secao 12 de `MASTER.md` (Qualidade e Governanca)
+
+Referencias praticas:
+
+- Contexto total aproximado dos documentos-base: ~1700 linhas
+- Janela de contexto estimada: ~15000 tokens
+- Beneficios: melhor aderencia a arquitetura, menos criacao de arquivos indevidos, menor risco de contradicoes entre fases

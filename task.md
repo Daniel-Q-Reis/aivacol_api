@@ -45,6 +45,32 @@
 
 ---
 
+## Estratégia de Branches e CI
+
+- [ ] **Fase 0 (planejamento)** pode ocorrer diretamente em `main` para acelerar alinhamento inicial
+- [ ] **A partir da Fase 1**, todo trabalho deve ocorrer em branch dedicada com PR para `main`
+- [ ] CI obrigatório em todo PR: `lint`, `lint:fix`, `typecheck`, `test` (e `test:e2e` quando aplicável)
+- [ ] Merge em `main` apenas com CI verde e checklist da fase preenchido
+
+### Convenção de branches por fase
+
+- [ ] Fase 1 inicia branch `feat/phase-1-docker-infra`
+- [ ] Fase 2 inicia branch `feat/phase-2-nest-bootstrap`
+- [ ] Fase 3 inicia branch `feat/phase-3-cross-cutting`
+- [ ] Fase 4 inicia branch `feat/phase-4-domain`
+- [ ] Fase 5 inicia branch `feat/phase-5-infra-adapters`
+- [ ] Fase 6 inicia branch `feat/phase-6-application-presentation`
+- [ ] Fase 7 inicia branch `feat/phase-7-tests-quality`
+- [ ] Fase 8 inicia branch `feat/phase-8-docs-release`
+
+### Regra de início de branch
+
+- [ ] Criar branch no começo da fase (antes de criar/alterar arquivos da fase)
+- [ ] Subir branch com `git push -u origin <branch>` no primeiro push
+- [ ] Abrir PR ao concluir a fase e só então fazer merge em `main`
+
+---
+
 ## Fase 0 — Preparação do Repositório
 
 - [x] Verificar se o diretório já é um repositório Git
