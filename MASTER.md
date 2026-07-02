@@ -56,6 +56,25 @@ Plataforma de **Gestão de Frota** para a empresa Aivacol. Backend **pronto para
 
 ---
 
+## 2.1 Matriz de Rastreabilidade
+
+| Requisito do `objetivos.md` | Onde será tratado | Evidência esperada |
+|---|---|---|
+| Clean Architecture e DIP | Fases 3, 4, 5 e 6 do `task.md` | Domínio sem imports de framework; services dependem de portas |
+| CRUD Vehicles, Models e Brands | Fases 4, 5, 6 e 7 do `task.md` | Endpoints protegidos, migrations, services, testes e Swagger |
+| Users e relacionamentos | Fases 4, 5, 6 e 7 do `task.md` | Seed `aivacol`, autenticação, consultas protegidas e `created_by` |
+| JWT em rotas protegidas | Fases 3, 6 e 7 do `task.md` | Guard global, `@Public()` apenas em login/health, testes 401 |
+| Redis Cache em veículos | Fases 5, 6, 7 e 8 do `task.md` | Cache hit/miss, TTL configurável, invalidação e benchmark |
+| Swagger e Postman | Fases 6 e 8 do `task.md` | `/api/docs`, decorators completos e coleção JSON na raiz |
+| Observabilidade e erros | Fases 3, 6 e 7 do `task.md` | Correlation ID, logs estruturados, interceptor e exception filter |
+| RabbitMQ para veículos | Fases 5, 6 e 7 do `task.md` | Eventos de criação/atualização de veículos e listener resiliente |
+| Auditoria MongoDB | Fases 5, 6 e 7 do `task.md` | `service-audit.listener` cobrindo interações de serviço |
+| Docker e scripts PowerShell | Fases 1, 2 e 8 do `task.md` | Compose completo, Dockerfile multistage e scripts `.ps1` |
+| Testes e cobertura ≥ 90% | Fase 7 do `task.md` | `npm run test:cov` com thresholds configurados |
+| README, ADRs, CI e benchmark | Fase 8 do `task.md` | README com checklist/diferenciais, ADRs, CI e Autocannon |
+
+---
+
 ## 3. Arquitetura
 
 ### 3.1 Padrão: Clean Architecture (Ports & Adapters)
@@ -287,7 +306,7 @@ NODE_ENV=development
 DB_HOST=sqlserver
 DB_PORT=1433
 DB_USERNAME=sa
-DB_PASSWORD=Aivacol@2026!
+DB_PASSWORD=<CHANGE_ME_DB_PASSWORD>
 DB_DATABASE=aivacol_fleet
 
 # Redis
@@ -298,21 +317,21 @@ CACHE_TTL=300
 # RabbitMQ
 RABBITMQ_HOST=rabbitmq
 RABBITMQ_PORT=5672
-RABBITMQ_USER=guest
-RABBITMQ_PASS=guest
+RABBITMQ_USER=<CHANGE_ME_RABBITMQ_USER>
+RABBITMQ_PASS=<CHANGE_ME_RABBITMQ_PASSWORD>
 
 # MongoDB
 MONGO_URI=mongodb://mongodb:27017/aivacol_audit
 
 # JWT
-JWT_SECRET=aivacol-jwt-secret-2026
+JWT_SECRET=<CHANGE_ME_JWT_SECRET>
 JWT_EXPIRES_IN=1h
 
 # Seed User
 SEED_USER_NICKNAME=aivacol
 SEED_USER_NAME=Aivacol Admin
 SEED_USER_EMAIL=admin@aivacol.com
-SEED_USER_PASSWORD=Aivacol@2026!
+SEED_USER_PASSWORD=<CHANGE_ME_SEED_USER_PASSWORD>
 ```
 
 ---

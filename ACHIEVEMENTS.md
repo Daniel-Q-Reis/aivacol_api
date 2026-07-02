@@ -14,6 +14,8 @@
 - Criação do `struct.md` (mapa de arquivos)
 - Criação do `ACHIEVEMENTS.md` (este arquivo)
 - Revisão CTO aplicada nos pontos de auditoria global, Users, Swagger, lint, Git Fase 0 e decisões fechadas
+- Refinamento CTO aplicado: matriz de rastreabilidade, placeholders de segurança, padronização PowerShell/paths e Definition of Done por fase
+- Fase 0 — Preparação do Repositório concluída: Git inicializado e commit inicial criado
 
 ### 📝 Decisões Tomadas
 - Clean Architecture com Ports & Adapters
@@ -24,9 +26,10 @@
 - Todo desenvolvimento via Docker Compose
 - Users ficam restritos a seed, autenticação, relacionamento via `created_by` e consultas protegidas
 - Auditoria MongoDB registra todas as interações de serviço; RabbitMQ permanece restrito a eventos de veículos
+- Exemplos de variáveis sensíveis usam placeholders `<CHANGE_ME_...>`
+- Testes padronizados em `test/unit` e `test/e2e`, com specs colocalizados permitidos quando fizer sentido
 
 ### 🔜 Próximos Passos
-- Executar Fase 0 — Preparação do Repositório (`git init` apenas se necessário)
 - Iniciar Fase 1 — Scaffolding e Infraestrutura Docker
 
 ---

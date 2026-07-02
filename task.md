@@ -34,12 +34,23 @@
 
 ---
 
+## Definition of Done por Fase
+
+- [ ] Artefatos da fase criados/alterados conforme checklist
+- [ ] `struct.md` atualizado com arquivos criados/deletados
+- [ ] `ACHIEVEMENTS.md` atualizado com evidências e comandos executados
+- [ ] Validações da fase executadas com sucesso
+- [ ] `git status` revisado antes do commit
+- [ ] Commit semântico criado ao final da fase
+
+---
+
 ## Fase 0 — Preparação do Repositório
 
 - [x] Verificar se o diretório já é um repositório Git
 - [x] Se `git status` retornar `fatal: not a git repository`, executar `git init` uma única vez
 - [x] Criar commit inicial com os arquivos de planejamento existentes
-- [ ] Registrar em `ACHIEVEMENTS.md` que a preparação do repositório foi concluída
+- [x] Registrar em `ACHIEVEMENTS.md` que a preparação do repositório foi concluída
 
 ---
 
@@ -92,7 +103,7 @@
 ## Fase 2 — Projeto NestJS Base + Configuração
 
 ### Scaffolding
-- [ ] Inicializar projeto NestJS dentro do container (`npx @nestjs/cli new . --package-manager npm --skip-git --strict`)
+- [ ] Inicializar projeto NestJS dentro do container (`docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --strict`)
 - [ ] Instalar dependências core:
   - [ ] `@nestjs/typeorm typeorm tedious` (SQL Server)
   - [ ] `@nestjs/mongoose mongoose` (MongoDB)

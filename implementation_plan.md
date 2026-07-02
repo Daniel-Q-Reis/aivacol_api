@@ -62,6 +62,20 @@ A implementação será dividida em **Fase 0 + 8 fases** sequenciais. Cada fase 
 
 ---
 
+### Definition of Done por Fase
+
+Cada fase só pode ser marcada como concluída quando entregar:
+
+| Item | Critério objetivo |
+|---|---|
+| Artefato | Arquivos previstos criados/alterados e registrados no `struct.md` |
+| Evidência | Saída do comando de validação registrada no `ACHIEVEMENTS.md` |
+| Qualidade | `lint`, `lint:fix` e `typecheck` passando quando já houver projeto Node/Nest |
+| Testes | Testes aplicáveis da fase passando; cobertura verificada a partir da Fase 7 |
+| Git | `git status` revisado e commit semântico criado ao final da fase |
+
+---
+
 ### Fase 0 — Preparação do Repositório
 
 Passo inicial executado uma única vez antes da Fase 1.
@@ -133,8 +147,8 @@ Executa benchmark Autocannon dentro do container.
 Inicialização do projeto NestJS e configuração de todos os módulos de infraestrutura.
 
 #### [NEW] Projeto NestJS (via CLI no container)
-```bash
-npx @nestjs/cli new . --package-manager npm --skip-git --strict
+```powershell
+docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --strict
 ```
 
 #### [NEW] `src/main.ts`
@@ -392,7 +406,7 @@ Listener `@OnEvent('vehicle.*')` que publica no RabbitMQ via `IEventPublisher`. 
 
 ### Fase 7 — Testes (≥ 90% coverage)
 
-#### Testes Unitários (`src/test/unit/` ou colocados junto aos arquivos `*.spec.ts`)
+#### Testes Unitários (`test/unit/` ou colocados junto aos arquivos `*.spec.ts`)
 
 | Arquivo de teste | O que testa |
 |---|---|
