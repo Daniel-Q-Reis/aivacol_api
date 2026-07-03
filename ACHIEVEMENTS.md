@@ -8,6 +8,7 @@
 ## Bloco Inicial — Planejamento (2026-07-02)
 
 ### ✅ Concluído
+
 - Leitura e análise do `objetivos.md`
 - Criação do `MASTER.md` (documento-mestre do projeto)
 - Criação do `implementation_plan.md` (plano detalhado em Fase 0 + 8 fases)
@@ -23,6 +24,7 @@
 - Correcoes de plano production-first aplicadas: mensageria com confirm/retry/DLQ/idempotencia, VOs obrigatorios, contingencia operacional e ajuste de auditoria por nivel
 
 ### 📝 Decisões Tomadas
+
 - Clean Architecture com Ports & Adapters
 - ioredis direto (não cache-manager) para controle fino
 - @golevelup/nestjs-rabbitmq para mensageria
@@ -37,6 +39,7 @@
 - Listagens planejadas com paginação (`page`, `limit`, `sort`, `order`) e limites defensivos
 
 ### 🔜 Próximos Passos
+
 - Iniciar Fase 1 — Scaffolding e Infraestrutura Docker
 
 ---
@@ -44,6 +47,7 @@
 ## Fase 1 — Scaffolding e Infraestrutura Docker (2026-07-02)
 
 ### ✅ O que foi implementado
+
 - `docker-compose.yml` com os servicos `app`, `sqlserver`, `redis`, `rabbitmq`, `mongodb` e `benchmark-runner` (profile `tools`)
 - Rede dedicada `aivacol-network`, volumes nomeados e port mappings exigidos (`3000`, `1433`, `6379`, `5672`, `15672`, `27017`)
 - Health checks configurados para `app`, `sqlserver`, `redis`, `rabbitmq` e `mongodb`
@@ -56,12 +60,14 @@
 - Runbook operacional atualizado em `docs/runbooks/infra-contingency.md` cobrindo os cenarios mandatarios
 
 ### 🧪 Comandos executados
+
 - `docker compose config`
 - `docker compose up --build -d`
 - `docker compose ps`
 - `docker compose logs app --tail 60`
 
 ### 📌 Evidencias de validacao
+
 - `docker compose config` validou o compose sem erro de sintaxe/estrutura
 - `docker compose up --build -d` concluiu com criacao de rede/volumes e inicializacao de todos os servicos
 - `docker compose ps` retornou `Up (...) (healthy)` para `app`, `sqlserver`, `redis`, `rabbitmq` e `mongodb`
@@ -71,16 +77,19 @@
   - bootstrap iniciado apos dependencias saudaveis
 
 ### ⚠️ Problemas encontrados e correcoes
+
 - **Permissao no Docker socket em sandbox** (`open //./pipe/dockerDesktopLinuxEngine: Access is denied`)
   - Correcao: comandos Docker executados com permissao elevada.
 - **Permissao no `.git` para criar branch**
   - Correcao: criacao da branch `feat/phase-1-docker-infra` com permissao elevada.
 
 ### N/A nesta fase (com justificativa tecnica)
+
 - `lint`, `lint:fix`, `typecheck`, `test`, `test:e2e`, `test:cov`: **N/A nesta fase**, pois o scaffold NestJS e `package.json` completo sao entregues na Fase 2.  
   Para manter governanca, os scripts `.ps1` ja foram criados e retornam N/A de forma explicita quando os scripts npm ainda nao existem.
 
 ### 🔜 Proximos passos (Fase 2)
+
 - Inicializar o projeto NestJS dentro do container (modo headless-safe)
 - Fixar dependencias e configurar `main.ts`, `app.module.ts`, configs de infra e tooling
 - Ativar gates de qualidade (`lint`, `lint:fix`, `typecheck`) com execucao obrigatoria dentro do container
@@ -90,6 +99,7 @@
 ## Fase 2 — Projeto NestJS Base + Configuracao (2026-07-03)
 
 ### ✅ O que foi implementado
+
 - Scaffold do NestJS executado dentro de container em modo headless-safe (sem interacao)
 - Base do projeto criada com `src/`, `test/`, `package.json`, `tsconfig*`, `nest-cli.json`, ESLint e Prettier
 - `src/main.ts` configurado com `ValidationPipe` global, Swagger em `/api/docs` com Bearer, prefixo global `/api/v1`, CORS por allowlist de env, `enableShutdownHooks`, logger Nest e fechamento graceful
@@ -100,6 +110,7 @@
 - Dependencias diretas fixadas com versoes exatas (sem `^` e sem `~`) e lockfile versionado (`package-lock.json`)
 
 ### 🧪 Comandos executados
+
 - `git checkout main && git pull origin main && git checkout -b feat/phase-2-nest-bootstrap` (branch ja existia; foi feito `git checkout feat/phase-2-nest-bootstrap`)
 - `docker compose run --rm app npx @nestjs/cli@10.4.7 new . --package-manager npm --skip-git --skip-install --strict` (falhou por conflito com README existente)
 - `docker compose run --rm app sh -lc "yes '' | npx @nestjs/cli@10.4.7 new /usr/src/app/tmp/nest-bootstrap --package-manager npm --skip-git --skip-install --strict"`
@@ -112,6 +123,7 @@
 - `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/docs`
 
 ### 📌 Evidencias de validacao
+
 - App sobe no container com bootstrap Nest completo e mapeamento de rota `GET /api/v1/health`
 - Swagger carregado com sucesso em `http://localhost:3000/api/docs` (HTTP `200`)
 - Scaffolding executado em modo headless-safe dentro do container
@@ -120,16 +132,79 @@
 - Gate `npm run typecheck`: OK
 
 ### ⚠️ Problemas encontrados e correcoes
+
 - **Conflito no scaffold em raiz** (`README.md` existente): resolvido com scaffold em caminho temporario no volume e copia seletiva dos arquivos base
 - **Falha inicial TypeORM por dependencia ausente `mssql`**: adicionada dependencia direta fixa `mssql`
 - **Incompatibilidade de peer entre `typeorm` e `mssql@11`**: ajustado para `mssql@10.0.4` (compativel com TypeORM 0.3.20)
 - **Falha inicial de login SQL Server no primeiro boot**: normalizada apos rebootstrap e restart da app com conexoes estabilizadas
 
 ### 🔜 Proximos passos (Fase 3)
+
 - Implementar cross-cutting concerns (`ExceptionFilter`, interceptors, middleware, guards e decorators)
 - Registrar providers globais no `AppModule` e adicionar `graceful-shutdown.service`
 - Entregar health check expandido de dependencias conforme checklist da Fase 3
 
 ---
 
-*Adicionar novas seções ao final deste arquivo para manter ordem cronológica crescente.*
+## Fase 3 — Common (Cross-Cutting Concerns) (2026-07-03)
+
+### ✅ O que foi implementado
+
+- `GlobalExceptionFilter` em `src/common/filters/global-exception.filter.ts` cobrindo `DomainException`, `HttpException` e erro generico com contrato padronizado (`statusCode`, `message`, `timestamp`, `path`, `correlationId`, `code` quando aplicavel)
+- `ThrottlerExceptionFilter` em `src/common/filters/throttler-exception.filter.ts` para resposta `429` com `code: RATE_LIMIT_EXCEEDED`
+- `CorrelationIdMiddleware` + `CorrelationIdInterceptor` para captura precoce e propagacao de `X-Correlation-ID` em request/response
+- `LoggingInterceptor` global com log estruturado de `method`, `route`, `statusCode`, `durationMs`, `userId` e `correlationId`
+- `JwtAuthGuard` global com suporte a bypass por `@Public()` e `ThrottlerGuard` global com limites por env (`THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT`)
+- Decorators `@Public()` e `@CurrentUser()` implementados em `src/common/decorators/`
+- `HealthController` protegido em `GET /api/v1/health`, verificando SQL Server, Redis, RabbitMQ e MongoDB
+- `GracefulShutdownService` em `src/infrastructure/lifecycle/graceful-shutdown.service.ts` para fechamento seguro de SQL/Mongo e tentativa best-effort de Redis/RabbitMQ sem quebrar bootstrap
+- Wiring global concluido em `src/app.module.ts` (filters, interceptors, guards e middleware via `configure()`)
+- Pre-requisito tecnico minimo de JWT strategy entregue em `src/modules/auth/infrastructure/strategies/jwt.strategy.ts` + wiring no `AuthModule`
+
+### 🧪 Comandos executados
+
+- Protocolo inicial: leitura de `MASTER.md`, `implementation_plan.md`, `task.md`, `struct.md`, `ACHIEVEMENTS.md`, ADRs e runbook
+- `git status`
+- `git log --oneline -5`
+- `git checkout main && git pull origin main && git checkout -b feat/phase-3-cross-cutting`
+- `docker compose run --rm app npm install @nestjs/throttler@5.2.0`
+- `docker compose run --rm app npm run lint:fix`
+- `docker compose run --rm app npm run lint`
+- `docker compose run --rm app npm run typecheck`
+- `docker compose up --build -d`
+- `docker compose ps`
+- `docker compose logs app --tail 120`
+- Validacoes HTTP (container-to-container):
+  - sem token: `GET /api/v1/health`
+  - com token valido: `GET /api/v1/health`
+  - burst de 130 requests para validar throttling 429
+
+### 📌 Evidencias de validacao
+
+- Gate `npm run lint`: **OK**
+- Gate `npm run lint:fix`: **OK**
+- Gate `npm run typecheck`: **OK**
+- `GET /api/v1/health` sem token: **401** com payload padronizado e `correlationId`
+  - evidenciado: `{ "statusCode":401, "code":"UNAUTHORIZED", ... "correlationId":"cid-test-unauthorized" }`
+- Rotas protegidas exigindo JWT: **401** sem token tambem em `GET /api/v1/status`
+- `GET /api/v1/health` com token valido: **200** com conectores `sqlServer`, `redis`, `rabbitMq`, `mongoDb`
+- Throttling global ativo: burst de 130 requisicoes retornou `COUNT_429:30` e primeira resposta 429 com `code: RATE_LIMIT_EXCEEDED`
+- Logs de observabilidade confirmados no container:
+  - `LoggingInterceptor` registrando `{"method":"GET","route":"/api/v1/health","statusCode":200,"durationMs":2,"userId":"staff-user","correlationId":"cid-log-200"}`
+
+### ⚠️ Problemas encontrados e correcoes
+
+- **Prettier/Lint com CRLF historico** em arquivos existentes (config/main/modules): resolvido executando `npm run lint:fix` no container antes do gate final
+- **Typecheck no filtro global** por tipagem de `HttpException.getResponse()`: resolvido com normalizacao defensiva para `string | object`
+- **Ordem de filtros globais** inicialmente fazia 429 cair no filtro global: corrigido invertendo ordem para priorizar `GlobalExceptionFilter` e depois `ThrottlerExceptionFilter`
+- **Janela de restart da app** durante validacao de carga retornou `ECONNREFUSED`: validacao repetida apos app `started` com evidencias consistentes
+
+### 🔜 Proximos passos (Fase 4)
+
+- Iniciar apenas a Fase 4 (Domain Layer): excecoes de dominio adicionais, portas compartilhadas e entidades puras sem acoplamento a framework
+- Introduzir Value Objects obrigatorios (`license-plate`, `chassis`, `renavam`) com validacoes de dominio
+- Garantir rastreabilidade de contratos de erro e alinhamento com catalogo ao evoluir casos de uso
+
+---
+
+_Adicionar novas seções ao final deste arquivo para manter ordem cronológica crescente._

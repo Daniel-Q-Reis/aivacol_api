@@ -56,7 +56,7 @@
 
 - [x] Fase 1 inicia branch `feat/phase-1-docker-infra`
 - [x] Fase 2 inicia branch `feat/phase-2-nest-bootstrap`
-- [ ] Fase 3 inicia branch `feat/phase-3-cross-cutting`
+- [x] Fase 3 inicia branch `feat/phase-3-cross-cutting`
 - [ ] Fase 4 inicia branch `feat/phase-4-domain`
 - [ ] Fase 5 inicia branch `feat/phase-5-infra-adapters`
 - [ ] Fase 6 inicia branch `feat/phase-6-application-presentation`
@@ -83,6 +83,7 @@
 ## Fase 1 — Scaffolding e Infraestrutura Docker
 
 ### Docker Compose
+
 - [x] Criar `docker-compose.yml` com 5 serviços core + 1 serviço auxiliar (`benchmark-runner`):
   - [x] `app` — Node.js 18 Alpine, hot-reload com volumes, porta 3000
   - [x] `sqlserver` — `mcr.microsoft.com/mssql/server:2022-latest`, porta 1433, health check
@@ -102,6 +103,7 @@
 - [x] Garantir ordem determinística de subida: `migrate.ps1` -> `seed.ps1` -> `dev.ps1`
 
 ### Dockerfile
+
 - [x] Criar `Dockerfile` multistage:
   - [x] Stage `dev` — Node.js 18 Alpine, instala deps, CMD com fallback para `npm run start:dev` quando disponível
   - [x] Stage `builder` — copia source, roda build quando disponível
@@ -109,12 +111,14 @@
 - [x] Adicionar `HEALTHCHECK` no stage production
 
 ### Configuração
+
 - [x] Criar `.env` com todas as variáveis (conforme MASTER.md seção 5.4)
 - [x] Criar `.env.example` (sem valores sensíveis)
 - [x] Criar `.dockerignore` (node_modules, dist, .git, coverage, test)
 - [x] Criar `.gitignore` (node_modules, dist, .env, coverage)
 
 ### Scripts PowerShell
+
 - [x] `scripts/dev.ps1` — `docker compose up --build -d` + mensagens coloridas
 - [x] `scripts/stop.ps1` — `docker compose down`
 - [x] `scripts/logs.ps1` — `docker compose logs -f app`
@@ -129,6 +133,7 @@
 - [x] `scripts/benchmark.ts` deve apontar para `http://app:3000` por padrão (env `BENCHMARK_BASE_URL` opcional)
 
 ### Validação Fase 1
+
 - [x] `docker compose up --build` sobe todos os 5 serviços sem erros
 - [x] `docker compose ps` mostra todos healthy/running
 - [x] Criar `docs/runbooks/infra-contingency.md` com plano de contingência operacional
@@ -141,6 +146,7 @@
 ## Fase 2 — Projeto NestJS Base + Configuração
 
 ### Scaffolding
+
 - [x] Inicializar projeto NestJS dentro do container (`docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --skip-install --strict`)
 - [x] Garantir modo nao interativo do scaffolding no container (headless-safe)
 - [x] Instalar dependências core:
@@ -157,6 +163,7 @@
   - [x] `autocannon` (benchmark dev)
 
 ### Configuração Principal
+
 - [x] Configurar `src/main.ts`:
   - [x] `ValidationPipe` global (whitelist, transform, forbidNonWhitelisted)
   - [x] Swagger setup em `/api/docs` com Bearer Auth
@@ -173,6 +180,7 @@
   - [x] Import de todos os feature modules (placeholder)
 
 ### Arquivos de Configuração
+
 - [x] `src/config/database.config.ts` — TypeORM + SQL Server config factory
   - [x] Configurar pool explícito por env (`DB_POOL_MIN`, `DB_POOL_MAX`, `DB_CONNECTION_TIMEOUT_MS`)
 - [x] `src/config/cache.config.ts` — Redis config factory (host, port, TTL)
@@ -183,6 +191,7 @@
 - [x] `src/config/throttle.config.ts` — parse/validação de `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`
 
 ### Tooling
+
 - [x] Configurar ESLint (flat config ou `.eslintrc.js`) com `@typescript-eslint` + Prettier
 - [x] Configurar `.prettierrc` (singleQuote, trailingComma, printWidth: 100)
 - [x] Configurar `jest.config.ts` com threshold de 90% (unit)
@@ -201,6 +210,7 @@
   - [x] `benchmark`
 
 ### Validação Fase 2
+
 - [x] App sobe no container sem erros
 - [x] `http://localhost:3000/api/docs` carrega Swagger UI (vazio)
 - [x] Scaffold NestJS executa sem interação (headless-safe)
@@ -216,65 +226,74 @@
 ## Fase 3 — Common (Cross-Cutting Concerns)
 
 ### ExceptionFilter Global
-- [ ] `src/common/filters/global-exception.filter.ts`
-  - [ ] Captura `DomainException` → mapeia para HTTP status adequado
-  - [ ] Captura `HttpException` → preserva status original
-  - [ ] Captura `Error` genérico → 500 com mensagem limpa
-  - [ ] Retorna formato padronizado: `{ statusCode, message, timestamp, path, correlationId }`
-  - [ ] Loga stack-trace no console (visível no Docker)
+
+- [x] `src/common/filters/global-exception.filter.ts`
+  - [x] Captura `DomainException` → mapeia para HTTP status adequado
+  - [x] Captura `HttpException` → preserva status original
+  - [x] Captura `Error` genérico → 500 com mensagem limpa
+  - [x] Retorna formato padronizado: `{ statusCode, message, timestamp, path, correlationId }`
+  - [x] Loga stack-trace no console (visível no Docker)
 
 ### Interceptors
-- [ ] `src/common/interceptors/logging.interceptor.ts`
-  - [ ] Registra: Método HTTP, Rota, User ID (se autenticado), Tempo (ms), Status Code
-  - [ ] Usa NestJS Logger
-- [ ] `src/common/interceptors/correlation-id.interceptor.ts`
-  - [ ] Gera UUID v4 se não vier no header `X-Correlation-ID`
-  - [ ] Injeta no response header
-  - [ ] Disponibiliza via request para uso em logs e respostas de erro
+
+- [x] `src/common/interceptors/logging.interceptor.ts`
+  - [x] Registra: Método HTTP, Rota, User ID (se autenticado), Tempo (ms), Status Code
+  - [x] Usa NestJS Logger
+- [x] `src/common/interceptors/correlation-id.interceptor.ts`
+  - [x] Gera UUID v4 se não vier no header `X-Correlation-ID`
+  - [x] Injeta no response header
+  - [x] Disponibiliza via request para uso em logs e respostas de erro
 
 ### Middleware
-- [ ] `src/common/middleware/correlation-id.middleware.ts`
-  - [ ] Alternativa ao interceptor para captura mais precoce (antes dos guards)
+
+- [x] `src/common/middleware/correlation-id.middleware.ts`
+  - [x] Alternativa ao interceptor para captura mais precoce (antes dos guards)
 
 ### Guards
-- [ ] `src/common/guards/jwt-auth.guard.ts`
-  - [ ] Extends `AuthGuard('jwt')`
-  - [ ] Respeita decorator `@Public()` para pular autenticação
-- [ ] `src/common/guards/throttler.guard.ts`
-  - [ ] Guard global de rate limiting para rotas HTTP
-  - [ ] Limites vindos de `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`
+
+- [x] `src/common/guards/jwt-auth.guard.ts`
+  - [x] Extends `AuthGuard('jwt')`
+  - [x] Respeita decorator `@Public()` para pular autenticação
+- [x] `src/common/guards/throttler.guard.ts`
+  - [x] Guard global de rate limiting para rotas HTTP
+  - [x] Limites vindos de `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`
 
 ### Decorators
-- [ ] `src/common/decorators/current-user.decorator.ts` — extrai user do JWT request
-- [ ] `src/common/decorators/public.decorator.ts` — marca rota como pública
+
+- [x] `src/common/decorators/current-user.decorator.ts` — extrai user do JWT request
+- [x] `src/common/decorators/public.decorator.ts` — marca rota como pública
 
 ### Registrar Globalmente
-- [ ] Registrar `GlobalExceptionFilter` como provider global no `app.module.ts`
-- [ ] Registrar `LoggingInterceptor` como interceptor global
-- [ ] Registrar `CorrelationIdMiddleware` no `AppModule.configure()`
-- [ ] Registrar `JwtAuthGuard` como guard global
-- [ ] Registrar guard global de throttling
+
+- [x] Registrar `GlobalExceptionFilter` como provider global no `app.module.ts`
+- [x] Registrar `LoggingInterceptor` como interceptor global
+- [x] Registrar `CorrelationIdMiddleware` no `AppModule.configure()`
+- [x] Registrar `JwtAuthGuard` como guard global
+- [x] Registrar guard global de throttling
 
 ### Lifecycle
-- [ ] `src/infrastructure/lifecycle/graceful-shutdown.service.ts`
-  - [ ] Fechar conexão Redis no shutdown
-  - [ ] Fechar conexão RabbitMQ no shutdown
-  - [ ] Fechar conexão MongoDB no shutdown
+
+- [x] `src/infrastructure/lifecycle/graceful-shutdown.service.ts`
+  - [x] Fechar conexão Redis no shutdown
+  - [x] Fechar conexão RabbitMQ no shutdown
+  - [x] Fechar conexão MongoDB no shutdown
 
 ### Health Check
-- [ ] `src/common/controllers/health.controller.ts`
-  - [ ] `GET /api/v1/health` — rota protegida por JWT, retorna status de cada serviço
-  - [ ] Verificar conexões: SQL Server, Redis, RabbitMQ, MongoDB
+
+- [x] `src/common/controllers/health.controller.ts`
+  - [x] `GET /api/v1/health` — rota protegida por JWT, retorna status de cada serviço
+  - [x] Verificar conexões: SQL Server, Redis, RabbitMQ, MongoDB
 
 ### Validação Fase 3
-- [ ] Todas as rotas requerem JWT (401 sem token)
-- [ ] Rota `/api/v1/health` exige autenticação e retorna 401 sem token
-- [ ] Erros retornam formato padronizado com correlationId
-- [ ] Excesso de requisições retorna `429` com `code: RATE_LIMIT_EXCEEDED`
-- [ ] Logs no console mostram método, rota, tempo, status
-- [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
+
+- [x] Todas as rotas requerem JWT (401 sem token)
+- [x] Rota `/api/v1/health` exige autenticação e retorna 401 sem token
+- [x] Erros retornam formato padronizado com correlationId
+- [x] Excesso de requisições retorna `429` com `code: RATE_LIMIT_EXCEEDED`
+- [x] Logs no console mostram método, rota, tempo, status
+- [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `feat: add cross-cutting concerns (filters, interceptors, guards)`
 
 ---
@@ -282,6 +301,7 @@
 ## Fase 4 — Domain Layer (Entidades Puras, Portas, Exceções)
 
 ### Exceções de Domínio
+
 - [ ] `src/common/domain/exceptions/domain.exception.ts` — classe base abstrata com `code: string`
 - [ ] `src/common/domain/exceptions/entity-not-found.exception.ts` — `EntityNotFoundException`
 - [ ] `src/common/domain/exceptions/business-rule-violation.exception.ts` — `BusinessRuleViolationException`
@@ -289,11 +309,13 @@
 - [ ] `src/common/domain/exceptions/duplicate-entity.exception.ts` — `DuplicateEntityException`
 
 ### Interfaces/Portas do Domínio (compartilhadas)
+
 - [ ] `src/common/domain/interfaces/cache-service.interface.ts` — `ICacheService` + Symbol
 - [ ] `src/common/domain/interfaces/event-publisher.interface.ts` — `IEventPublisher` + Symbol
 - [ ] `src/common/domain/interfaces/audit-logger.interface.ts` — `IAuditLogger` + Symbol
 
 ### Entidades e Portas — Vehicle
+
 - [ ] `src/modules/vehicles/domain/entities/vehicle.entity.ts`
   - [ ] Classe TypeScript pura (ZERO imports de framework)
   - [ ] Props: id, licensePlate, chassis, renavam, year, modelId, createdAt, updatedAt, createdBy
@@ -303,29 +325,34 @@
   - [ ] Symbol `VEHICLE_REPOSITORY`
 
 ### Entidades e Portas — Model
+
 - [ ] `src/modules/models/domain/entities/model.entity.ts`
   - [ ] Props: id, name, brandId, createdAt, updatedAt, createdBy
 - [ ] `src/modules/models/domain/interfaces/model-repository.interface.ts`
   - [ ] `IModelRepository` + Symbol `MODEL_REPOSITORY`
 
 ### Entidades e Portas — Brand
+
 - [ ] `src/modules/brands/domain/entities/brand.entity.ts`
   - [ ] Props: id, name, createdAt, updatedAt, createdBy
 - [ ] `src/modules/brands/domain/interfaces/brand-repository.interface.ts`
   - [ ] `IBrandRepository` + Symbol `BRAND_REPOSITORY`
 
 ### Entidades e Portas — User
+
 - [ ] `src/modules/users/domain/entities/user.entity.ts`
   - [ ] Props: id, nickname, name, email, passwordHash
 - [ ] `src/modules/users/domain/interfaces/user-repository.interface.ts`
   - [ ] `IUserRepository` + Symbol `USER_REPOSITORY`
 
 ### Value Objects (obrigatório)
+
 - [ ] `src/common/domain/value-objects/license-plate.vo.ts` — validação de placa brasileira (Mercosul)
 - [ ] `src/common/domain/value-objects/chassis.vo.ts` — validação de chassi (17 caracteres)
 - [ ] `src/common/domain/value-objects/renavam.vo.ts` — validação de renavam
 
 ### Validação Fase 4
+
 - [ ] Nenhum import de `@nestjs/*`, `typeorm`, `mongoose` nos arquivos de domínio
 - [ ] Todas as entidades têm método `validate()`
 - [ ] Todas as interfaces definem contratos claros
@@ -340,6 +367,7 @@
 ## Fase 5 — Infrastructure Layer (Adapters)
 
 ### ORM Entities (TypeORM)
+
 - [ ] `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`
   - [ ] `@Entity('vehicles')` com todas as colunas e FKs
   - [ ] `@ManyToOne(() => ModelOrmEntity)` com `@JoinColumn({ name: 'model_id' })`
@@ -354,12 +382,14 @@
   - [ ] Documentar no README que `password_hash` é extensão técnica para autenticação JWT e não faz parte do contrato público
 
 ### Mappers (Domain ↔ ORM)
+
 - [ ] `src/modules/vehicles/application/mappers/vehicle.mapper.ts` — toDomain / toOrm
 - [ ] `src/modules/models/application/mappers/model.mapper.ts` — toDomain / toOrm
 - [ ] `src/modules/brands/application/mappers/brand.mapper.ts` — toDomain / toOrm
 - [ ] `src/modules/users/application/mappers/user.mapper.ts` — toDomain / toOrm
 
 ### Repository Implementations
+
 - [ ] `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts`
   - [ ] Implementa `IVehicleRepository`
   - [ ] Usa `Repository<VehicleOrmEntity>` do TypeORM
@@ -372,6 +402,7 @@
   - [ ] Implementa `IUserRepository`
 
 ### Cache (Redis)
+
 - [ ] `src/infrastructure/cache/redis-cache.service.ts`
   - [ ] Implementa `ICacheService`
   - [ ] Usa `ioredis` diretamente
@@ -381,6 +412,7 @@
 - [ ] `src/infrastructure/cache/cache.module.ts`
 
 ### Mensageria (RabbitMQ)
+
 - [ ] `src/infrastructure/messaging/rabbitmq-event-publisher.ts`
   - [ ] Implementa `IEventPublisher`
   - [ ] Usa `@golevelup/nestjs-rabbitmq` (`AmqpConnection`)
@@ -395,6 +427,7 @@
   - [ ] `RabbitMQModule.forRootAsync()` com `connectionInitOptions: { wait: false }`
 
 ### Auditoria (MongoDB)
+
 - [ ] `src/infrastructure/audit/schemas/audit-log.schema.ts`
   - [ ] Schema Mongoose: action, entity, entityId, userId, timestamp, changes, metadata
   - [ ] Índices em userId, entity, createdAt
@@ -406,6 +439,7 @@
 - [ ] `src/infrastructure/audit/audit.module.ts`
 
 ### Event Listeners (Desacoplamento)
+
 - [ ] `src/infrastructure/audit/listeners/service-audit.listener.ts`
   - [ ] `@OnEvent('audit.service_interaction', { async: true })`
   - [ ] Registra `AUTH`, `READ` e `MUTATION` (todas as interações de serviço)
@@ -419,6 +453,7 @@
   - [ ] **NUNCA relança exceção**
 
 ### Migrations
+
 - [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateUsersTable.ts`
 - [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateBrandsTable.ts`
 - [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateModelsTable.ts` (FK para brands)
@@ -429,6 +464,7 @@
 - [ ] Garantir `down` explícito removendo os índices filtrados
 
 ### Seed
+
 - [ ] `src/infrastructure/database/seeds/seed.ts`
   - [ ] Cria usuário `aivacol` com senha hash
   - [ ] Cria brands de exemplo (ex: Fiat, Volkswagen, Chevrolet, Toyota)
@@ -437,12 +473,14 @@
 - [ ] `seed_vehicles.json` na raiz do projeto (dados mock)
 
 ### Feature Modules (wiring DI)
+
 - [ ] `src/modules/vehicles/vehicles.module.ts` — registra providers com tokens de injeção
 - [ ] `src/modules/models/models.module.ts`
 - [ ] `src/modules/brands/brands.module.ts`
 - [ ] `src/modules/users/users.module.ts`
 
 ### Validação Fase 5
+
 - [ ] Migrations rodam sem erros no SQL Server
 - [ ] Seed popula o banco com dados de exemplo
 - [ ] Redis conecta e responde a PING
@@ -459,6 +497,7 @@
 ## Fase 6 — Application + Presentation Layer
 
 ### Autenticação
+
 - [ ] `src/modules/auth/application/services/auth.service.ts`
   - [ ] `login(nickname, password)` → valida credenciais, retorna `{ access_token }`
   - [ ] Usa `bcrypt.compare()` para verificar senha
@@ -478,6 +517,7 @@
 - [ ] `src/modules/auth/auth.module.ts`
 
 ### Vehicle — Services (Use Cases)
+
 - [ ] `src/modules/vehicles/application/services/vehicle.service.ts`
   - [ ] `create(dto, userId)`:
     - [ ] Valida domínio
@@ -512,6 +552,7 @@
     - [ ] Emite evento `audit.service_interaction`
 
 ### Vehicle — DTOs
+
 - [ ] `src/modules/vehicles/application/dtos/create-vehicle.dto.ts`
   - [ ] Validação com `class-validator`
   - [ ] Decorators Swagger (`@ApiProperty` com examples)
@@ -521,6 +562,7 @@
   - [ ] DTO de resposta para serialização
 
 ### Vehicle — Controller
+
 - [ ] `src/modules/vehicles/presentation/controllers/vehicle.controller.ts`
   - [ ] `@ApiTags('vehicles')`, `@ApiBearerAuth()`, `@Controller('vehicles')`
   - [ ] Todos os endpoints com `@ApiOperation` e `@ApiResponse(401)`
@@ -533,6 +575,7 @@
   - [ ] Usa `@CurrentUser()` para extrair userId do JWT
 
 ### Model — CRUD completo
+
 - [ ] `src/modules/models/application/services/model.service.ts` — CRUD com associação a brand
   - [ ] Emite evento `audit.service_interaction` em create, findAll, findById, update e delete
 - [ ] `src/modules/models/application/dtos/create-model.dto.ts` — inclui `brandId`
@@ -546,6 +589,7 @@
   - [ ] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
 
 ### Brand — CRUD completo
+
 - [ ] `src/modules/brands/application/services/brand.service.ts`
   - [ ] Emite evento `audit.service_interaction` em create, findAll, findById, update e delete
 - [ ] `src/modules/brands/application/dtos/create-brand.dto.ts`
@@ -559,12 +603,14 @@
   - [ ] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
 
 ### Catálogo de Erros
+
 - [ ] `src/common/errors/error-catalog.ts`
   - [ ] Definir códigos estáveis (ex.: `VEHICLE_NOT_FOUND`, `DUPLICATE_LICENSE_PLATE`, `INVALID_CREDENTIALS`, `RATE_LIMIT_EXCEEDED`)
   - [ ] Mapear `code` -> `httpStatus` -> `messagePtBr`
   - [ ] Integrar `GlobalExceptionFilter` para serializar `code` sempre que aplicável
 
 ### Users — Consulta
+
 - [ ] `src/modules/users/application/services/user.service.ts` — findAll, findById
   - [ ] Emite evento `audit.service_interaction` em findAll e findById
 - [ ] `src/modules/users/application/dtos/user-response.dto.ts`
@@ -575,6 +621,7 @@
   - [ ] `GET /api/v1/users/:id` documentado com `@ApiParam('id')`, `@ApiResponse(200)` e `@ApiResponse(404)`
 
 ### Validação Fase 6
+
 - [ ] Login funciona: `POST /api/v1/auth/login` retorna JWT
 - [ ] CRUD completo de vehicles funciona via Swagger
 - [ ] Listagens usam paginacao e limites defensivos
@@ -601,12 +648,14 @@
 ## Fase 7 — Testes (≥ 90% Coverage)
 
 ### Testes Unitários — Domain
+
 - [ ] `vehicle.entity.spec.ts` — validação de placa, chassi, renavam, ano
 - [ ] `model.entity.spec.ts` — validação de nome
 - [ ] `brand.entity.spec.ts` — validação de nome
 - [ ] Value Objects specs (license-plate, chassis, renavam)
 
 ### Testes Unitários — Application (Services/Use Cases)
+
 - [ ] `vehicle.service.spec.ts`
   - [ ] Testar `create` — sucesso, placa duplicada, model inexistente
   - [ ] Testar `findAll` — cache hit, cache miss
@@ -620,6 +669,7 @@
 - [ ] `auth.service.spec.ts` — login válido, inválido, token gerado
 
 ### Testes Unitários — Infrastructure
+
 - [ ] `redis-cache.service.spec.ts` — mock ioredis, get/set/del/delByPattern
 - [ ] `mongo-audit-logger.spec.ts` — mock mongoose model, log entry
 - [ ] `rabbitmq-event-publisher.spec.ts` — mock AmqpConnection, publish
@@ -629,12 +679,14 @@
 - [ ] `typeorm-vehicle.repository.spec.ts` — mock Repository, findById/create/update/delete
 
 ### Testes Unitários — Common
+
 - [ ] `global-exception.filter.spec.ts` — DomainException→404, HttpException→status, Error→500
 - [ ] `logging.interceptor.spec.ts` — verifica log output
 - [ ] `jwt-auth.guard.spec.ts` — verifica @Public() bypass
 - [ ] `throttler.guard.spec.ts` — limite excedido retorna 429
 
 ### Testes E2E
+
 - [ ] `auth.e2e-spec.ts`
   - [ ] Login com credenciais válidas → 201 + token
   - [ ] Login com credenciais inválidas → 401
@@ -654,6 +706,7 @@
   - [ ] Exceder limite no intervalo -> `429` + `RATE_LIMIT_EXCEEDED`
 
 ### Coverage
+
 - [ ] Executar `npm run test:cov`
 - [ ] Verificar que coverage global ≥ 90%:
   - [ ] Branches ≥ 80%
@@ -662,6 +715,7 @@
   - [ ] Statements ≥ 90%
 
 ### Validação Fase 7
+
 - [ ] Todos os testes unitários passam
 - [ ] Todos os testes e2e passam
 - [ ] Coverage ≥ 90%
@@ -675,6 +729,7 @@
 ## Fase 8 — Documentação, Benchmark e Finalização
 
 ### README.md
+
 - [ ] Visão geral do projeto
 - [ ] Diagrama de arquitetura (texto/ASCII ou Mermaid)
 - [ ] Tecnologias utilizadas
@@ -689,6 +744,7 @@
 - [ ] Seção `🚀 Diferenciais de Engenharia` (decisões, trade-offs, evolução)
 
 ### ADRs
+
 - [ ] `docs/adr/ADR-001-clean-architecture.md`
   - [ ] Contexto, decisão, consequências, alternativas consideradas
 - [ ] `docs/adr/ADR-002-event-driven-decoupling.md`
@@ -700,6 +756,7 @@
   - [ ] Decisão de implementar índices filtrados com `queryRunner.query(...)` e `down` explícito
 
 ### Benchmark
+
 - [ ] `scripts/benchmark.ts` (script Autocannon em runner dedicado)
   - [ ] Teste 1: `GET /api/v1/vehicles` com cache quente (Redis populado)
   - [ ] Teste 2: `GET /api/v1/vehicles` com cache frio (Redis limpo)
@@ -709,6 +766,7 @@
 - [ ] Garantir benchmark em `benchmark-runner` na mesma rede Docker da API (target `http://app:3000`)
 
 ### Runbook Operacional
+
 - [ ] `docs/runbooks/infra-contingency.md`
   - [ ] Conflito de portas no Docker Compose
   - [ ] Falha de pull/build de imagem
@@ -717,6 +775,7 @@
   - [ ] Mitigação para falta de memória/disco no Windows
 
 ### Postman Collection
+
 - [ ] `aivacol-postman-collection.json` na raiz do projeto
   - [ ] Gerar a partir do Swagger e ajustar manualmente os fluxos de autenticação
   - [ ] Incluir variáveis de ambiente (base_url, token)
@@ -725,21 +784,25 @@
   - [ ] Incluir exemplos de request/response para cada endpoint
 
 ### GitHub Actions CI
+
 - [ ] `.github/workflows/ci.yml`
   - [ ] Trigger: push/PR na branch `main`
   - [ ] Steps: checkout → setup node → npm ci → lint → typecheck → test
 
 ### Segurança de API (mínimo de produção)
+
 - [ ] Habilitar rate limiting global com limites por env
 - [ ] Documentar no README política de throttling e resposta `429`
 
 ### seed_vehicles.json
+
 - [ ] Arquivo na raiz com dados mock de veículos realistas
   - [ ] Placas no formato Mercosul
   - [ ] Marcas e modelos brasileiros
   - [ ] Anos variados
 
 ### Validação Final
+
 - [ ] README está completo e claro
 - [ ] Checklist do desafio está preenchido
 - [ ] Diferenciais de engenharia explicados
@@ -768,4 +831,4 @@
 
 ---
 
-*Fim do task.md — Este documento deve ser atualizado a cada etapa concluída.*
+_Fim do task.md — Este documento deve ser atualizado a cada etapa concluída._
