@@ -100,7 +100,40 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `scripts/placeholder-app.js` | Servidor placeholder para manter app healthy durante a Fase 1 |
 | `scripts/container-healthcheck.js` | Healthcheck HTTP interno usado no compose e no stage production |
 | `.agents/` | Artefato gerado automaticamente por ferramentas CLI; sem impacto funcional na aplicacao |
+| `package.json` | Manifesto do projeto NestJS com scripts de qualidade, testes, migracoes, seed e benchmark |
+| `package-lock.json` | Lockfile npm com arvore de dependencias fixada para reproducibilidade |
+| `.eslintrc.js` | Configuracao ESLint com TypeScript e integracao Prettier |
+| `.prettierrc` | Regras de formatacao Prettier (singleQuote, trailingComma, printWidth) |
+| `nest-cli.json` | Configuracao do Nest CLI com plugin Swagger habilitado |
+| `tsconfig.json` | Configuracao TypeScript strict com aliases de path |
+| `tsconfig.build.json` | Configuracao TypeScript para build de producao |
+| `jest.config.ts` | Configuracao de testes unitarios com thresholds globais de cobertura |
+| `jest-e2e.config.ts` | Configuracao dedicada para testes e2e |
+| `src/main.ts` | Bootstrap da aplicacao com ValidationPipe global, CORS allowlist, Swagger e prefixo `/api/v1` |
+| `src/app.module.ts` | Modulo raiz com ConfigModule global, TypeORM async, Mongoose async e EventEmitter |
+| `src/app.controller.ts` | Controller basico de health em `/api/v1/health` |
+| `src/app.service.ts` | Service basico de health retornando status operacional |
+| `src/app.controller.spec.ts` | Teste unitario inicial do endpoint de health |
+| `test/app.e2e-spec.ts` | Teste e2e inicial para rota de health |
+| `src/config/database.config.ts` | Factory de configuracao do TypeORM/SQL Server com pool e timeout por env |
+| `src/config/cache.config.ts` | Factory de configuracao Redis (host, port, ttl) |
+| `src/config/messaging.config.ts` | Factory de configuracao RabbitMQ e URI AMQP |
+| `src/config/audit.config.ts` | Factory de configuracao de auditoria MongoDB |
+| `src/config/auth.config.ts` | Factory de configuracao JWT (secret e expiresIn) |
+| `src/config/cors.config.ts` | Parse e validacao fail-fast da allowlist CORS por `CORS_ORIGINS` |
+| `src/config/throttle.config.ts` | Parse e validacao fail-fast de throttling global |
+| `src/modules/vehicles/vehicles.module.ts` | Placeholder do modulo de feature Vehicles para wiring futuro |
+| `src/modules/models/models.module.ts` | Placeholder do modulo de feature Models para wiring futuro |
+| `src/modules/brands/brands.module.ts` | Placeholder do modulo de feature Brands para wiring futuro |
+| `src/modules/users/users.module.ts` | Placeholder do modulo de feature Users para wiring futuro |
+| `src/modules/auth/auth.module.ts` | Placeholder do modulo de feature Auth para wiring futuro |
 
 ---
+
+## Atualizacao de Ciclo
+
+- Data: 2026-07-03
+- Fase: Fase 2 — Projeto NestJS Base + Configuracao
+- Acao: append de arquivos novos e preservacao do historico previo
 
 *Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações.*

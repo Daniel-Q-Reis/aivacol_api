@@ -4,6 +4,51 @@
 
 ---
 
+## Fase 2 — Projeto NestJS Base + Configuracao (2026-07-03)
+
+### ✅ O que foi implementado
+- Scaffold do NestJS executado dentro de container em modo headless-safe (sem interacao)
+- Base do projeto criada com `src/`, `test/`, `package.json`, `tsconfig*`, `nest-cli.json`, ESLint e Prettier
+- `src/main.ts` configurado com `ValidationPipe` global, Swagger em `/api/docs` com Bearer, prefixo global `/api/v1`, CORS por allowlist de env, `enableShutdownHooks`, logger Nest e fechamento graceful
+- `src/app.module.ts` configurado com `ConfigModule` global, `TypeOrmModule.forRootAsync`, `MongooseModule.forRootAsync`, `EventEmitterModule.forRoot` e placeholders de modulos de feature
+- Factories de configuracao criadas em `src/config/`: `database`, `cache`, `messaging`, `audit`, `auth`, `cors` e `throttle`
+- Tooling de qualidade configurado: `.eslintrc.js`, `.prettierrc`, `jest.config.ts`, `jest-e2e.config.ts`, `tsconfig.json`, `tsconfig.build.json`, `nest-cli.json` com plugin Swagger
+- Scripts obrigatorios adicionados no `package.json`: lint/lint:fix/typecheck, test/test:cov/test:watch/test:e2e, migrations, seed e benchmark
+- Dependencias diretas fixadas com versoes exatas (sem `^` e sem `~`) e lockfile versionado (`package-lock.json`)
+
+### 🧪 Comandos executados
+- `git checkout main && git pull origin main && git checkout -b feat/phase-2-nest-bootstrap` (branch ja existia; foi feito `git checkout feat/phase-2-nest-bootstrap`)
+- `docker compose run --rm app npx @nestjs/cli@10.4.7 new . --package-manager npm --skip-git --skip-install --strict` (falhou por conflito com README existente)
+- `docker compose run --rm app sh -lc "yes '' | npx @nestjs/cli@10.4.7 new /usr/src/app/tmp/nest-bootstrap --package-manager npm --skip-git --skip-install --strict"`
+- `docker compose run --rm app sh -lc "cp ..."` (copia controlada dos artefatos scaffold para raiz do projeto)
+- `docker compose run --rm app npm install`
+- `docker compose run --rm app npm run lint`
+- `docker compose run --rm app npm run lint:fix`
+- `docker compose run --rm app npm run typecheck`
+- `docker compose up --build -d`
+- `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/docs`
+
+### 📌 Evidencias de validacao
+- App sobe no container com bootstrap Nest completo e mapeamento de rota `GET /api/v1/health`
+- Swagger carregado com sucesso em `http://localhost:3000/api/docs` (HTTP `200`)
+- Scaffolding executado em modo headless-safe dentro do container
+- Gate `npm run lint`: OK
+- Gate `npm run lint:fix`: OK
+- Gate `npm run typecheck`: OK
+
+### ⚠️ Problemas encontrados e correcoes
+- **Conflito no scaffold em raiz** (`README.md` existente): resolvido com scaffold em caminho temporario no volume e copia seletiva dos arquivos base
+- **Falha inicial TypeORM por dependencia ausente `mssql`**: adicionada dependencia direta fixa `mssql`
+- **Incompatibilidade de peer entre `typeorm` e `mssql@11`**: ajustado para `mssql@10.0.4` (compativel com TypeORM 0.3.20)
+- **Falha inicial de login SQL Server no primeiro boot**: normalizada apos rebootstrap e restart da app com conexoes estabilizadas
+
+### 🔜 Proximos passos (Fase 3)
+- Implementar cross-cutting concerns (`ExceptionFilter`, interceptors, middleware, guards e decorators)
+- Registrar providers globais no `AppModule` e adicionar `graceful-shutdown.service`
+- Entregar health check expandido de dependencias conforme checklist da Fase 3
+
+---
+
 ## Fase 1 — Scaffolding e Infraestrutura Docker (2026-07-02)
 
 ### ✅ O que foi implementado
