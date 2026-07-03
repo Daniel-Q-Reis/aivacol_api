@@ -18,6 +18,7 @@ export class Model {
   constructor(props: ModelProps) {
     this.props = {
       ...props,
+      // Canonical trimming avoids duplicated business names that differ only by leading/trailing spaces.
       name: props.name.trim(),
       createdAt: new Date(props.createdAt),
       updatedAt: new Date(props.updatedAt),

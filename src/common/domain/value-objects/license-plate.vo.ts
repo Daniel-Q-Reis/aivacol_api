@@ -10,6 +10,7 @@ export class LicensePlate {
   }
 
   static create(rawValue: string): LicensePlate {
+    // We remove separators to accept inputs like "ABC-1D23" while persisting a canonical value.
     const normalizedValue = rawValue
       .trim()
       .toUpperCase()

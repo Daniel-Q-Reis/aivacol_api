@@ -360,7 +360,7 @@
 - [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [x] Atualizar `struct.md`
 - [x] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `feat: add domain layer (entities, ports, exceptions)`
+- [x] Commit: `feat: add domain layer (entities, ports, exceptions)`
 
 ---
 
@@ -642,6 +642,13 @@
 - [ ] Atualizar `struct.md`
 - [ ] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `feat: add application and presentation layers (CRUD, Auth, Swagger)`
+
+---
+
+## Nota de alinhamento de fases
+
+- Fase 7 e a fase oficial de testes e qualidade (`test`, `test:e2e`, `test:cov`, coverage >= 90%)
+- Fase 8 e focada em documentacao, benchmark, colecao Postman, CI e finalizacao
 
 ---
 

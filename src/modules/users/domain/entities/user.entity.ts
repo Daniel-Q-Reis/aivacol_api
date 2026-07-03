@@ -23,6 +23,7 @@ export class User {
   constructor(props: UserProps) {
     this.props = {
       ...props,
+      // Nickname/email are case-insensitive identifiers in auth and lookup flows.
       nickname: props.nickname.trim().toLowerCase(),
       name: props.name.trim(),
       email: props.email.trim().toLowerCase(),

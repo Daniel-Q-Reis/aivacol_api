@@ -17,6 +17,7 @@ export class Brand {
   constructor(props: BrandProps) {
     this.props = {
       ...props,
+      // Keep a stable representation for uniqueness checks and human-readable listings.
       name: props.name.trim(),
       createdAt: new Date(props.createdAt),
       updatedAt: new Date(props.updatedAt),

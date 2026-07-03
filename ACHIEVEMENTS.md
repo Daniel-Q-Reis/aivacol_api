@@ -233,6 +233,8 @@ _Adicionar novas seções ao final deste arquivo para manter ordem cronológica 
 - `docker compose run --rm app npm run lint:fix`
 - `docker compose run --rm app npm run typecheck`
 - `docker compose run --rm app npm run lint` (revalidacao apos `lint:fix`)
+- `docker compose run --rm app npm run test`
+- `docker compose run --rm app npm run test:cov`
 - Buscas de pureza de dominio com `grep` para imports proibidos em `src/common/domain/**` e `src/modules/**/domain/**`
 
 ### 📌 Evidencias dos gates
@@ -240,6 +242,17 @@ _Adicionar novas seções ao final deste arquivo para manter ordem cronológica 
 - Gate `npm run lint`: **OK**
 - Gate `npm run lint:fix`: **OK**
 - Gate `npm run typecheck`: **OK**
+
+### ✅ QA adicional executado apos review
+
+- `npm run test`: **OK** (2 suites, 2 testes)
+- `npm run test:cov`: **FALHOU no gate global de cobertura**, apesar dos testes verdes
+  - Statements: `2.02%` (threshold `90%`)
+  - Branches: `0%` (threshold `80%`)
+  - Lines: `1.49%` (threshold `90%`)
+  - Functions: `2.29%` (threshold `90%`)
+- Causa principal: projeto ainda em fase inicial de implementacao (Fase 4 concluida, Fases 5-7 ainda nao entregues), com poucas specs cobrindo apenas scaffold/base.
+- Acao recomendada para fechamento de QA forte: executar Fase 7 (suite unit + e2e completa) antes de considerar cobertura conforme meta global.
 
 ### 🔎 Evidencias de pureza de dominio
 
@@ -250,6 +263,8 @@ _Adicionar novas seções ao final deste arquivo para manter ordem cronológica 
 ### ⚠️ Problemas encontrados e correcoes
 
 - **Lint inicial falhando por terminacao de linha (CRLF historico em arquivos existentes)**: resolvido com `npm run lint:fix` no container e reexecucao de `npm run lint` para fechar gate de qualidade
+- **Tick pendente no task.md (commit da Fase 4)**: corrigido, item marcado com `[x]`
+- **Densidade de comentarios tecnicos abaixo do esperado para manutencao humana**: reforco aplicado com comentarios adicionais em VOs, entidades e contrato de porta de eventos (seguindo secao 5.7)
 
 ### 🔜 Proximos passos (Fase 5)
 

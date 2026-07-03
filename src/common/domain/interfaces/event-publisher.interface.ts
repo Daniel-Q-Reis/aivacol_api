@@ -8,6 +8,7 @@ export interface PublishEventOptions {
 
 export interface IEventPublisher {
   // The domain contract keeps routing semantics explicit to avoid leaking broker-specific APIs.
+  // `options` standardizes trace metadata so handlers can correlate async side-effects with HTTP requests.
   publish<TPayload>(
     routingKey: string,
     payload: TPayload,
