@@ -55,7 +55,7 @@
 ### Convenção de branches por fase
 
 - [x] Fase 1 inicia branch `feat/phase-1-docker-infra`
-- [ ] Fase 2 inicia branch `feat/phase-2-nest-bootstrap`
+- [x] Fase 2 inicia branch `feat/phase-2-nest-bootstrap`
 - [ ] Fase 3 inicia branch `feat/phase-3-cross-cutting`
 - [ ] Fase 4 inicia branch `feat/phase-4-domain`
 - [ ] Fase 5 inicia branch `feat/phase-5-infra-adapters`
@@ -66,7 +66,7 @@
 ### Regra de início de branch
 
 - [x] Criar branch no começo da fase (antes de criar/alterar arquivos da fase)
-- [ ] Subir branch com `git push -u origin <branch>` no primeiro push
+- [x] Subir branch com `git push -u origin <branch>` no primeiro push
 - [ ] Abrir PR ao concluir a fase e só então fazer merge em `main`
 
 ---
@@ -141,75 +141,75 @@
 ## Fase 2 — Projeto NestJS Base + Configuração
 
 ### Scaffolding
-- [ ] Inicializar projeto NestJS dentro do container (`docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --skip-install --strict`)
-- [ ] Garantir modo nao interativo do scaffolding no container (headless-safe)
-- [ ] Instalar dependências core:
-  - [ ] `@nestjs/typeorm typeorm tedious` (SQL Server)
-  - [ ] `@nestjs/mongoose mongoose` (MongoDB)
-  - [ ] `@nestjs/event-emitter` (eventos internos)
-  - [ ] `@nestjs/swagger` (documentação)
-  - [ ] `@nestjs/passport passport passport-jwt @nestjs/jwt` (autenticação)
-  - [ ] `@golevelup/nestjs-rabbitmq` (mensageria)
-  - [ ] `ioredis` (Redis)
-  - [ ] `class-validator class-transformer` (validação)
-  - [ ] `bcrypt uuid` (utilidades)
-  - [ ] `@types/passport-jwt @types/bcrypt` (types dev)
-  - [ ] `autocannon` (benchmark dev)
+- [x] Inicializar projeto NestJS dentro do container (`docker compose run --rm app npx @nestjs/cli new . --package-manager npm --skip-git --skip-install --strict`)
+- [x] Garantir modo nao interativo do scaffolding no container (headless-safe)
+- [x] Instalar dependências core:
+  - [x] `@nestjs/typeorm typeorm tedious` (SQL Server)
+  - [x] `@nestjs/mongoose mongoose` (MongoDB)
+  - [x] `@nestjs/event-emitter` (eventos internos)
+  - [x] `@nestjs/swagger` (documentação)
+  - [x] `@nestjs/passport passport passport-jwt @nestjs/jwt` (autenticação)
+  - [x] `@golevelup/nestjs-rabbitmq` (mensageria)
+  - [x] `ioredis` (Redis)
+  - [x] `class-validator class-transformer` (validação)
+  - [x] `bcrypt uuid` (utilidades)
+  - [x] `@types/passport-jwt @types/bcrypt` (types dev)
+  - [x] `autocannon` (benchmark dev)
 
 ### Configuração Principal
-- [ ] Configurar `src/main.ts`:
-  - [ ] `ValidationPipe` global (whitelist, transform, forbidNonWhitelisted)
-  - [ ] Swagger setup em `/api/docs` com Bearer Auth
-  - [ ] Prefixo global `/api/v1`
-  - [ ] CORS por allowlist via env `CORS_ORIGINS`
-  - [ ] `enableShutdownHooks()`
-  - [ ] Encerramento graceful no shutdown para conexões externas
-  - [ ] Logger do NestJS
-- [ ] Configurar `src/app.module.ts`:
-  - [ ] `ConfigModule.forRoot({ isGlobal: true })`
-  - [ ] `TypeOrmModule.forRootAsync()` com config factory
-  - [ ] `MongooseModule.forRootAsync()` com config factory
-  - [ ] `EventEmitterModule.forRoot()`
-  - [ ] Import de todos os feature modules (placeholder)
+- [x] Configurar `src/main.ts`:
+  - [x] `ValidationPipe` global (whitelist, transform, forbidNonWhitelisted)
+  - [x] Swagger setup em `/api/docs` com Bearer Auth
+  - [x] Prefixo global `/api/v1`
+  - [x] CORS por allowlist via env `CORS_ORIGINS`
+  - [x] `enableShutdownHooks()`
+  - [x] Encerramento graceful no shutdown para conexões externas
+  - [x] Logger do NestJS
+- [x] Configurar `src/app.module.ts`:
+  - [x] `ConfigModule.forRoot({ isGlobal: true })`
+  - [x] `TypeOrmModule.forRootAsync()` com config factory
+  - [x] `MongooseModule.forRootAsync()` com config factory
+  - [x] `EventEmitterModule.forRoot()`
+  - [x] Import de todos os feature modules (placeholder)
 
 ### Arquivos de Configuração
-- [ ] `src/config/database.config.ts` — TypeORM + SQL Server config factory
-  - [ ] Configurar pool explícito por env (`DB_POOL_MIN`, `DB_POOL_MAX`, `DB_CONNECTION_TIMEOUT_MS`)
-- [ ] `src/config/cache.config.ts` — Redis config factory (host, port, TTL)
-- [ ] `src/config/messaging.config.ts` — RabbitMQ config factory
-- [ ] `src/config/audit.config.ts` — MongoDB config factory
-- [ ] `src/config/auth.config.ts` — JWT config factory (secret, expiresIn)
-- [ ] `src/config/cors.config.ts` — parse/validação de `CORS_ORIGINS`
-- [ ] `src/config/throttle.config.ts` — parse/validação de `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`
+- [x] `src/config/database.config.ts` — TypeORM + SQL Server config factory
+  - [x] Configurar pool explícito por env (`DB_POOL_MIN`, `DB_POOL_MAX`, `DB_CONNECTION_TIMEOUT_MS`)
+- [x] `src/config/cache.config.ts` — Redis config factory (host, port, TTL)
+- [x] `src/config/messaging.config.ts` — RabbitMQ config factory
+- [x] `src/config/audit.config.ts` — MongoDB config factory
+- [x] `src/config/auth.config.ts` — JWT config factory (secret, expiresIn)
+- [x] `src/config/cors.config.ts` — parse/validação de `CORS_ORIGINS`
+- [x] `src/config/throttle.config.ts` — parse/validação de `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`
 
 ### Tooling
-- [ ] Configurar ESLint (flat config ou `.eslintrc.js`) com `@typescript-eslint` + Prettier
-- [ ] Configurar `.prettierrc` (singleQuote, trailingComma, printWidth: 100)
-- [ ] Configurar `jest.config.ts` com threshold de 90% (unit)
-- [ ] Configurar `jest-e2e.config.ts` (e2e)
-- [ ] Configurar `tsconfig.json` com strict mode e paths aliases
-- [ ] Configurar `tsconfig.build.json`
-- [ ] Configurar `nest-cli.json` com Swagger CLI plugin
-- [ ] Fixar versões exatas de dependências diretas no `package.json` (sem `^` e sem `~`)
-- [ ] Garantir `package-lock.json` versionado e consistente com a árvore de dependências
-- [ ] Adicionar scripts no `package.json`:
-  - [ ] `lint`, `lint:fix`, `typecheck`
-  - [ ] `test`, `test:cov`, `test:watch`
-  - [ ] `test:e2e`
-  - [ ] `migration:generate`, `migration:run`, `migration:revert`
-  - [ ] `seed`
-  - [ ] `benchmark`
+- [x] Configurar ESLint (flat config ou `.eslintrc.js`) com `@typescript-eslint` + Prettier
+- [x] Configurar `.prettierrc` (singleQuote, trailingComma, printWidth: 100)
+- [x] Configurar `jest.config.ts` com threshold de 90% (unit)
+- [x] Configurar `jest-e2e.config.ts` (e2e)
+- [x] Configurar `tsconfig.json` com strict mode e paths aliases
+- [x] Configurar `tsconfig.build.json`
+- [x] Configurar `nest-cli.json` com Swagger CLI plugin
+- [x] Fixar versões exatas de dependências diretas no `package.json` (sem `^` e sem `~`)
+- [x] Garantir `package-lock.json` versionado e consistente com a árvore de dependências
+- [x] Adicionar scripts no `package.json`:
+  - [x] `lint`, `lint:fix`, `typecheck`
+  - [x] `test`, `test:cov`, `test:watch`
+  - [x] `test:e2e`
+  - [x] `migration:generate`, `migration:run`, `migration:revert`
+  - [x] `seed`
+  - [x] `benchmark`
 
 ### Validação Fase 2
-- [ ] App sobe no container sem erros
-- [ ] `http://localhost:3000/api/docs` carrega Swagger UI (vazio)
-- [ ] Scaffold NestJS executa sem interação (headless-safe)
-- [ ] `npm run lint` passa sem erros
-- [ ] `npm run lint:fix` passa sem erros
-- [ ] `npm run typecheck` passa sem erros
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `feat: initialize NestJS project with base configuration`
+- [x] App sobe no container sem erros
+- [x] `http://localhost:3000/api/docs` carrega Swagger UI (vazio)
+- [x] Scaffold NestJS executa sem interação (headless-safe)
+- [x] `npm run lint` passa sem erros
+- [x] `npm run lint:fix` passa sem erros
+- [x] `npm run typecheck` passa sem erros
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
+- [x] Commit: `feat: initialize NestJS project with base configuration`
 
 ---
 

@@ -7,7 +7,7 @@ const request = http.request(
   {
     host: "127.0.0.1",
     port,
-    path: "/health",
+    path: "/api/v1/health",
     method: "GET",
     timeout: timeoutMs,
   },

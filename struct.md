@@ -2,7 +2,7 @@
 
 > Arquitetura adotada: backend unico em NestJS com Clean Architecture (Domain, Application, Presentation e Infrastructure), desacoplamento por portas/adapters e eventos internos.
 > **Atualizado automaticamente pelas IAs executoras ao final de cada ciclo.**
-> Última atualização: 2026-07-02 (Fase 1 — Scaffolding e Infraestrutura Docker)
+> Última atualização: 2026-07-03 (Fase 2 — Projeto NestJS Base + Configuracao)
 > Nota: este arquivo lista somente o que ja existe no repositorio (nao e roadmap preditivo).
 
 ## Regra de Atualização
@@ -12,6 +12,7 @@ Ao final de CADA ciclo de trabalho:
 2. Para cada arquivo **criado** (new file) → adicionar à tabela abaixo com caminho e propósito
 3. Para cada arquivo **deletado** → remover da tabela
 4. **NUNCA criar arquivos duplicados** — consultar esta tabela ANTES de criar qualquer arquivo
+5. Atualizar tambem o **Esqueleto de Navegacao (Humano)** para espelhar os arquivos/pastas existentes no ciclo (sem antecipar roadmap)
 
 ---
 
@@ -32,6 +33,33 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   └── ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md # Indices filtrados no SQL Server
 │   └── runbooks/                                # Guias operacionais para suporte/contingencia
 │       └── infra-contingency.md                 # Runbook para falhas de infraestrutura local
+├── src/                                         # Codigo-fonte da aplicacao NestJS
+│   ├── config/                                  # Factories de configuracao por dominio tecnico
+│   │   ├── audit.config.ts                      # Configuracao fail-fast de auditoria MongoDB
+│   │   ├── auth.config.ts                       # Configuracao fail-fast de autenticacao JWT
+│   │   ├── cache.config.ts                      # Configuracao fail-fast de cache Redis
+│   │   ├── cors.config.ts                       # Parse e validacao de allowlist CORS
+│   │   ├── database.config.ts                   # Configuracao TypeORM/SQL Server + DataSource
+│   │   ├── messaging.config.ts                  # Configuracao fail-fast de RabbitMQ
+│   │   └── throttle.config.ts                   # Configuracao fail-fast de throttling
+│   ├── modules/                                 # Modulos de feature (placeholders da Fase 2)
+│   │   ├── auth/
+│   │   │   └── auth.module.ts                   # Placeholder do modulo Auth
+│   │   ├── brands/
+│   │   │   └── brands.module.ts                 # Placeholder do modulo Brands
+│   │   ├── models/
+│   │   │   └── models.module.ts                 # Placeholder do modulo Models
+│   │   ├── users/
+│   │   │   └── users.module.ts                  # Placeholder do modulo Users
+│   │   └── vehicles/
+│   │       └── vehicles.module.ts               # Placeholder do modulo Vehicles
+│   ├── app.controller.spec.ts                   # Teste unitario inicial do controller
+│   ├── app.controller.ts                        # Endpoint basico de health
+│   ├── app.module.ts                            # Modulo raiz com imports globais e infraestrutura base
+│   ├── app.service.ts                           # Service basico de health
+│   └── main.ts                                  # Bootstrap NestJS (pipes, Swagger, CORS, prefixo, shutdown)
+├── test/                                        # Testes end-to-end
+│   └── app.e2e-spec.ts                          # Teste e2e inicial da rota de health
 ├── scripts/                                     # Automacoes PowerShell/Node para ciclo de desenvolvimento
 │   ├── benchmark.ps1                            # Executa benchmark no runner dedicado (profile tools)
 │   ├── benchmark.ts                             # Script de carga (cache quente/frio) para Autocannon
@@ -48,17 +76,26 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   ├── test.ps1                                 # Executa cobertura de testes no container app
 │   └── wait-for-deps.js                         # Espera ativa das dependencias antes do bootstrap
 ├── .dockerignore                                # Exclusoes de contexto de build Docker
+├── .eslintrc.js                                 # Configuracao ESLint com TypeScript + Prettier
 ├── .env.example                                 # Template de variaveis sem segredos
 ├── .gitignore                                   # Regras de exclusao de artefatos locais
+├── .prettierrc                                  # Regras de formatacao Prettier
 ├── ACHIEVEMENTS.md                              # Registro de entregas e evidencias por fase
 ├── Dockerfile                                   # Build multistage para desenvolvimento e producao
 ├── MASTER.md                                    # Fonte de verdade de arquitetura, regras e governanca
 ├── README.md                                    # Guia geral do projeto
 ├── docker-compose.yml                           # Orquestracao de servicos da stack local
 ├── implementation_plan.md                       # Plano macro de implementacao por fases
+├── jest-e2e.config.ts                           # Configuracao Jest para testes e2e
+├── jest.config.ts                               # Configuracao Jest para testes unitarios/cobertura
+├── nest-cli.json                                # Configuracao do Nest CLI com plugin Swagger
 ├── objetivos.md                                 # Requisitos originais do desafio
+├── package-lock.json                            # Lockfile npm para reproducibilidade de dependencias
+├── package.json                                 # Manifesto npm com scripts e dependencias fixas
 ├── struct.md                                    # Mapa de arquivos + esqueleto de navegacao humano
-└── task.md                                      # Checklist de execucao por fase
+├── task.md                                      # Checklist de execucao por fase
+├── tsconfig.build.json                          # Configuracao TypeScript para build
+└── tsconfig.json                                # Configuracao TypeScript strict com aliases
 ```
 
 ---
@@ -100,7 +137,40 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `scripts/placeholder-app.js` | Servidor placeholder para manter app healthy durante a Fase 1 |
 | `scripts/container-healthcheck.js` | Healthcheck HTTP interno usado no compose e no stage production |
 | `.agents/` | Artefato gerado automaticamente por ferramentas CLI; sem impacto funcional na aplicacao |
+| `package.json` | Manifesto do projeto NestJS com scripts de qualidade, testes, migracoes, seed e benchmark |
+| `package-lock.json` | Lockfile npm com arvore de dependencias fixada para reproducibilidade |
+| `.eslintrc.js` | Configuracao ESLint com TypeScript e integracao Prettier |
+| `.prettierrc` | Regras de formatacao Prettier (singleQuote, trailingComma, printWidth) |
+| `nest-cli.json` | Configuracao do Nest CLI com plugin Swagger habilitado |
+| `tsconfig.json` | Configuracao TypeScript strict com aliases de path |
+| `tsconfig.build.json` | Configuracao TypeScript para build de producao |
+| `jest.config.ts` | Configuracao de testes unitarios com thresholds globais de cobertura |
+| `jest-e2e.config.ts` | Configuracao dedicada para testes e2e |
+| `src/main.ts` | Bootstrap da aplicacao com ValidationPipe global, CORS allowlist, Swagger e prefixo `/api/v1` |
+| `src/app.module.ts` | Modulo raiz com ConfigModule global, TypeORM async, Mongoose async e EventEmitter |
+| `src/app.controller.ts` | Controller basico de health em `/api/v1/health` |
+| `src/app.service.ts` | Service basico de health retornando status operacional |
+| `src/app.controller.spec.ts` | Teste unitario inicial do endpoint de health |
+| `test/app.e2e-spec.ts` | Teste e2e inicial para rota de health |
+| `src/config/database.config.ts` | Factory de configuracao do TypeORM/SQL Server com pool e timeout por env |
+| `src/config/cache.config.ts` | Factory de configuracao Redis (host, port, ttl) |
+| `src/config/messaging.config.ts` | Factory de configuracao RabbitMQ e URI AMQP |
+| `src/config/audit.config.ts` | Factory de configuracao de auditoria MongoDB |
+| `src/config/auth.config.ts` | Factory de configuracao JWT (secret e expiresIn) |
+| `src/config/cors.config.ts` | Parse e validacao fail-fast da allowlist CORS por `CORS_ORIGINS` |
+| `src/config/throttle.config.ts` | Parse e validacao fail-fast de throttling global |
+| `src/modules/vehicles/vehicles.module.ts` | Placeholder do modulo de feature Vehicles para wiring futuro |
+| `src/modules/models/models.module.ts` | Placeholder do modulo de feature Models para wiring futuro |
+| `src/modules/brands/brands.module.ts` | Placeholder do modulo de feature Brands para wiring futuro |
+| `src/modules/users/users.module.ts` | Placeholder do modulo de feature Users para wiring futuro |
+| `src/modules/auth/auth.module.ts` | Placeholder do modulo de feature Auth para wiring futuro |
 
 ---
+
+## Atualizacao de Ciclo
+
+- Data: 2026-07-03
+- Fase: Fase 2 — Projeto NestJS Base + Configuracao
+- Acao: append de arquivos novos e preservacao do historico previo
 
 *Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações.*
