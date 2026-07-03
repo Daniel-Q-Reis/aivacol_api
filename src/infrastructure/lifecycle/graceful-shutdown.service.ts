@@ -49,6 +49,7 @@ export class GracefulShutdownService implements OnApplicationShutdown {
   }
 
   private async closeRedisIfPresent(): Promise<void> {
+    // Redis wiring is introduced in later phases; keep shutdown tolerant meanwhile.
     const maybeRedis = (globalThis as Record<string, unknown>).__aivacolRedisClient;
     if (!maybeRedis || typeof maybeRedis !== 'object') {
       return;
@@ -70,6 +71,7 @@ export class GracefulShutdownService implements OnApplicationShutdown {
   }
 
   private async closeRabbitMqIfPresent(): Promise<void> {
+    // RabbitMQ adapter can be absent in this phase; shutdown must remain non-blocking.
     const maybeRabbit = (globalThis as Record<string, unknown>).__aivacolRabbitConnection;
     if (!maybeRabbit || typeof maybeRabbit !== 'object') {
       return;

@@ -145,6 +145,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   private shouldUseCatalogMessage(message: string): boolean {
     const normalized = message.trim().toLowerCase();
 
+    // Normalize framework-native English messages into stable PT-BR API contract responses.
     return (
       normalized === 'unauthorized' ||
       normalized === 'forbidden' ||

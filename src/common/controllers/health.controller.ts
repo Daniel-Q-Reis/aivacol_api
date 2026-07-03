@@ -102,6 +102,7 @@ export class HealthController {
       const port = Number(url.port || 5672);
       const host = url.hostname;
 
+      // TCP probe avoids coupling health with AMQP channel lifecycle in this phase.
       await this.assertTcpConnection(host, port);
 
       return { status: 'up' };
@@ -120,6 +121,7 @@ export class HealthController {
       const host = uri.hostname;
       const port = Number(uri.port || 27017);
 
+      // TCP-level check keeps health endpoint lightweight and safe for partial infra readiness.
       await this.assertTcpConnection(host, port);
 
       return { status: 'up' };

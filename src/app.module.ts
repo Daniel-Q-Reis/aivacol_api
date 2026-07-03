@@ -69,10 +69,12 @@ import { GracefulShutdownService } from './infrastructure/lifecycle/graceful-shu
     AppService,
     GracefulShutdownService,
     {
+      // Keep the generic filter first so throttler-specific handling can override 429 payloads.
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
     },
     {
+      // Registered after global filter to ensure RATE_LIMIT_EXCEEDED contract wins for 429.
       provide: APP_FILTER,
       useClass: ThrottlerExceptionFilter,
     },
@@ -96,6 +98,7 @@ import { GracefulShutdownService } from './infrastructure/lifecycle/graceful-shu
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
+    // Correlation ID must be attached before guards/interceptors for end-to-end traceability.
     consumer.apply(CorrelationIdMiddleware).forRoutes({
       path: '*',
       method: RequestMethod.ALL,
