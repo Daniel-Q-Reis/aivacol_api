@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+.git
+.gitignore
+.agents
+.env
+.env.local
+.env.production
+*.log
+tmp
+temp
+test
+*.md
+!README.md
