@@ -57,7 +57,7 @@
 - [x] Fase 1 inicia branch `feat/phase-1-docker-infra`
 - [x] Fase 2 inicia branch `feat/phase-2-nest-bootstrap`
 - [x] Fase 3 inicia branch `feat/phase-3-cross-cutting`
-- [ ] Fase 4 inicia branch `feat/phase-4-domain`
+- [x] Fase 4 inicia branch `feat/phase-4-domain`
 - [ ] Fase 5 inicia branch `feat/phase-5-infra-adapters`
 - [ ] Fase 6 inicia branch `feat/phase-6-application-presentation`
 - [ ] Fase 7 inicia branch `feat/phase-7-tests-quality`
@@ -302,64 +302,64 @@
 
 ### Exceções de Domínio
 
-- [ ] `src/common/domain/exceptions/domain.exception.ts` — classe base abstrata com `code: string`
-- [ ] `src/common/domain/exceptions/entity-not-found.exception.ts` — `EntityNotFoundException`
-- [ ] `src/common/domain/exceptions/business-rule-violation.exception.ts` — `BusinessRuleViolationException`
-- [ ] `src/common/domain/exceptions/entity-validation.exception.ts` — `EntityValidationException`
-- [ ] `src/common/domain/exceptions/duplicate-entity.exception.ts` — `DuplicateEntityException`
+- [x] `src/common/domain/exceptions/domain.exception.ts` — classe base abstrata com `code: string`
+- [x] `src/common/domain/exceptions/entity-not-found.exception.ts` — `EntityNotFoundException`
+- [x] `src/common/domain/exceptions/business-rule-violation.exception.ts` — `BusinessRuleViolationException`
+- [x] `src/common/domain/exceptions/entity-validation.exception.ts` — `EntityValidationException`
+- [x] `src/common/domain/exceptions/duplicate-entity.exception.ts` — `DuplicateEntityException`
 
 ### Interfaces/Portas do Domínio (compartilhadas)
 
-- [ ] `src/common/domain/interfaces/cache-service.interface.ts` — `ICacheService` + Symbol
-- [ ] `src/common/domain/interfaces/event-publisher.interface.ts` — `IEventPublisher` + Symbol
-- [ ] `src/common/domain/interfaces/audit-logger.interface.ts` — `IAuditLogger` + Symbol
+- [x] `src/common/domain/interfaces/cache-service.interface.ts` — `ICacheService` + Symbol
+- [x] `src/common/domain/interfaces/event-publisher.interface.ts` — `IEventPublisher` + Symbol
+- [x] `src/common/domain/interfaces/audit-logger.interface.ts` — `IAuditLogger` + Symbol
 
 ### Entidades e Portas — Vehicle
 
-- [ ] `src/modules/vehicles/domain/entities/vehicle.entity.ts`
-  - [ ] Classe TypeScript pura (ZERO imports de framework)
-  - [ ] Props: id, licensePlate, chassis, renavam, year, modelId, createdAt, updatedAt, createdBy
-  - [ ] Método `validate()` com regras de negócio
-- [ ] `src/modules/vehicles/domain/interfaces/vehicle-repository.interface.ts`
-  - [ ] `IVehicleRepository`: findById, findAll, findByLicensePlate, create, update, delete
-  - [ ] Symbol `VEHICLE_REPOSITORY`
+- [x] `src/modules/vehicles/domain/entities/vehicle.entity.ts`
+  - [x] Classe TypeScript pura (ZERO imports de framework)
+  - [x] Props: id, licensePlate, chassis, renavam, year, modelId, createdAt, updatedAt, createdBy
+  - [x] Método `validate()` com regras de negócio
+- [x] `src/modules/vehicles/domain/interfaces/vehicle-repository.interface.ts`
+  - [x] `IVehicleRepository`: findById, findAll, findByLicensePlate, create, update, delete
+  - [x] Symbol `VEHICLE_REPOSITORY`
 
 ### Entidades e Portas — Model
 
-- [ ] `src/modules/models/domain/entities/model.entity.ts`
-  - [ ] Props: id, name, brandId, createdAt, updatedAt, createdBy
-- [ ] `src/modules/models/domain/interfaces/model-repository.interface.ts`
-  - [ ] `IModelRepository` + Symbol `MODEL_REPOSITORY`
+- [x] `src/modules/models/domain/entities/model.entity.ts`
+  - [x] Props: id, name, brandId, createdAt, updatedAt, createdBy
+- [x] `src/modules/models/domain/interfaces/model-repository.interface.ts`
+  - [x] `IModelRepository` + Symbol `MODEL_REPOSITORY`
 
 ### Entidades e Portas — Brand
 
-- [ ] `src/modules/brands/domain/entities/brand.entity.ts`
-  - [ ] Props: id, name, createdAt, updatedAt, createdBy
-- [ ] `src/modules/brands/domain/interfaces/brand-repository.interface.ts`
-  - [ ] `IBrandRepository` + Symbol `BRAND_REPOSITORY`
+- [x] `src/modules/brands/domain/entities/brand.entity.ts`
+  - [x] Props: id, name, createdAt, updatedAt, createdBy
+- [x] `src/modules/brands/domain/interfaces/brand-repository.interface.ts`
+  - [x] `IBrandRepository` + Symbol `BRAND_REPOSITORY`
 
 ### Entidades e Portas — User
 
-- [ ] `src/modules/users/domain/entities/user.entity.ts`
-  - [ ] Props: id, nickname, name, email, passwordHash
-- [ ] `src/modules/users/domain/interfaces/user-repository.interface.ts`
-  - [ ] `IUserRepository` + Symbol `USER_REPOSITORY`
+- [x] `src/modules/users/domain/entities/user.entity.ts`
+  - [x] Props: id, nickname, name, email, passwordHash
+- [x] `src/modules/users/domain/interfaces/user-repository.interface.ts`
+  - [x] `IUserRepository` + Symbol `USER_REPOSITORY`
 
 ### Value Objects (obrigatório)
 
-- [ ] `src/common/domain/value-objects/license-plate.vo.ts` — validação de placa brasileira (Mercosul)
-- [ ] `src/common/domain/value-objects/chassis.vo.ts` — validação de chassi (17 caracteres)
-- [ ] `src/common/domain/value-objects/renavam.vo.ts` — validação de renavam
+- [x] `src/common/domain/value-objects/license-plate.vo.ts` — validação de placa brasileira (Mercosul)
+- [x] `src/common/domain/value-objects/chassis.vo.ts` — validação de chassi (17 caracteres)
+- [x] `src/common/domain/value-objects/renavam.vo.ts` — validação de renavam
 
 ### Validação Fase 4
 
-- [ ] Nenhum import de `@nestjs/*`, `typeorm`, `mongoose` nos arquivos de domínio
-- [ ] Todas as entidades têm método `validate()`
-- [ ] Todas as interfaces definem contratos claros
-- [ ] Value Objects de placa, chassi e renavam aplicados no domínio (não apenas em DTO)
-- [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
+- [x] Nenhum import de `@nestjs/*`, `typeorm`, `mongoose` nos arquivos de domínio
+- [x] Todas as entidades têm método `validate()`
+- [x] Todas as interfaces definem contratos claros
+- [x] Value Objects de placa, chassi e renavam aplicados no domínio (não apenas em DTO)
+- [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `feat: add domain layer (entities, ports, exceptions)`
 
 ---

@@ -2,16 +2,19 @@ export interface DomainExceptionParams {
   code: string;
   message: string;
   statusCode?: number;
+  details?: Record<string, unknown>;
 }
 
-export class DomainException extends Error {
+export abstract class DomainException extends Error {
   readonly code: string;
   readonly statusCode: number;
+  readonly details?: Readonly<Record<string, unknown>>;
 
-  constructor(params: DomainExceptionParams) {
+  protected constructor(params: DomainExceptionParams) {
     super(params.message);
-    this.name = 'DomainException';
+    this.name = new.target.name;
     this.code = params.code;
     this.statusCode = params.statusCode ?? 400;
+    this.details = params.details;
   }
 }
