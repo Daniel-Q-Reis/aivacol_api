@@ -2,7 +2,7 @@
 
 > Arquitetura adotada: backend unico em NestJS com Clean Architecture (Domain, Application, Presentation e Infrastructure), desacoplamento por portas/adapters e eventos internos.
 > **Atualizado automaticamente pelas IAs executoras ao final de cada ciclo.**
-> Última atualização: 2026-07-03 (Fase 7 — Testes e Qualidade)
+> Última atualização: 2026-07-03 (Fase 8 — Documentacao, Benchmark, CI e Finalizacao)
 > Nota: este arquivo lista somente o que ja existe no repositorio (nao e roadmap preditivo).
 
 ## Regra de Atualização
@@ -26,6 +26,9 @@ Ao final de CADA ciclo de trabalho:
 ```text
 aivacol_api/                                     # Raiz do repositorio backend unico
 ├── .agents/                                     # Artefatos auxiliares gerados por ferramentas de execucao
+├── .github/                                     # Configuracoes de automacao no GitHub
+│   └── workflows/
+│       └── ci.yml                               # Pipeline CI para push/PR na main
 ├── docs/                                        # Base documental de decisoes e runbooks
 │   ├── adr/                                     # ADRs de arquitetura e trade-offs tecnicos
 │   │   ├── ADR-001-clean-architecture.md        # Decisao de Clean Architecture com ports/adapters
@@ -50,6 +53,8 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   ├── test.ps1                                 # Executa cobertura de testes no container app
 │   └── wait-for-deps.js                         # Espera ativa das dependencias antes do bootstrap
 ├── src/                                         # Codigo-fonte da aplicacao NestJS
+│   └── types/
+│       └── autocannon.d.ts                      # Declaracao de tipos para integracao de benchmark via CLI
 │   ├── common/                                  # Cross-cutting concerns e contratos HTTP/erro
 │   │   ├── constants/
 │   │   │   └── http-context.constants.ts        # Chaves de contexto HTTP (correlation/public metadata)
@@ -235,6 +240,7 @@ aivacol_api/                                     # Raiz do repositorio backend u
 ├── objetivos.md                                  # Requisitos originais do desafio
 ├── package-lock.json                             # Lockfile npm para reproducibilidade de dependencias
 ├── package.json                                  # Manifesto npm com scripts e dependencias fixas
+├── aivacol-postman-collection.json               # Colecao Postman final com auth automatica e pastas por dominio
 ├── seed_vehicles.json                            # Dataset de seed de veiculos para bootstrap local
 ├── struct.md                                     # Mapa de arquivos + esqueleto de navegacao humano
 ├── task.md                                       # Checklist de execucao por fase
@@ -458,6 +464,14 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.spec.ts` | Testes unitarios do repositorio TypeORM de veiculos                                |
 | `src/modules/vehicles/presentation/controllers/vehicle.controller.spec.ts`                        | Testes unitarios do controller de veiculos                                         |
 
+### Entradas adicionadas (append) — Fase 8
+
+| Arquivo                           | Propósito                                                                                   |
+| --------------------------------- | ------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`        | Pipeline CI para push/PR em `main` com gates de `npm ci`, `lint`, `typecheck` e `test`      |
+| `aivacol-postman-collection.json` | Colecao Postman final com variaveis obrigatorias, pre-request de token e pastas por dominio |
+| `src/types/autocannon.d.ts`       | Declaracoes de tipo para uso de autocannon no script de benchmark                           |
+
 ---
 
 ## Atualizacao de Ciclo
@@ -485,5 +499,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Data: 2026-07-03
 - Fase: Fase 7 — Testes e Qualidade
 - Acao: append das suites unitarias/e2e, atualizacao do esqueleto de `test/e2e` e remocao da referencia legada `test/app.e2e-spec.ts`
+
+- Data: 2026-07-03
+- Fase: Fase 8 — Documentacao, Benchmark, CI e Finalizacao
+- Acao: consolidacao final com README revisado em PT-BR (checklist no inicio e benchmark oficial), ajuste de compatibilidade em `tsconfig.json`, restauracao de env padrao (`THROTTLE_LIMIT=100`) e atualizacao de rastreabilidade
 
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._

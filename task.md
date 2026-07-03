@@ -49,7 +49,7 @@
 
 - [x] **Fase 0 (planejamento)** pode ocorrer diretamente em `main` para acelerar alinhamento inicial
 - [x] **A partir da Fase 1**, todo trabalho deve ocorrer em branch dedicada com PR para `main`
-- [ ] CI obrigatório em todo PR: `lint`, `typecheck`, `test` (e `test:e2e` quando aplicável)
+- [x] CI obrigatório em todo PR: `lint`, `typecheck`, `test` (e `test:e2e` quando aplicável)
 - [ ] Merge em `main` apenas com CI verde e checklist da fase preenchido
 
 ### Convenção de branches por fase
@@ -61,13 +61,13 @@
 - [x] Fase 5 inicia branch `feat/phase-5-infra-adapters`
 - [ ] Fase 6 inicia branch `feat/phase-6-application-presentation`
 - [x] Fase 7 inicia branch `feat/phase-7-tests-quality`
-- [ ] Fase 8 inicia branch `feat/phase-8-docs-release`
+- [x] Fase 8 inicia branch `feat/phase-8-docs-release`
 
 ### Regra de início de branch
 
 - [x] Criar branch no começo da fase (antes de criar/alterar arquivos da fase)
 - [x] Subir branch com `git push -u origin <branch>` no primeiro push
-- [ ] Abrir PR ao concluir a fase e só então fazer merge em `main`
+- [x] Abrir PR ao concluir a fase e só então fazer merge em `main`
 
 ---
 
@@ -737,93 +737,93 @@
 
 ### README.md
 
-- [ ] Visão geral do projeto
-- [ ] Diagrama de arquitetura (texto/ASCII ou Mermaid)
-- [ ] Tecnologias utilizadas
-- [ ] Pré-requisitos (Docker Desktop, Git, PowerShell)
-- [ ] Como rodar o projeto (`docker compose up`)
-- [ ] Como rodar testes
-- [ ] Como rodar benchmark
-- [ ] Endpoints disponíveis (tabela)
-- [ ] Variáveis de ambiente (tabela)
-- [ ] Catálogo de erros (tabela `code` x `status` x `message`)
-- [ ] Seção `✅ Checklist do Desafio` (tabela com todos os requisitos)
-- [ ] Seção `🚀 Diferenciais de Engenharia` (decisões, trade-offs, evolução)
+- [x] Visão geral do projeto
+- [x] Diagrama de arquitetura (texto/ASCII ou Mermaid)
+- [x] Tecnologias utilizadas
+- [x] Pré-requisitos (Docker Desktop, Git, PowerShell)
+- [x] Como rodar o projeto (`docker compose up`)
+- [x] Como rodar testes
+- [x] Como rodar benchmark
+- [x] Endpoints disponíveis (tabela)
+- [x] Variáveis de ambiente (tabela)
+- [x] Catálogo de erros (tabela `code` x `status` x `message`)
+- [x] Seção `✅ Checklist do Desafio` (tabela com todos os requisitos)
+- [x] Seção `🚀 Diferenciais de Engenharia` (decisões, trade-offs, evolução)
 
 ### ADRs
 
-- [ ] `docs/adr/ADR-001-clean-architecture.md`
-  - [ ] Contexto, decisão, consequências, alternativas consideradas
-- [ ] `docs/adr/ADR-002-event-driven-decoupling.md`
-  - [ ] Por que EventEmitter2, por que não acoplamento direto
-- [ ] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
-  - [ ] Soft delete no SQL Server + trilha complementar no MongoDB (compliance e trade-offs)
-- [ ] `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md`
-  - [ ] Limitação prática de decorators TypeORM para índice filtrado no SQL Server
-  - [ ] Decisão de implementar índices filtrados com `queryRunner.query(...)` e `down` explícito
+- [x] `docs/adr/ADR-001-clean-architecture.md`
+  - [x] Contexto, decisão, consequências, alternativas consideradas
+- [x] `docs/adr/ADR-002-event-driven-decoupling.md`
+  - [x] Por que EventEmitter2, por que não acoplamento direto
+- [x] `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
+  - [x] Soft delete no SQL Server + trilha complementar no MongoDB (compliance e trade-offs)
+- [x] `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md`
+  - [x] Limitação prática de decorators TypeORM para índice filtrado no SQL Server
+  - [x] Decisão de implementar índices filtrados com `queryRunner.query(...)` e `down` explícito
 
 ### Benchmark
 
-- [ ] `scripts/benchmark.ts` (script Autocannon em runner dedicado)
-  - [ ] Teste 1: `GET /api/v1/vehicles` com cache quente (Redis populado)
-  - [ ] Teste 2: `GET /api/v1/vehicles` com cache frio (Redis limpo)
-  - [ ] Output: comparação de latência e throughput
-- [ ] Documentar comando de benchmark no README
-- [ ] Garantir `scripts/benchmark.ps1` como ponto de entrada oficial chamando `scripts/benchmark.ts`
-- [ ] Garantir benchmark em `benchmark-runner` na mesma rede Docker da API (target `http://app:3000`)
+- [x] `scripts/benchmark.ts` (script Autocannon em runner dedicado)
+  - [x] Teste 1: `GET /api/v1/vehicles` com cache quente (Redis populado)
+  - [x] Teste 2: `GET /api/v1/vehicles` com cache frio (Redis limpo)
+  - [x] Output: comparação de latência e throughput
+- [x] Documentar comando de benchmark no README
+- [x] Garantir `scripts/benchmark.ps1` como ponto de entrada oficial chamando `scripts/benchmark.ts`
+- [x] Garantir benchmark em `benchmark-runner` na mesma rede Docker da API (target `http://app:3000`)
 
 ### Runbook Operacional
 
-- [ ] `docs/runbooks/infra-contingency.md`
-  - [ ] Conflito de portas no Docker Compose
-  - [ ] Falha de pull/build de imagem
-  - [ ] Scaffold headless fallback
-  - [ ] Rollback de migration parcial
-  - [ ] Mitigação para falta de memória/disco no Windows
+- [x] `docs/runbooks/infra-contingency.md`
+  - [x] Conflito de portas no Docker Compose
+  - [x] Falha de pull/build de imagem
+  - [x] Scaffold headless fallback
+  - [x] Rollback de migration parcial
+  - [x] Mitigação para falta de memória/disco no Windows
 
 ### Postman Collection
 
-- [ ] `aivacol-postman-collection.json` na raiz do projeto
-  - [ ] Gerar a partir do Swagger e ajustar manualmente os fluxos de autenticação
-  - [ ] Incluir variáveis de ambiente (base_url, token)
-  - [ ] Incluir variáveis adicionais (`nickname`, `password`) para fluxo de login
-  - [ ] Adicionar pre-request script em nível de collection para obter/renovar token automaticamente
-  - [ ] Incluir exemplos de request/response para cada endpoint
+- [x] `aivacol-postman-collection.json` na raiz do projeto
+  - [x] Gerar a partir do Swagger e ajustar manualmente os fluxos de autenticação
+  - [x] Incluir variáveis de ambiente (base_url, token)
+  - [x] Incluir variáveis adicionais (`nickname`, `password`) para fluxo de login
+  - [x] Adicionar pre-request script em nível de collection para obter/renovar token automaticamente
+  - [x] Incluir exemplos de request/response para cada endpoint
 
 ### GitHub Actions CI
 
-- [ ] `.github/workflows/ci.yml`
-  - [ ] Trigger: push/PR na branch `main`
-  - [ ] Steps: checkout → setup node → npm ci → lint → typecheck → test
+- [x] `.github/workflows/ci.yml`
+  - [x] Trigger: push/PR na branch `main`
+  - [x] Steps: checkout → setup node → npm ci → lint → typecheck → test
 
 ### Segurança de API (mínimo de produção)
 
-- [ ] Habilitar rate limiting global com limites por env
-- [ ] Documentar no README política de throttling e resposta `429`
+- [x] Habilitar rate limiting global com limites por env
+- [x] Documentar no README política de throttling e resposta `429`
 
 ### seed_vehicles.json
 
-- [ ] Arquivo na raiz com dados mock de veículos realistas
-  - [ ] Placas no formato Mercosul
-  - [ ] Marcas e modelos brasileiros
-  - [ ] Anos variados
+- [x] Arquivo na raiz com dados mock de veículos realistas
+  - [x] Placas no formato Mercosul
+  - [x] Marcas e modelos brasileiros
+  - [x] Anos variados
 
 ### Validação Final
 
-- [ ] README está completo e claro
-- [ ] Checklist do desafio está preenchido
-- [ ] Diferenciais de engenharia explicados
-- [ ] ADRs escritos e salvos em `/docs/adr/`
-- [ ] Benchmark roda e mostra diferença de performance
-- [ ] Postman collection funciona
-- [ ] CI pipeline funciona (push no GitHub)
-- [ ] Todos os testes passam
-- [ ] Coverage ≥ 90%
-- [ ] Docker Compose sobe limpo
-- [ ] Swagger UI carrega com todos os endpoints documentados
-- [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
+- [x] README está completo e claro
+- [x] Checklist do desafio está preenchido
+- [x] Diferenciais de engenharia explicados
+- [x] ADRs escritos e salvos em `/docs/adr/`
+- [x] Benchmark roda e mostra diferença de performance
+- [x] Postman collection funciona
+- [ ] CI pipeline validado no GitHub (pendente push/PR desta fase)
+- [x] Todos os testes passam
+- [x] Coverage ≥ 90%
+- [x] Docker Compose sobe limpo
+- [x] Swagger UI carrega com todos os endpoints documentados
+- [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `docs: add README, ADRs, benchmark, Postman collection, CI`
 
 ---

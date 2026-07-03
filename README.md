@@ -1,116 +1,211 @@
 # Aivacol Fleet Management API
 
-Backend para o modulo de Gestao de Frota da Aivacol, planejado com Clean Architecture estrita, foco em seguranca, observabilidade, escalabilidade e qualidade de entrega.
-
-Status atual: fase de planejamento concluida e calibrada. A implementacao comeca pela Fase 1 do `task.md`.
-
-Importante: este repositorio esta em fase de planejamento. Nenhum codigo de aplicacao foi implementado ate este ponto.
-
-## Visao Geral
-
-- Arquitetura: Clean Architecture (Ports and Adapters)
-- Stack alvo: NestJS 10+, TypeORM, SQL Server, Redis, RabbitMQ, MongoDB, JWT, Jest
-- Entidades principais: vehicles, models, brands, users
-- Requisitos de qualidade: cobertura >= 90%, Swagger em `/api/docs`, Docker Compose completo, CI de qualidade, throttling global
-
-## Como o projeto sera executado
-
-- Ambiente alvo: Windows 11 + PowerShell 7.5+ + Docker Desktop
-- Desenvolvimento: 100% via Docker Compose
-- Rotas da API: prefixo versionado em `/api/v1`
-- Documentacao interativa: `/api/docs`
-
-Politica final de autenticacao e Swagger:
-
-- Unica rota publica da API: `POST /api/v1/auth/login`.
-- Todas as rotas de `/api/v1/**` exigem JWT e retornam `401` sem token valido.
-- O Swagger em `/api/docs` permanece acessivel para avaliacao, mas a execucao dos endpoints exige Bearer token.
+Backend de gestão de frota com NestJS, Clean Architecture estrita e foco em qualidade de entrega.
 
 ## ✅ Checklist do Desafio
 
-| Criterio                      | Status       | Observacao                                                     |
-| ----------------------------- | ------------ | -------------------------------------------------------------- |
-| Arquitetura limpa             | 📋 Planejado | Definida no `MASTER.md` com DIP e portas                       |
-| CRUD Vehicles                 | 📋 Planejado | Fases 4-7                                                      |
-| CRUD Models                   | 📋 Planejado | Fases 4-7                                                      |
-| CRUD Brands                   | 📋 Planejado | Fases 4-7                                                      |
-| Users e relacionamento        | 📋 Planejado | Seed, autenticacao e consultas protegidas                      |
-| JWT em rotas                  | 📋 Planejado | Guard global + `@Public()` apenas login                        |
-| Redis cache em vehicles       | 📋 Planejado | TTL configuravel + invalidacao automatica                      |
-| Swagger/OpenAPI               | 📋 Planejado | `/api/docs` com decorators obrigatorios                        |
-| Postman collection            | 📋 Planejado | Entrega prevista na raiz                                       |
-| Observabilidade               | 📋 Planejado | Correlation ID, logging interceptor e filter global            |
-| RabbitMQ                      | 📋 Planejado | Estrategia de producao: confirmacao, retry, DLQ e idempotencia |
-| Auditoria MongoDB             | 📋 Planejado | Todas as interacoes de servico: AUTH, READ e MUTATION          |
-| Docker multistage + Compose   | 📋 Planejado | Fase 1                                                         |
-| Testes >= 90%                 | 📋 Planejado | Fase 7                                                         |
-| Benchmark                     | 📋 Planejado | Autocannon em runner dedicado                                  |
-| CI (GitHub Actions)           | 📋 Planejado | lint + typecheck + test                                        |
-| Lint, lint:fix, typecheck     | 📋 Planejado | Scripts e gates por fase                                       |
-| Catálogo de erros versionável | 📋 Planejado | `code` estável por erro + tabela no README                     |
-| Throttling / Rate limiting    | 📋 Planejado | Limites por env + retorno `429`                                |
+| Requisito                         | Status       | Evidência objetiva                                                |
+| --------------------------------- | ------------ | ----------------------------------------------------------------- |
+| Clean Architecture e DIP          | ✅ Concluído | Domínio sem imports de framework; portas e adapters implementados |
+| CRUD Vehicles                     | ✅ Concluído | Endpoints, services, testes unit/e2e e Swagger                    |
+| CRUD Models                       | ✅ Concluído | Endpoints, associação com brand, testes e Swagger                 |
+| CRUD Brands                       | ✅ Concluído | Endpoints, testes e Swagger                                       |
+| Users + relacionamento            | ✅ Concluído | Seed `aivacol`, `created_by`, consultas protegidas                |
+| JWT nas rotas protegidas          | ✅ Concluído | Guard global; única rota pública `POST /api/v1/auth/login`        |
+| Redis cache em vehicles           | ✅ Concluído | Cache em lista/item + invalidação por pattern                     |
+| RabbitMQ para events de vehicles  | ✅ Concluído | Publicação em `vehicle.created` e `vehicle.updated`               |
+| Auditoria MongoDB                 | ✅ Concluído | `audit.service_interaction` para `AUTH`, `READ` e `MUTATION`      |
+| Soft delete + unicidade de ativos | ✅ Concluído | Índices únicos filtrados em migrations SQL raw                    |
+| Swagger/OpenAPI                   | ✅ Concluído | `/api/docs` com contratos e respostas de erro                     |
+| Postman collection final          | ✅ Concluído | `aivacol-postman-collection.json` na raiz                         |
+| Benchmark cache quente vs frio    | ✅ Concluído | `scripts/benchmark.ps1` com comparação Warm x Cold                |
+| Docker multistage + Compose       | ✅ Concluído | Stack completa + profile `tools`                                  |
+| Testes e cobertura                | ✅ Concluído | `test`, `test:e2e`, `test:cov` com thresholds atendidos           |
+| CI GitHub Actions                 | ✅ Concluído | `.github/workflows/ci.yml` com lint/typecheck/test                |
+| Rate limiting global              | ✅ Concluído | Guard global + erro `RATE_LIMIT_EXCEEDED`                         |
+
+## 1) Visão geral
+
+- Escopo funcional: autenticação JWT, CRUD de `vehicles`, `models`, `brands`, consulta protegida de `users` e health check protegido.
+- Dados e integrações: SQL Server (principal), Redis (cache), RabbitMQ (eventos), MongoDB (auditoria).
+- Observabilidade: correlation ID, logging interceptor, exception filter global e catálogo de erros estável.
+- Qualidade: suites unitárias e e2e com cobertura global ≥ 90% em lines/functions/statements.
+
+## 2) Arquitetura
+
+```mermaid
+flowchart TD
+  A[Presentation\nControllers Guards Interceptors] --> B[Application\nServices DTOs Mappers]
+  B --> C[Domain\nEntities Value Objects Ports]
+  D[Infrastructure\nTypeORM Redis RabbitMQ MongoDB JWT] --> C
+
+  B --> E[(SQL Server)]
+  B --> F[[EventEmitter2]]
+  F --> G[(RabbitMQ)]
+  F --> H[(MongoDB Audit)]
+  B --> I[(Redis Cache)]
+```
+
+ADRs relacionados:
+
+- `docs/adr/ADR-001-clean-architecture.md`
+- `docs/adr/ADR-002-event-driven-decoupling.md`
+- `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
+- `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md`
+
+## 3) Tecnologias e versões principais
+
+| Componente          | Versão              |
+| ------------------- | ------------------- |
+| Node.js (container) | 18                  |
+| NestJS              | 10.4.20             |
+| TypeScript          | 5.5.4               |
+| TypeORM             | 0.3.20              |
+| SQL Server (Docker) | 2022-latest         |
+| Redis (Docker)      | 7-alpine            |
+| RabbitMQ (Docker)   | 3-management-alpine |
+| MongoDB (Docker)    | 7                   |
+| Jest                | 29.7.0              |
+| Autocannon          | 7.14.0              |
+
+## 4) Pré-requisitos
+
+- Docker Desktop
+- Git
+- PowerShell 7.5+
+
+## 5) Como subir o ambiente
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+- API: `http://localhost:3000/api/v1`
+- Swagger: `http://localhost:3000/api/docs`
+
+## 6) Migrations e seed
+
+```powershell
+docker compose run --rm app npm run migration:run
+docker compose run --rm app npm run seed
+```
+
+Usuário seed padrão:
+
+- `nickname`: `aivacol`
+- `password`: valor de `SEED_USER_PASSWORD` no `.env`
+
+## 7) Qualidade, testes e cobertura
+
+```powershell
+docker compose exec app npm run lint
+docker compose exec app npm run lint:fix
+docker compose exec app npm run typecheck
+docker compose exec app npm run test
+docker compose exec app npm run test:e2e
+docker compose exec app npm run test:cov
+```
+
+Thresholds:
+
+- Branches ≥ 80%
+- Functions ≥ 90%
+- Lines ≥ 90%
+- Statements ≥ 90%
+
+## 8) Benchmark oficial
+
+Ponto de entrada:
+
+```powershell
+./scripts/benchmark.ps1
+```
+
+Fluxo do benchmark:
+
+- Runner dedicado `benchmark-runner` (`docker compose --profile tools run --rm ...`)
+- Target interno `http://app:3000`
+- Cenários: `warm cache` e `cold cache`
+
+Resultado oficial da Fase 8 (última execução válida):
+
+- Warm cache: `requestsAvg=764`, `p50=37ms`, `p99=60ms`, `errors=0`, `non2xx=0`
+- Cold cache: `requestsAvg=696.8`, `p50=33ms`, `p99=132ms`, `errors=0`, `non2xx=0`
+- Diferença: throughput `+8.8%` no warm cache e p99 significativamente menor (`60ms` vs `132ms`)
+
+### Observação sobre throttling dinâmico por ambiente
+
+- `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT` devem ser calibrados por demanda de cada ambiente.
+- Em benchmark/carga sintética, é aceitável elevar temporariamente `THROTTLE_LIMIT` para evitar `429` artificiais.
+- Após o benchmark, o valor padrão deve ser restaurado.
+- Nesta entrega final, o `.env` está com padrão restaurado: `THROTTLE_LIMIT=100`.
+
+## 9) Endpoints principais
+
+Base: `/api/v1`
+
+| Grupo    | Método | Endpoint        | Auth   |
+| -------- | ------ | --------------- | ------ |
+| Auth     | POST   | `/auth/login`   | Public |
+| Vehicles | GET    | `/vehicles`     | Bearer |
+| Vehicles | GET    | `/vehicles/:id` | Bearer |
+| Vehicles | POST   | `/vehicles`     | Bearer |
+| Vehicles | PATCH  | `/vehicles/:id` | Bearer |
+| Vehicles | DELETE | `/vehicles/:id` | Bearer |
+| Models   | GET    | `/models`       | Bearer |
+| Models   | GET    | `/models/:id`   | Bearer |
+| Models   | POST   | `/models`       | Bearer |
+| Models   | PATCH  | `/models/:id`   | Bearer |
+| Models   | DELETE | `/models/:id`   | Bearer |
+| Brands   | GET    | `/brands`       | Bearer |
+| Brands   | GET    | `/brands/:id`   | Bearer |
+| Brands   | POST   | `/brands`       | Bearer |
+| Brands   | PATCH  | `/brands/:id`   | Bearer |
+| Brands   | DELETE | `/brands/:id`   | Bearer |
+| Users    | GET    | `/users`        | Bearer |
+| Users    | GET    | `/users/:id`    | Bearer |
+| Health   | GET    | `/health`       | Bearer |
+
+## 10) Variáveis de ambiente
+
+Consulte `.env.example` para o template completo e os placeholders seguros.
+
+Variáveis críticas de rate limiting:
+
+- `THROTTLE_TTL_SECONDS` (default: `60`)
+- `THROTTLE_LIMIT` (default: `100`)
+
+## 11) Catálogo de erros
+
+| Code                      | HTTP | Message                                                      |
+| ------------------------- | ---- | ------------------------------------------------------------ |
+| `INVALID_CREDENTIALS`     | 401  | Nickname ou senha inválidos                                  |
+| `UNAUTHORIZED`            | 401  | Token ausente ou inválido                                    |
+| `FORBIDDEN`               | 403  | Você não tem permissão para este recurso                     |
+| `VEHICLE_NOT_FOUND`       | 404  | Veículo não encontrado                                       |
+| `MODEL_NOT_FOUND`         | 404  | Modelo não encontrado                                        |
+| `BRAND_NOT_FOUND`         | 404  | Marca não encontrada                                         |
+| `USER_NOT_FOUND`          | 404  | Usuário não encontrado                                       |
+| `DUPLICATE_LICENSE_PLATE` | 409  | Placa já cadastrada                                          |
+| `DUPLICATE_CHASSIS`       | 409  | Chassi já cadastrado                                         |
+| `DUPLICATE_RENAVAM`       | 409  | Renavam já cadastrado                                        |
+| `DUPLICATE_MODEL_NAME`    | 409  | Modelo já cadastrado para esta marca                         |
+| `DUPLICATE_BRAND_NAME`    | 409  | Marca já cadastrada                                          |
+| `RATE_LIMIT_EXCEEDED`     | 429  | Limite de requisições excedido, tente novamente em instantes |
+| `INTERNAL_SERVER_ERROR`   | 500  | Erro interno do servidor                                     |
 
 ## 🚀 Diferenciais de Engenharia
 
-- Decisoes arquiteturais registradas em ADRs desde o inicio para reduzir ambiguidade de execucao.
-- Estrategia de resiliencia: falha de RabbitMQ/MongoDB nao interrompe CRUD no SQL Server.
-- Estrategia de ciclo de vida de dados: soft delete no relacional para historico e compliance, com politica de unicidade para registros ativos.
-- Planejamento orientado a evidencia (Definition of Done por fase + `struct.md` como fonte de verdade de arquivos).
-- Versionamento de API e paginacao previstos desde a base para evolucao sem breaking changes.
-- `scripts/benchmark.ps1` e o entrypoint oficial e delega a carga para `scripts/benchmark.ts`, evitando ambiguidade entre shell e script de benchmark.
-- Campo tecnico `password_hash` em users foi adicionado apenas para viabilizar JWT, sem exposicao no contrato publico.
-- Trade-off de mensageria documentado: `@golevelup/nestjs-rabbitmq` priorizado sobre `@nestjs/microservices` para melhor ergonomia com confirm, retry e DLQ.
+- Contrato de erro estável por `code`, com padronização de resposta e rastreabilidade.
+- Resiliência por design: falhas de Redis/Rabbit/Mongo não derrubam a transação principal no SQL Server.
+- Eventos desacoplados com `EventEmitter2`, `correlationId` e `eventId`.
+- Soft delete com unicidade de ativos por índices filtrados (ADR-004).
+- Benchmark executado em runner dedicado para reduzir distorções.
+- Governança de fase com trilha em `task.md`, `struct.md` e `ACHIEVEMENTS.md`.
 
-### Nota tecnica sobre `users.password_hash`
+## CI da Fase 8
 
-- O campo `password_hash` existe exclusivamente para autenticacao JWT e nunca deve ser exposto em contratos publicos da API.
-- Entidade de dominio e repositorio tratam esse campo como detalhe tecnico de credencial interna.
-
-### Observacao operacional sobre healthcheck
-
-Para aderencia literal ao desafio (`todas as rotas devem ser protegidas`), o endpoint de health permanece protegido por JWT; liveness da infraestrutura e feito por healthchecks de container/processo, enquanto a verificacao funcional de dependencias ocorre via endpoint autenticado em testes internos.
-
-### Benchmark runner
-
-- O benchmark usa runner dedicado no Docker (`benchmark-runner`) para evitar interferencia no processo da API.
-- O alvo padrao do Autocannon e `http://app:3000` na rede interna do Compose.
-
-### Postman collection (padrao de entrega)
-
-- Variaveis obrigatorias: `base_url`, `nickname`, `password`, `token`.
-- Pre-request script em nivel de collection para obter/renovar token automaticamente.
-- Exemplos de request/response para cenarios de sucesso e principais erros.
-
-### Erros e limites
-
-- O projeto mantera catalogo de erros versionavel com `code` estavel por contrato.
-- Conflitos de unicidade (placa/chassi/renavam) serao tratados como `409 Conflict`.
-- Rate limiting global sera aplicado com retorno `429` (`RATE_LIMIT_EXCEEDED`) quando o limite for excedido.
-
-## Artefatos de planejamento
-
-- `MASTER.md`
-- `implementation_plan.md`
-- `task.md`
-- `struct.md`
-- `ACHIEVEMENTS.md`
-- `docs/adr/`
-
-## Contexto rapido para IA (recomendado)
-
-Se voce vai continuar este projeto com apoio de IA e quer minimizar alucinacao, retrabalho e consumo de contexto, inicie cada sessao com este protocolo:
-
-1. Leia -> `MASTER.md`
-2. Leia -> `implementation_plan.md`
-3. Leia -> `task.md`
-4. Leia -> `struct.md`
-5. Leia -> `ACHIEVEMENTS.md`
-6. Execute -> `git status`
-7. Execute -> `git log --oneline -5`
-8. Revise -> Secao 12 e 5 de `MASTER.md` (Qualidade e Governanca e Convenções)
-
-Referencias praticas:
-
-- Contexto total aproximado dos documentos-base: ~1700 linhas
-- Janela de contexto estimada: ~15000 tokens
-- Beneficios: melhor aderencia a arquitetura, menos criacao de arquivos indevidos, menor risco de contradicoes entre fases
+- Workflow: `.github/workflows/ci.yml`
+- Trigger: push e pull_request para `main`
+- Etapas: `checkout -> setup-node -> npm ci -> lint -> typecheck -> test`
