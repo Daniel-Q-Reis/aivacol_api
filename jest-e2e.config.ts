@@ -5,6 +5,7 @@ const config: Config = {
   rootDir: '.',
   testEnvironment: 'node',
   testRegex: '.*\\.e2e-spec\\.ts$',
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/', '/tmp/'],
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },

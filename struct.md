@@ -2,7 +2,7 @@
 
 > Arquitetura adotada: backend unico em NestJS com Clean Architecture (Domain, Application, Presentation e Infrastructure), desacoplamento por portas/adapters e eventos internos.
 > **Atualizado automaticamente pelas IAs executoras ao final de cada ciclo.**
-> Última atualização: 2026-07-03 (Fase 6 — Application + Presentation Layer)
+> Última atualização: 2026-07-03 (Fase 7 — Testes e Qualidade)
 > Nota: este arquivo lista somente o que ja existe no repositorio (nao e roadmap preditivo).
 
 ## Regra de Atualização
@@ -207,8 +207,17 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   ├── app.module.ts                             # Modulo raiz com imports globais e infraestrutura
 │   ├── app.service.ts                            # Service basico de health
 │   └── main.ts                                   # Bootstrap NestJS (pipes, Swagger, CORS, prefixo, shutdown)
-├── test/                                         # Testes end-to-end
-│   └── app.e2e-spec.ts                           # Teste e2e inicial da rota de health
+├── test/                                         # Testes end-to-end e utilitarios de suite
+│   └── e2e/
+│       ├── auth.e2e-spec.ts                      # Fluxos de autenticacao e autorizacao JWT
+│       ├── brands.e2e-spec.ts                    # CRUD e validacoes de marcas
+│       ├── health.e2e-spec.ts                    # Health protegido com e sem token
+│       ├── models.e2e-spec.ts                    # CRUD e validacoes de modelos
+│       ├── rate-limit.e2e-spec.ts                # Limite global com 429 e code estavel
+│       ├── vehicles.e2e-spec.ts                  # CRUD/validacoes e soft delete/recriacao
+│       └── helpers/
+│           ├── auth.helper.ts                    # Helper de login para suites e2e
+│           └── test-app.factory.ts               # Factory e2e com prefixo global e bootstrap
 ├── .dockerignore                                 # Exclusoes de contexto de build Docker
 ├── .eslintrc.js                                  # Configuracao ESLint com TypeScript + Prettier
 ├── .env.example                                  # Template de variaveis sem segredos
@@ -286,7 +295,14 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `src/app.controller.ts`                                                  | Controller basico de health em `/api/v1/health`                                               |
 | `src/app.service.ts`                                                     | Service basico de health retornando status operacional                                        |
 | `src/app.controller.spec.ts`                                             | Teste unitario inicial do endpoint de health                                                  |
-| `test/app.e2e-spec.ts`                                                   | Teste e2e inicial para rota de health                                                         |
+| `test/e2e/auth.e2e-spec.ts`                                              | Suite e2e de autenticacao e autorizacao JWT                                                   |
+| `test/e2e/vehicles.e2e-spec.ts`                                          | Suite e2e de CRUD de veiculos, validacoes e soft delete/recriacao                             |
+| `test/e2e/models.e2e-spec.ts`                                            | Suite e2e de CRUD de modelos e cenarios de erro                                               |
+| `test/e2e/brands.e2e-spec.ts`                                            | Suite e2e de CRUD de marcas e cenarios de erro                                                |
+| `test/e2e/health.e2e-spec.ts`                                            | Suite e2e de health protegido (401/200)                                                       |
+| `test/e2e/rate-limit.e2e-spec.ts`                                        | Suite e2e de throttling com `RATE_LIMIT_EXCEEDED`                                             |
+| `test/e2e/helpers/auth.helper.ts`                                        | Helper para autenticacao reutilizavel nos testes e2e                                          |
+| `test/e2e/helpers/test-app.factory.ts`                                   | Factory de app e2e com prefixo `/api/v1` e setup consistente                                  |
 | `src/config/database.config.ts`                                          | Factory de configuracao do TypeORM/SQL Server com pool e timeout por env                      |
 | `src/config/cache.config.ts`                                             | Factory de configuracao Redis (host, port, ttl)                                               |
 | `src/config/messaging.config.ts`                                         | Factory de configuracao RabbitMQ e URI AMQP                                                   |
@@ -392,6 +408,56 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `src/modules/users/application/services/user.service.ts`              | Casos de uso de consulta protegida de usuarios com auditoria `READ`                                     |
 | `src/modules/users/presentation/controllers/user.controller.ts`       | Endpoints `GET /users` e `GET /users/:id` protegidos por JWT e documentados no Swagger                  |
 
+### Entradas adicionadas (append) — Fase 7
+
+| Arquivo                                                                                           | Propósito                                                                          |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `src/common/controllers/health.controller.spec.ts`                                                | Testes unitarios de health cobrindo sql/redis/rabbit/mongo e probe TCP             |
+| `src/common/decorators/current-user.decorator.spec.ts`                                            | Testes unitarios do extractor de usuario autenticado                               |
+| `src/common/domain/exceptions/business-rule-violation.exception.spec.ts`                          | Teste unitario da excecao de regra de negocio                                      |
+| `src/common/domain/value-objects/chassis.vo.spec.ts`                                              | Testes unitarios do VO de chassi                                                   |
+| `src/common/domain/value-objects/license-plate.vo.spec.ts`                                        | Testes unitarios do VO de placa                                                    |
+| `src/common/domain/value-objects/renavam.vo.spec.ts`                                              | Testes unitarios do VO de renavam                                                  |
+| `src/common/filters/global-exception.filter.spec.ts`                                              | Testes unitarios do filtro global para Domain/Http/500 e normalizacao de mensagens |
+| `src/common/filters/throttler-exception.filter.spec.ts`                                           | Testes unitarios do filtro de throttling                                           |
+| `src/common/guards/jwt-auth.guard.spec.ts`                                                        | Testes unitarios do guard JWT e bypass `@Public()`                                 |
+| `src/common/guards/throttler.guard.spec.ts`                                                       | Testes unitarios do guard de rate limiting                                         |
+| `src/common/interceptors/correlation-id.interceptor.spec.ts`                                      | Testes unitarios do interceptor de correlation-id                                  |
+| `src/common/interceptors/logging.interceptor.spec.ts`                                             | Testes unitarios do interceptor de logging                                         |
+| `src/common/middleware/correlation-id.middleware.spec.ts`                                         | Testes unitarios do middleware de correlation-id                                   |
+| `src/config/audit.config.spec.ts`                                                                 | Testes unitarios de config de auditoria                                            |
+| `src/config/auth.config.spec.ts`                                                                  | Testes unitarios de config JWT                                                     |
+| `src/config/cache.config.spec.ts`                                                                 | Testes unitarios de config Redis                                                   |
+| `src/config/cors.config.spec.ts`                                                                  | Testes unitarios de parsing/validacao de CORS                                      |
+| `src/config/database.config.spec.ts`                                                              | Testes unitarios de config TypeORM/SQL Server                                      |
+| `src/config/messaging.config.spec.ts`                                                             | Testes unitarios de config RabbitMQ                                                |
+| `src/config/throttle.config.spec.ts`                                                              | Testes unitarios de config de throttling                                           |
+| `src/infrastructure/audit/listeners/service-audit.listener.spec.ts`                               | Testes unitarios do listener de auditoria com fail-safe                            |
+| `src/infrastructure/audit/mongo-audit-logger.spec.ts`                                             | Testes unitarios do logger de auditoria Mongo                                      |
+| `src/infrastructure/cache/redis-cache.service.spec.ts`                                            | Testes unitarios do adapter Redis                                                  |
+| `src/infrastructure/lifecycle/graceful-shutdown.service.spec.ts`                                  | Testes unitarios de shutdown graceful                                              |
+| `src/infrastructure/messaging/rabbitmq-event-publisher.spec.ts`                                   | Testes unitarios do publisher RabbitMQ (confirm/retry/DLQ)                         |
+| `src/modules/auth/application/services/auth.service.spec.ts`                                      | Testes unitarios do service de login                                               |
+| `src/modules/auth/infrastructure/strategies/jwt.strategy.spec.ts`                                 | Testes unitarios da estrategia JWT                                                 |
+| `src/modules/auth/presentation/controllers/auth.controller.spec.ts`                               | Testes unitarios do controller de auth                                             |
+| `src/modules/brands/application/services/brand.service.spec.ts`                                   | Testes unitarios dos casos de uso de marcas                                        |
+| `src/modules/brands/domain/entities/brand.entity.spec.ts`                                         | Testes unitarios da entidade de dominio Brand                                      |
+| `src/modules/brands/infrastructure/persistence/repositories/typeorm-brand.repository.spec.ts`     | Testes unitarios do repositorio TypeORM de marcas                                  |
+| `src/modules/brands/presentation/controllers/brand.controller.spec.ts`                            | Testes unitarios do controller de marcas                                           |
+| `src/modules/models/application/services/model.service.spec.ts`                                   | Testes unitarios dos casos de uso de modelos                                       |
+| `src/modules/models/domain/entities/model.entity.spec.ts`                                         | Testes unitarios da entidade de dominio Model                                      |
+| `src/modules/models/infrastructure/persistence/repositories/typeorm-model.repository.spec.ts`     | Testes unitarios do repositorio TypeORM de modelos                                 |
+| `src/modules/models/presentation/controllers/model.controller.spec.ts`                            | Testes unitarios do controller de modelos                                          |
+| `src/modules/users/application/services/user.service.spec.ts`                                     | Testes unitarios dos casos de uso de usuarios                                      |
+| `src/modules/users/domain/entities/user.entity.spec.ts`                                           | Testes unitarios da entidade de dominio User                                       |
+| `src/modules/users/infrastructure/persistence/repositories/typeorm-user.repository.spec.ts`       | Testes unitarios do repositorio TypeORM de usuarios                                |
+| `src/modules/users/presentation/controllers/user.controller.spec.ts`                              | Testes unitarios do controller de usuarios                                         |
+| `src/modules/vehicles/application/services/vehicle.service.spec.ts`                               | Testes unitarios dos casos de uso de veiculos                                      |
+| `src/modules/vehicles/domain/entities/vehicle.entity.spec.ts`                                     | Testes unitarios da entidade de dominio Vehicle                                    |
+| `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.spec.ts`                | Testes unitarios do listener de mensageria de veiculos                             |
+| `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.spec.ts` | Testes unitarios do repositorio TypeORM de veiculos                                |
+| `src/modules/vehicles/presentation/controllers/vehicle.controller.spec.ts`                        | Testes unitarios do controller de veiculos                                         |
+
 ---
 
 ## Atualizacao de Ciclo
@@ -415,5 +481,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Data: 2026-07-03
 - Fase: Fase 6 — Application + Presentation Layer
 - Acao: append de novos arquivos de services/DTOs/controllers de Auth, Vehicles, Models, Brands e Users com contratos Swagger, cache/eventos/auditoria e erros estaveis
+
+- Data: 2026-07-03
+- Fase: Fase 7 — Testes e Qualidade
+- Acao: append das suites unitarias/e2e, atualizacao do esqueleto de `test/e2e` e remocao da referencia legada `test/app.e2e-spec.ts`
 
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._
