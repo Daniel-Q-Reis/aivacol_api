@@ -46,6 +46,7 @@ export function getDatabaseConfig(): DataSourceOptions {
     entities: ['dist/**/*.orm-entity.js'],
     migrations: ['dist/infrastructure/database/migrations/*.js'],
     options: {
+      // Local Docker SQL Server runs with self-signed cert by default.
       encrypt: false,
       trustServerCertificate: true,
     },

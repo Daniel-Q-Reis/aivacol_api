@@ -25,6 +25,7 @@ export function getThrottleConfig(): ThrottleConfig {
   const ttlSeconds = getNumberEnv('THROTTLE_TTL_SECONDS', 60);
   const limit = getNumberEnv('THROTTLE_LIMIT', 100);
 
+  // Fail-fast avoids silently running without effective abuse protection.
   if (ttlSeconds <= 0) {
     throw new Error('THROTTLE_TTL_SECONDS must be greater than zero');
   }

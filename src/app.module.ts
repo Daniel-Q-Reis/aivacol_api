@@ -19,9 +19,11 @@ import { getTypeOrmModuleOptions } from './config/database.config';
       isGlobal: true,
       cache: true,
     }),
+    // Keep infrastructure bootstrap deferred to runtime env validation.
     TypeOrmModule.forRootAsync({
       useFactory: async () => getTypeOrmModuleOptions(),
     }),
+    // MongoDB is used for audit trail and must not block SQL bootstrap logic.
     MongooseModule.forRootAsync({
       useFactory: async () => {
         const auditConfig = getAuditConfig();
@@ -31,6 +33,7 @@ import { getTypeOrmModuleOptions } from './config/database.config';
       },
     }),
     EventEmitterModule.forRoot(),
+    // Feature modules are wired early as placeholders to stabilize imports and DI graph.
     VehiclesModule,
     ModelsModule,
     BrandsModule,

@@ -35,6 +35,7 @@ export function getCacheConfig(): CacheConfig {
   return {
     host: getRequiredEnv('REDIS_HOST'),
     port: getNumberEnv('REDIS_PORT', 6379),
+    // CACHE_TTL is standardized in seconds across cache use cases.
     ttlSeconds: getNumberEnv('CACHE_TTL', 300),
   };
 }

@@ -44,6 +44,7 @@ export function getMessagingConfig(): MessagingConfig {
     port,
     username,
     password,
+    // Keep canonical AMQP URI in one place to avoid connection-string drift.
     uri: `amqp://${username}:${password}@${host}:${port}`,
   };
 }

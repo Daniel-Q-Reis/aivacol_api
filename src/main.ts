@@ -10,6 +10,7 @@ async function bootstrap() {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
+  // CORS is driven by environment allowlist to avoid permissive defaults.
   const corsConfig = getCorsConfig();
 
   app.enableCors({
@@ -26,12 +27,14 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
+      // Enforce strict payload contracts at the API boundary.
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
     }),
   );
 
+  // All business routes are versioned under /api/v1.
   app.setGlobalPrefix('api/v1');
   app.enableShutdownHooks();
 
@@ -52,6 +55,7 @@ async function bootstrap() {
     .build();
 
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  // Keep Swagger outside /api/v1 while requiring Bearer token for protected routes.
   SwaggerModule.setup('api/docs', app, swaggerDocument, {
     swaggerOptions: {
       persistAuthorization: true,

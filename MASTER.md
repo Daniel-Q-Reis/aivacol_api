@@ -394,7 +394,22 @@ Guardrails:
 | Erros de API | Usar catálogo versionável com `code` único por caso de erro |
 | Estabilidade de contrato | `code` não deve mudar sem justificativa e versão/documentação |
 
-### 5.7 Variáveis de Ambiente
+### 5.7 Política de Comentarios em Codigo (Leitura-Humana + Manuteção)
+
+| Tema | Regra obrigatória |
+|---|---|
+| Objetivo do comentário | Explicar **why** (trade-off, guardrail, decisão de arquitetura), não repetir o **what** óbvio do código |
+| Idioma | Comentários técnicos em inglês (alinhado à seção 5.5) |
+| Escopo | Comentários pontuais em bootstrap, config fail-fast, integração externa e blocos de lógica não triviais |
+| Evitar ruído | Não comentar código autoexplicativo (getters simples, mapeamentos triviais, boilerplate declarativo) |
+| Evolução | Em refactors, atualizar/remover comentário que ficar desatualizado no mesmo ciclo |
+
+Guardrail para futuras IAs executoras:
+
+- Preferir poucos comentários de alto valor semântico em vez de comentar todos os arquivos.
+- Ao preparar material para leitura humana/apresentação, adicionar contexto somente onde a decisão não é imediatamente evidente pelo código.
+
+### 5.8 Variáveis de Ambiente
 
 ```env
 # Application
