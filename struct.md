@@ -34,33 +34,6 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   └── ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md # Indices filtrados no SQL Server
 │   └── runbooks/                                # Guias operacionais para suporte/contingencia
 │       └── infra-contingency.md                 # Runbook para falhas de infraestrutura local
-├── src/                                         # Codigo-fonte da aplicacao NestJS
-│   ├── config/                                  # Factories de configuracao por dominio tecnico
-│   │   ├── audit.config.ts                      # Configuracao fail-fast de auditoria MongoDB
-│   │   ├── auth.config.ts                       # Configuracao fail-fast de autenticacao JWT
-│   │   ├── cache.config.ts                      # Configuracao fail-fast de cache Redis
-│   │   ├── cors.config.ts                       # Parse e validacao de allowlist CORS
-│   │   ├── database.config.ts                   # Configuracao TypeORM/SQL Server + DataSource
-│   │   ├── messaging.config.ts                  # Configuracao fail-fast de RabbitMQ
-│   │   └── throttle.config.ts                   # Configuracao fail-fast de throttling
-│   ├── modules/                                 # Modulos de feature (placeholders da Fase 2)
-│   │   ├── auth/
-│   │   │   └── auth.module.ts                   # Placeholder do modulo Auth
-│   │   ├── brands/
-│   │   │   └── brands.module.ts                 # Placeholder do modulo Brands
-│   │   ├── models/
-│   │   │   └── models.module.ts                 # Placeholder do modulo Models
-│   │   ├── users/
-│   │   │   └── users.module.ts                  # Placeholder do modulo Users
-│   │   └── vehicles/
-│   │       └── vehicles.module.ts               # Placeholder do modulo Vehicles
-│   ├── app.controller.spec.ts                   # Teste unitario inicial do controller
-│   ├── app.controller.ts                        # Endpoint basico de health
-│   ├── app.module.ts                            # Modulo raiz com imports globais e infraestrutura base
-│   ├── app.service.ts                           # Service basico de health
-│   └── main.ts                                  # Bootstrap NestJS (pipes, Swagger, CORS, prefixo, shutdown)
-├── test/                                        # Testes end-to-end
-│   └── app.e2e-spec.ts                          # Teste e2e inicial da rota de health
 ├── scripts/                                     # Automacoes PowerShell/Node para ciclo de desenvolvimento
 │   ├── benchmark.ps1                            # Executa benchmark no runner dedicado (profile tools)
 │   ├── benchmark.ts                             # Script de carga (cache quente/frio) para Autocannon
@@ -76,27 +49,146 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   ├── test-e2e.ps1                             # Executa testes end-to-end no container app
 │   ├── test.ps1                                 # Executa cobertura de testes no container app
 │   └── wait-for-deps.js                         # Espera ativa das dependencias antes do bootstrap
-├── .dockerignore                                # Exclusoes de contexto de build Docker
-├── .eslintrc.js                                 # Configuracao ESLint com TypeScript + Prettier
-├── .env.example                                 # Template de variaveis sem segredos
-├── .gitignore                                   # Regras de exclusao de artefatos locais
-├── .prettierrc                                  # Regras de formatacao Prettier
-├── ACHIEVEMENTS.md                              # Registro de entregas e evidencias por fase
-├── Dockerfile                                   # Build multistage para desenvolvimento e producao
-├── MASTER.md                                    # Fonte de verdade de arquitetura, regras e governanca
-├── README.md                                    # Guia geral do projeto
-├── docker-compose.yml                           # Orquestracao de servicos da stack local
-├── implementation_plan.md                       # Plano macro de implementacao por fases
-├── jest-e2e.config.ts                           # Configuracao Jest para testes e2e
-├── jest.config.ts                               # Configuracao Jest para testes unitarios/cobertura
-├── nest-cli.json                                # Configuracao do Nest CLI com plugin Swagger
-├── objetivos.md                                 # Requisitos originais do desafio
-├── package-lock.json                            # Lockfile npm para reproducibilidade de dependencias
-├── package.json                                 # Manifesto npm com scripts e dependencias fixas
-├── struct.md                                    # Mapa de arquivos + esqueleto de navegacao humano
-├── task.md                                      # Checklist de execucao por fase
-├── tsconfig.build.json                          # Configuracao TypeScript para build
-└── tsconfig.json                                # Configuracao TypeScript strict com aliases
+├── src/                                         # Codigo-fonte da aplicacao NestJS
+│   ├── common/                                  # Cross-cutting concerns e contratos HTTP/erro
+│   │   ├── constants/
+│   │   │   └── http-context.constants.ts        # Chaves de contexto HTTP (correlation/public metadata)
+│   │   ├── controllers/
+│   │   │   └── health.controller.ts             # Health check protegido com validacao de dependencias
+│   │   ├── decorators/
+│   │   │   ├── current-user.decorator.ts        # Extrai usuario autenticado do request
+│   │   │   └── public.decorator.ts              # Marca rotas publicas (bypass do guard global)
+│   │   ├── domain/
+│   │   │   ├── exceptions/                      # Hierarquia de excecoes de dominio com code estavel
+│   │   │   ├── interfaces/                      # Portas puras compartilhadas (cache/event/audit)
+│   │   │   └── value-objects/                   # VOs imutaveis (placa/chassi/renavam)
+│   │   ├── errors/
+│   │   │   └── error-catalog.ts                 # Catalogo central de erros e status HTTP
+│   │   ├── filters/
+│   │   │   ├── global-exception.filter.ts       # Padroniza payloads de erro da API
+│   │   │   └── throttler-exception.filter.ts    # Resposta padrao para limite de taxa (429)
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts                # Guard JWT global com suporte a @Public
+│   │   │   └── throttler.guard.ts               # Guard global de throttling
+│   │   ├── interfaces/
+│   │   │   └── authenticated-request.interface.ts # Tipagem de request autenticada
+│   │   ├── interceptors/
+│   │   │   ├── correlation-id.interceptor.ts    # Propaga correlation-id na resposta/contexto
+│   │   │   └── logging.interceptor.ts           # Logging estruturado de requests/responses
+│   │   └── middleware/
+│   │       └── correlation-id.middleware.ts     # Injeta correlation-id no inicio da pipeline HTTP
+│   ├── config/                                  # Factories de configuracao por dominio tecnico
+│   │   ├── audit.config.ts                      # Configuracao fail-fast de auditoria MongoDB
+│   │   ├── auth.config.ts                       # Configuracao fail-fast de autenticacao JWT
+│   │   ├── cache.config.ts                      # Configuracao fail-fast de cache Redis
+│   │   ├── cors.config.ts                       # Parse e validacao de allowlist CORS
+│   │   ├── database.config.ts                   # Configuracao TypeORM/SQL Server + DataSource
+│   │   ├── messaging.config.ts                  # Configuracao fail-fast de RabbitMQ
+│   │   └── throttle.config.ts                   # Configuracao fail-fast de throttling
+│   ├── infrastructure/                          # Adapters concretos de persistencia e integracao externa
+│   │   ├── audit/
+│   │   │   ├── listeners/
+│   │   │   │   └── service-audit.listener.ts    # Listener assincrono de auditoria (fire-and-forget)
+│   │   │   ├── schemas/
+│   │   │   │   └── audit-log.schema.ts          # Schema Mongo de trilha de auditoria com indices/TTL
+│   │   │   ├── audit.module.ts                  # Modulo de auditoria com binding do token AUDIT_LOGGER
+│   │   │   └── mongo-audit-logger.ts            # Adapter Mongo que implementa IAuditLogger
+│   │   ├── cache/
+│   │   │   ├── cache.module.ts                  # Modulo de cache com provider para ICacheService
+│   │   │   └── redis-cache.service.ts           # Adapter Redis com fallback graceful e invalidacao por pattern
+│   │   ├── database/
+│   │   │   ├── migrations/
+│   │   │   │   ├── 1761900000000-CreateUsersTable.ts    # DDL users + indices de ativo
+│   │   │   │   ├── 1761900001000-CreateBrandsTable.ts   # DDL brands + FK para users
+│   │   │   │   ├── 1761900002000-CreateModelsTable.ts   # DDL models + FK para brands
+│   │   │   │   └── 1761900003000-CreateVehiclesTable.ts # DDL vehicles + indices filtrados ADR-004
+│   │   │   └── seeds/
+│   │   │       └── seed.ts                       # Seed idempotente para usuario/brand/model/vehicle
+│   │   ├── lifecycle/
+│   │   │   └── graceful-shutdown.service.ts      # Encerramento ordenado de conexoes externas
+│   │   └── messaging/
+│   │       ├── messaging.module.ts               # Modulo RabbitMQ para provider de IEventPublisher
+│   │       └── rabbitmq-event-publisher.ts       # Adapter RabbitMQ com confirm/retry/backoff/DLQ
+│   ├── modules/                                  # Modulos de feature (dominio + app + infra)
+│   │   ├── auth/
+│   │   │   ├── infrastructure/
+│   │   │   │   └── strategies/
+│   │   │   │       └── jwt.strategy.ts           # Estrategia JWT (Passport)
+│   │   │   └── auth.module.ts                    # Wiring do modulo Auth
+│   │   ├── brands/
+│   │   │   ├── application/
+│   │   │   │   └── mappers/brand.mapper.ts       # Conversao Domain <-> ORM de Brand
+│   │   │   ├── domain/
+│   │   │   │   ├── entities/brand.entity.ts      # Entidade de dominio Brand
+│   │   │   │   └── interfaces/brand-repository.interface.ts # Porta IBrandRepository
+│   │   │   ├── infrastructure/
+│   │   │   │   └── persistence/
+│   │   │   │       ├── entities/brand.orm-entity.ts # Entidade TypeORM de brands
+│   │   │   │       └── repositories/typeorm-brand.repository.ts # Repo concreto TypeORM
+│   │   │   └── brands.module.ts                  # Wiring do modulo Brands
+│   │   ├── models/
+│   │   │   ├── application/
+│   │   │   │   └── mappers/model.mapper.ts       # Conversao Domain <-> ORM de Model
+│   │   │   ├── domain/
+│   │   │   │   ├── entities/model.entity.ts      # Entidade de dominio Model
+│   │   │   │   └── interfaces/model-repository.interface.ts # Porta IModelRepository
+│   │   │   ├── infrastructure/
+│   │   │   │   └── persistence/
+│   │   │   │       ├── entities/model.orm-entity.ts # Entidade TypeORM de models
+│   │   │   │       └── repositories/typeorm-model.repository.ts # Repo concreto TypeORM
+│   │   │   └── models.module.ts                  # Wiring do modulo Models
+│   │   ├── users/
+│   │   │   ├── application/
+│   │   │   │   └── mappers/user.mapper.ts        # Conversao Domain <-> ORM de User
+│   │   │   ├── domain/
+│   │   │   │   ├── entities/user.entity.ts       # Entidade de dominio User
+│   │   │   │   └── interfaces/user-repository.interface.ts # Porta IUserRepository
+│   │   │   ├── infrastructure/
+│   │   │   │   └── persistence/
+│   │   │   │       ├── entities/user.orm-entity.ts # Entidade TypeORM de users
+│   │   │   │       └── repositories/typeorm-user.repository.ts # Repo concreto TypeORM
+│   │   │   └── users.module.ts                   # Wiring do modulo Users
+│   │   └── vehicles/
+│   │       ├── application/
+│   │       │   └── mappers/vehicle.mapper.ts     # Conversao Domain <-> ORM de Vehicle
+│   │       ├── domain/
+│   │       │   ├── entities/vehicle.entity.ts    # Entidade de dominio Vehicle
+│   │       │   └── interfaces/vehicle-repository.interface.ts # Porta IVehicleRepository
+│   │       ├── infrastructure/
+│   │       │   ├── listeners/vehicle-messaging.listener.ts # Listener de eventos de veiculo -> broker
+│   │       │   └── persistence/
+│   │       │       ├── entities/vehicle.orm-entity.ts # Entidade TypeORM de vehicles
+│   │       │       └── repositories/typeorm-vehicle.repository.ts # Repo concreto TypeORM
+│   │       └── vehicles.module.ts                # Wiring do modulo Vehicles
+│   ├── app.controller.spec.ts                    # Teste unitario inicial do controller
+│   ├── app.controller.ts                         # Endpoint basico de health
+│   ├── app.module.ts                             # Modulo raiz com imports globais e infraestrutura
+│   ├── app.service.ts                            # Service basico de health
+│   └── main.ts                                   # Bootstrap NestJS (pipes, Swagger, CORS, prefixo, shutdown)
+├── test/                                         # Testes end-to-end
+│   └── app.e2e-spec.ts                           # Teste e2e inicial da rota de health
+├── .dockerignore                                 # Exclusoes de contexto de build Docker
+├── .eslintrc.js                                  # Configuracao ESLint com TypeScript + Prettier
+├── .env.example                                  # Template de variaveis sem segredos
+├── .gitignore                                    # Regras de exclusao de artefatos locais
+├── .prettierrc                                   # Regras de formatacao Prettier
+├── ACHIEVEMENTS.md                               # Registro de entregas e evidencias por fase
+├── Dockerfile                                    # Build multistage para desenvolvimento e producao
+├── MASTER.md                                     # Fonte de verdade de arquitetura, regras e governanca
+├── README.md                                     # Guia geral do projeto
+├── docker-compose.yml                            # Orquestracao de servicos da stack local
+├── implementation_plan.md                        # Plano macro de implementacao por fases
+├── jest-e2e.config.ts                            # Configuracao Jest para testes e2e
+├── jest.config.ts                                # Configuracao Jest para testes unitarios/cobertura
+├── nest-cli.json                                 # Configuracao do Nest CLI com plugin Swagger
+├── objetivos.md                                  # Requisitos originais do desafio
+├── package-lock.json                             # Lockfile npm para reproducibilidade de dependencias
+├── package.json                                  # Manifesto npm com scripts e dependencias fixas
+├── seed_vehicles.json                            # Dataset de seed de veiculos para bootstrap local
+├── struct.md                                     # Mapa de arquivos + esqueleto de navegacao humano
+├── task.md                                       # Checklist de execucao por fase
+├── tsconfig.build.json                           # Configuracao TypeScript para build
+└── tsconfig.json                                 # Configuracao TypeScript strict com aliases
 ```
 
 ---
@@ -200,6 +292,38 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `src/modules/auth/infrastructure/strategies/jwt.strategy.ts`             | Estrategia JWT do Passport para validar bearer token e normalizar payload do usuario          |
 | `src/infrastructure/lifecycle/graceful-shutdown.service.ts`              | Service de shutdown graceful para fechar conexoes externas sem derrubar o bootstrap           |
 
+### Entradas adicionadas (append) — Fase 5
+
+| Arquivo                                                                                      | Propósito                                                                                   |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `seed_vehicles.json`                                                                         | Dataset de seed com veiculos de exemplo para bootstrap idempotente da base relacional       |
+| `src/infrastructure/cache/cache.module.ts`                                                   | Modulo de cache com provider `CACHE_SERVICE` apontando para adapter Redis                   |
+| `src/infrastructure/cache/redis-cache.service.ts`                                            | Adapter Redis que implementa `ICacheService` com fail graceful e invalidacao por pattern    |
+| `src/infrastructure/messaging/messaging.module.ts`                                           | Modulo de mensageria RabbitMQ com exchange `fleet-events` e conexao async resiliente        |
+| `src/infrastructure/messaging/rabbitmq-event-publisher.ts`                                   | Adapter RabbitMQ que implementa `IEventPublisher` com retry/backoff e fallback para DLQ     |
+| `src/infrastructure/audit/audit.module.ts`                                                   | Modulo de auditoria MongoDB com binding do token `AUDIT_LOGGER`                             |
+| `src/infrastructure/audit/listeners/service-audit.listener.ts`                               | Listener assincrono de auditoria que consome `audit.service_interaction` sem relancar erros |
+| `src/infrastructure/audit/mongo-audit-logger.ts`                                             | Adapter Mongo que implementa `IAuditLogger` com escrita best-effort                         |
+| `src/infrastructure/audit/schemas/audit-log.schema.ts`                                       | Schema Mongoose de auditoria com indices e TTL parametrizavel                               |
+| `src/infrastructure/database/migrations/1761900000000-CreateUsersTable.ts`                   | Migration SQL Server para tabela `users` com indices filtrados de ativos                    |
+| `src/infrastructure/database/migrations/1761900001000-CreateBrandsTable.ts`                  | Migration SQL Server para tabela `brands` e FK para `users`                                 |
+| `src/infrastructure/database/migrations/1761900002000-CreateModelsTable.ts`                  | Migration SQL Server para tabela `models` com FK para `brands`                              |
+| `src/infrastructure/database/migrations/1761900003000-CreateVehiclesTable.ts`                | Migration SQL Server para tabela `vehicles` com FKs e unicidade filtrada por ativo          |
+| `src/infrastructure/database/seeds/seed.ts`                                                  | Seed idempotente de usuarios, marcas, modelos e veiculos com hash de senha                  |
+| `src/modules/brands/application/mappers/brand.mapper.ts`                                     | Mapper bidirecional dominio/ORM para Brand                                                  |
+| `src/modules/brands/infrastructure/persistence/entities/brand.orm-entity.ts`                 | ORM Entity TypeORM de `brands` com metadados e soft delete                                  |
+| `src/modules/brands/infrastructure/persistence/repositories/typeorm-brand.repository.ts`     | Repositorio TypeORM concreto para a porta `IBrandRepository`                                |
+| `src/modules/models/application/mappers/model.mapper.ts`                                     | Mapper bidirecional dominio/ORM para Model                                                  |
+| `src/modules/models/infrastructure/persistence/entities/model.orm-entity.ts`                 | ORM Entity TypeORM de `models` com FK `brand_id` e soft delete                              |
+| `src/modules/models/infrastructure/persistence/repositories/typeorm-model.repository.ts`     | Repositorio TypeORM concreto para a porta `IModelRepository`                                |
+| `src/modules/users/application/mappers/user.mapper.ts`                                       | Mapper bidirecional dominio/ORM para User                                                   |
+| `src/modules/users/infrastructure/persistence/entities/user.orm-entity.ts`                   | ORM Entity TypeORM de `users` com `password_hash` tecnico, metadados e soft delete          |
+| `src/modules/users/infrastructure/persistence/repositories/typeorm-user.repository.ts`       | Repositorio TypeORM concreto para a porta `IUserRepository`                                 |
+| `src/modules/vehicles/application/mappers/vehicle.mapper.ts`                                 | Mapper bidirecional dominio/ORM para Vehicle usando Value Objects                           |
+| `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`                | Listener assincrono de eventos de veiculo com `eventId` para idempotencia                   |
+| `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`             | ORM Entity TypeORM de `vehicles` com FK `model_id` e soft delete                            |
+| `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts` | Repositorio TypeORM concreto para a porta `IVehicleRepository`                              |
+
 ---
 
 ## Atualizacao de Ciclo
@@ -215,5 +339,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Data: 2026-07-03
 - Fase: Fase 4 — Domain Layer
 - Acao: append de arquivos novos de excecoes, value objects, entidades e portas puras de dominio com preservacao do historico previo
+
+- Data: 2026-07-03
+- Fase: Fase 5 — Infrastructure Layer (Adapters, Migrations, Seed)
+- Acao: append de novos arquivos de ORM entities, mappers, repositories concretos, adapters Redis/RabbitMQ/Mongo, listeners resilientes, migrations SQL Server e seed idempotente
 
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._
