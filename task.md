@@ -498,147 +498,147 @@
 
 ### Autenticação
 
-- [ ] `src/modules/auth/application/services/auth.service.ts`
-  - [ ] `login(nickname, password)` → valida credenciais, retorna `{ access_token }`
-  - [ ] Usa `bcrypt.compare()` para verificar senha
-  - [ ] Usa `JwtService.sign()` para gerar token
-  - [ ] Emite evento `audit.service_interaction` para tentativas de login
-- [ ] `src/modules/auth/application/dtos/login.dto.ts`
-  - [ ] `nickname: string`, `password: string` com validação
-  - [ ] Decorators Swagger (`@ApiProperty`, `@ApiBody`)
-- [ ] `src/modules/auth/infrastructure/strategies/jwt.strategy.ts`
-  - [ ] Passport JWT Strategy
-  - [ ] Extrai token do header Authorization (Bearer)
-  - [ ] Valida payload e retorna user
-- [ ] `src/modules/auth/presentation/controllers/auth.controller.ts`
-  - [ ] `POST /api/v1/auth/login` — `@Public()`, `@ApiBody`, `@ApiOperation`
-  - [ ] Retorna `{ access_token }` com `@ApiResponse(201)`
-  - [ ] Documenta erros com `@ApiResponse(400)` e `@ApiResponse(401)`
-- [ ] `src/modules/auth/auth.module.ts`
+- [x] `src/modules/auth/application/services/auth.service.ts`
+  - [x] `login(nickname, password)` → valida credenciais, retorna `{ access_token }`
+  - [x] Usa `bcrypt.compare()` para verificar senha
+  - [x] Usa `JwtService.sign()` para gerar token
+  - [x] Emite evento `audit.service_interaction` para tentativas de login
+- [x] `src/modules/auth/application/dtos/login.dto.ts`
+  - [x] `nickname: string`, `password: string` com validação
+  - [x] Decorators Swagger (`@ApiProperty`, `@ApiBody`)
+- [x] `src/modules/auth/infrastructure/strategies/jwt.strategy.ts`
+  - [x] Passport JWT Strategy
+  - [x] Extrai token do header Authorization (Bearer)
+  - [x] Valida payload e retorna user
+- [x] `src/modules/auth/presentation/controllers/auth.controller.ts`
+  - [x] `POST /api/v1/auth/login` — `@Public()`, `@ApiBody`, `@ApiOperation`
+  - [x] Retorna `{ access_token }` com `@ApiResponse(201)`
+  - [x] Documenta erros com `@ApiResponse(400)` e `@ApiResponse(401)`
+- [x] `src/modules/auth/auth.module.ts`
 
 ### Vehicle — Services (Use Cases)
 
-- [ ] `src/modules/vehicles/application/services/vehicle.service.ts`
-  - [ ] `create(dto, userId)`:
-    - [ ] Valida domínio
-    - [ ] Verifica duplicidade de placa
-    - [ ] Persiste no SQL Server
-    - [ ] Invalida cache Redis (`vehicles:*`)
-    - [ ] Emite evento `vehicle.created` via EventEmitter2
-    - [ ] Emite evento `audit.service_interaction`
-  - [ ] `findAll(query)`:
-    - [ ] Suporta paginacao (`page`, `limit`, `sort`, `order`) com limites defensivos
-    - [ ] Tenta buscar do cache (`vehicles:list:{page}:{limit}:{sort}:{order}`)
-    - [ ] Se miss, busca do DB, cacheia resultado
-    - [ ] Retorna lista
-    - [ ] Emite evento `audit.service_interaction`
-  - [ ] `findById(id)`:
-    - [ ] Tenta buscar do cache (`vehicles:{id}`)
-    - [ ] Se miss, busca do DB, cacheia resultado
-    - [ ] Lança `EntityNotFoundException` se não encontrar
-    - [ ] Emite evento `audit.service_interaction`
-  - [ ] `update(id, dto, userId)`:
-    - [ ] Busca veículo existente
-    - [ ] Atualiza campos
-    - [ ] Persiste
-    - [ ] Invalida cache
-    - [ ] Emite evento `vehicle.updated`
-    - [ ] Emite evento `audit.service_interaction`
-  - [ ] `delete(id, userId)`:
-    - [ ] Verifica existência
-    - [ ] Executa soft delete no DB relacional
-    - [ ] Invalida cache
-    - [ ] Não publica evento RabbitMQ (escopo obrigatório limitado a `vehicle.created` e `vehicle.updated`)
-    - [ ] Emite evento `audit.service_interaction`
+- [x] `src/modules/vehicles/application/services/vehicle.service.ts`
+  - [x] `create(dto, userId)`:
+    - [x] Valida domínio
+    - [x] Verifica duplicidade de placa
+    - [x] Persiste no SQL Server
+    - [x] Invalida cache Redis (`vehicles:*`)
+    - [x] Emite evento `vehicle.created` via EventEmitter2
+    - [x] Emite evento `audit.service_interaction`
+  - [x] `findAll(query)`:
+    - [x] Suporta paginacao (`page`, `limit`, `sort`, `order`) com limites defensivos
+    - [x] Tenta buscar do cache (`vehicles:list:{page}:{limit}:{sort}:{order}`)
+    - [x] Se miss, busca do DB, cacheia resultado
+    - [x] Retorna lista
+    - [x] Emite evento `audit.service_interaction`
+  - [x] `findById(id)`:
+    - [x] Tenta buscar do cache (`vehicles:{id}`)
+    - [x] Se miss, busca do DB, cacheia resultado
+    - [x] Lança `EntityNotFoundException` se não encontrar
+    - [x] Emite evento `audit.service_interaction`
+  - [x] `update(id, dto, userId)`:
+    - [x] Busca veículo existente
+    - [x] Atualiza campos
+    - [x] Persiste
+    - [x] Invalida cache
+    - [x] Emite evento `vehicle.updated`
+    - [x] Emite evento `audit.service_interaction`
+  - [x] `delete(id, userId)`:
+    - [x] Verifica existência
+    - [x] Executa soft delete no DB relacional
+    - [x] Invalida cache
+    - [x] Não publica evento RabbitMQ (escopo obrigatório limitado a `vehicle.created` e `vehicle.updated`)
+    - [x] Emite evento `audit.service_interaction`
 
 ### Vehicle — DTOs
 
-- [ ] `src/modules/vehicles/application/dtos/create-vehicle.dto.ts`
-  - [ ] Validação com `class-validator`
-  - [ ] Decorators Swagger (`@ApiProperty` com examples)
-- [ ] `src/modules/vehicles/application/dtos/update-vehicle.dto.ts`
-  - [ ] `PartialType(CreateVehicleDto)` do `@nestjs/swagger`
-- [ ] `src/modules/vehicles/application/dtos/vehicle-response.dto.ts`
-  - [ ] DTO de resposta para serialização
+- [x] `src/modules/vehicles/application/dtos/create-vehicle.dto.ts`
+  - [x] Validação com `class-validator`
+  - [x] Decorators Swagger (`@ApiProperty` com examples)
+- [x] `src/modules/vehicles/application/dtos/update-vehicle.dto.ts`
+  - [x] `PartialType(CreateVehicleDto)` do `@nestjs/swagger`
+- [x] `src/modules/vehicles/application/dtos/vehicle-response.dto.ts`
+  - [x] DTO de resposta para serialização
 
 ### Vehicle — Controller
 
-- [ ] `src/modules/vehicles/presentation/controllers/vehicle.controller.ts`
-  - [ ] `@ApiTags('vehicles')`, `@ApiBearerAuth()`, `@Controller('vehicles')`
-  - [ ] Todos os endpoints com `@ApiOperation` e `@ApiResponse(401)`
-  - [ ] `GET /api/v1/vehicles` — `@ApiResponse(200)` + query params de paginacao
-  - [ ] `GET /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)`
-  - [ ] `POST /api/v1/vehicles` — `@ApiBody`, `@ApiResponse(201)`, `@ApiResponse(400)`, `@ApiResponse(409)`
-  - [ ] `PATCH /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiBody`, `@ApiResponse(200)`, `@ApiResponse(400)`, `@ApiResponse(404)`, `@ApiResponse(409)`
-  - [ ] `DELETE /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)` (soft delete)
-  - [ ] Endpoints documentam `@ApiResponse(429)` para throttling
-  - [ ] Usa `@CurrentUser()` para extrair userId do JWT
+- [x] `src/modules/vehicles/presentation/controllers/vehicle.controller.ts`
+  - [x] `@ApiTags('vehicles')`, `@ApiBearerAuth()`, `@Controller('vehicles')`
+  - [x] Todos os endpoints com `@ApiOperation` e `@ApiResponse(401)`
+  - [x] `GET /api/v1/vehicles` — `@ApiResponse(200)` + query params de paginacao
+  - [x] `GET /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)`
+  - [x] `POST /api/v1/vehicles` — `@ApiBody`, `@ApiResponse(201)`, `@ApiResponse(400)`, `@ApiResponse(409)`
+  - [x] `PATCH /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiBody`, `@ApiResponse(200)`, `@ApiResponse(400)`, `@ApiResponse(404)`, `@ApiResponse(409)`
+  - [x] `DELETE /api/v1/vehicles/:id` — `@ApiParam('id')`, `@ApiResponse(200)`, `@ApiResponse(404)` (soft delete)
+  - [x] Endpoints documentam `@ApiResponse(429)` para throttling
+  - [x] Usa `@CurrentUser()` para extrair userId do JWT
 
 ### Model — CRUD completo
 
-- [ ] `src/modules/models/application/services/model.service.ts` — CRUD com associação a brand
-  - [ ] Emite evento `audit.service_interaction` em create, findAll, findById, update e delete
-- [ ] `src/modules/models/application/dtos/create-model.dto.ts` — inclui `brandId`
-- [ ] `src/modules/models/application/dtos/update-model.dto.ts`
-- [ ] `src/modules/models/application/dtos/model-response.dto.ts`
-- [ ] `src/modules/models/presentation/controllers/model.controller.ts`
-  - [ ] `POST /api/v1/models`, `GET /api/v1/models`, `GET /api/v1/models/:id`, `PATCH /api/v1/models/:id`, `DELETE /api/v1/models/:id`
-  - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
-  - [ ] Rotas com `:id` documentadas com `@ApiParam('id')`
-  - [ ] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
-  - [ ] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
+- [x] `src/modules/models/application/services/model.service.ts` — CRUD com associação a brand
+  - [x] Emite evento `audit.service_interaction` em create, findAll, findById, update e delete
+- [x] `src/modules/models/application/dtos/create-model.dto.ts` — inclui `brandId`
+- [x] `src/modules/models/application/dtos/update-model.dto.ts`
+- [x] `src/modules/models/application/dtos/model-response.dto.ts`
+- [x] `src/modules/models/presentation/controllers/model.controller.ts`
+  - [x] `POST /api/v1/models`, `GET /api/v1/models`, `GET /api/v1/models/:id`, `PATCH /api/v1/models/:id`, `DELETE /api/v1/models/:id`
+  - [x] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
+  - [x] Rotas com `:id` documentadas com `@ApiParam('id')`
+  - [x] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
+  - [x] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
 
 ### Brand — CRUD completo
 
-- [ ] `src/modules/brands/application/services/brand.service.ts`
-  - [ ] Emite evento `audit.service_interaction` em create, findAll, findById, update e delete
-- [ ] `src/modules/brands/application/dtos/create-brand.dto.ts`
-- [ ] `src/modules/brands/application/dtos/update-brand.dto.ts`
-- [ ] `src/modules/brands/application/dtos/brand-response.dto.ts`
-- [ ] `src/modules/brands/presentation/controllers/brand.controller.ts`
-  - [ ] `POST /api/v1/brands`, `GET /api/v1/brands`, `GET /api/v1/brands/:id`, `PATCH /api/v1/brands/:id`, `DELETE /api/v1/brands/:id`
-  - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
-  - [ ] Rotas com `:id` documentadas com `@ApiParam('id')`
-  - [ ] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
-  - [ ] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
+- [x] `src/modules/brands/application/services/brand.service.ts`
+  - [x] Emite evento `audit.service_interaction` em create, findAll, findById, update e delete
+- [x] `src/modules/brands/application/dtos/create-brand.dto.ts`
+- [x] `src/modules/brands/application/dtos/update-brand.dto.ts`
+- [x] `src/modules/brands/application/dtos/brand-response.dto.ts`
+- [x] `src/modules/brands/presentation/controllers/brand.controller.ts`
+  - [x] `POST /api/v1/brands`, `GET /api/v1/brands`, `GET /api/v1/brands/:id`, `PATCH /api/v1/brands/:id`, `DELETE /api/v1/brands/:id`
+  - [x] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
+  - [x] Rotas com `:id` documentadas com `@ApiParam('id')`
+  - [x] Rotas `POST` e `PATCH` documentadas com `@ApiBody`
+  - [x] Respostas documentadas: sucesso `200/201`, erros `400`, `404`, `409` e `429` quando aplicáveis
 
 ### Catálogo de Erros
 
-- [ ] `src/common/errors/error-catalog.ts`
-  - [ ] Definir códigos estáveis (ex.: `VEHICLE_NOT_FOUND`, `DUPLICATE_LICENSE_PLATE`, `INVALID_CREDENTIALS`, `RATE_LIMIT_EXCEEDED`)
-  - [ ] Mapear `code` -> `httpStatus` -> `messagePtBr`
-  - [ ] Integrar `GlobalExceptionFilter` para serializar `code` sempre que aplicável
+- [x] `src/common/errors/error-catalog.ts`
+  - [x] Definir códigos estáveis (ex.: `VEHICLE_NOT_FOUND`, `DUPLICATE_LICENSE_PLATE`, `INVALID_CREDENTIALS`, `RATE_LIMIT_EXCEEDED`)
+  - [x] Mapear `code` -> `httpStatus` -> `messagePtBr`
+  - [x] Integrar `GlobalExceptionFilter` para serializar `code` sempre que aplicável
 
 ### Users — Consulta
 
-- [ ] `src/modules/users/application/services/user.service.ts` — findAll, findById
-  - [ ] Emite evento `audit.service_interaction` em findAll e findById
-- [ ] `src/modules/users/application/dtos/user-response.dto.ts`
-- [ ] `src/modules/users/presentation/controllers/user.controller.ts`
-  - [ ] `GET /api/v1/users`, `GET /api/v1/users/:id`
-  - [ ] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
-  - [ ] `GET /api/v1/users` documentado com `@ApiResponse(200)`
-  - [ ] `GET /api/v1/users/:id` documentado com `@ApiParam('id')`, `@ApiResponse(200)` e `@ApiResponse(404)`
+- [x] `src/modules/users/application/services/user.service.ts` — findAll, findById
+  - [x] Emite evento `audit.service_interaction` em findAll e findById
+- [x] `src/modules/users/application/dtos/user-response.dto.ts`
+- [x] `src/modules/users/presentation/controllers/user.controller.ts`
+  - [x] `GET /api/v1/users`, `GET /api/v1/users/:id`
+  - [x] Todos os endpoints com `@ApiOperation`, `@ApiBearerAuth()` e `@ApiResponse(401)`
+  - [x] `GET /api/v1/users` documentado com `@ApiResponse(200)`
+  - [x] `GET /api/v1/users/:id` documentado com `@ApiParam('id')`, `@ApiResponse(200)` e `@ApiResponse(404)`
 
 ### Validação Fase 6
 
-- [ ] Login funciona: `POST /api/v1/auth/login` retorna JWT
-- [ ] CRUD completo de vehicles funciona via Swagger
-- [ ] Listagens usam paginacao e limites defensivos
-- [ ] CRUD completo de models funciona via Swagger
-- [ ] CRUD completo de brands funciona via Swagger
-- [ ] Consulta de users funciona via Swagger
-- [ ] Cache Redis funciona (segunda chamada é mais rápida)
-- [ ] Eventos de auditoria são emitidos por Auth, Vehicles, Models, Brands e Users
-- [ ] Auditoria de todas as interações de serviço é gravada no MongoDB
-- [ ] Mensagens chegam no RabbitMQ
-- [ ] Contrato Swagger de rotas protegidas usa `@ApiBearerAuth()`
-- [ ] Swagger documenta `409` em conflitos de unicidade
-- [ ] Swagger documenta `429` em rotas sujeitas a throttling
-- [ ] `403` documentado em endpoints com regra de autorização (quando aplicável)
-- [ ] Rotas sem token retornam 401
-- [ ] Erros retornam formato padronizado
-- [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
+- [x] Login funciona: `POST /api/v1/auth/login` retorna JWT
+- [x] CRUD completo de vehicles funciona via Swagger
+- [x] Listagens usam paginacao e limites defensivos
+- [x] CRUD completo de models funciona via Swagger
+- [x] CRUD completo de brands funciona via Swagger
+- [x] Consulta de users funciona via Swagger
+- [x] Cache Redis funciona (segunda chamada é mais rápida)
+- [x] Eventos de auditoria são emitidos por Auth, Vehicles, Models, Brands e Users
+- [x] Auditoria de todas as interações de serviço é gravada no MongoDB
+- [x] Mensagens chegam no RabbitMQ
+- [x] Contrato Swagger de rotas protegidas usa `@ApiBearerAuth()`
+- [x] Swagger documenta `409` em conflitos de unicidade
+- [x] Swagger documenta `429` em rotas sujeitas a throttling
+- [x] `403` documentado em endpoints com regra de autorização (quando aplicável)
+- [x] Rotas sem token retornam 401
+- [x] Erros retornam formato padronizado
+- [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [ ] Atualizar `struct.md`
 - [ ] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `feat: add application and presentation layers (CRUD, Auth, Swagger)`

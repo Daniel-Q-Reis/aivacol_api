@@ -169,6 +169,9 @@ async function runSeed(): Promise<void> {
     }
 
     existingVehicle.modelId = model.id;
+    existingVehicle.licensePlate = normalizedLicensePlate;
+    existingVehicle.chassis = normalizedChassis;
+    existingVehicle.renavam = normalizedRenavam;
     existingVehicle.year = item.year;
     await vehicleRepository.save(existingVehicle);
     console.log(`[seed] updated vehicle '${normalizedLicensePlate}'`);

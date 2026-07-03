@@ -2,7 +2,7 @@
 
 > Arquitetura adotada: backend unico em NestJS com Clean Architecture (Domain, Application, Presentation e Infrastructure), desacoplamento por portas/adapters e eventos internos.
 > **Atualizado automaticamente pelas IAs executoras ao final de cada ciclo.**
-> Última atualização: 2026-07-03 (Fase 4 — Domain Layer)
+> Última atualização: 2026-07-03 (Fase 6 — Application + Presentation Layer)
 > Nota: este arquivo lista somente o que ja existe no repositorio (nao e roadmap preditivo).
 
 ## Regra de Atualização
@@ -109,15 +109,29 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   └── messaging/
 │   │       ├── messaging.module.ts               # Modulo RabbitMQ para provider de IEventPublisher
 │   │       └── rabbitmq-event-publisher.ts       # Adapter RabbitMQ com confirm/retry/backoff/DLQ
-│   ├── modules/                                  # Modulos de feature (dominio + app + infra)
+│   ├── modules/                                  # Modulos de feature (dominio + app + presentation + infra)
 │   │   ├── auth/
+│   │   │   ├── application/
+│   │   │   │   ├── dtos/
+│   │   │   │   │   └── login.dto.ts              # DTO de entrada para autenticacao por nickname/senha
+│   │   │   │   └── services/
+│   │   │   │       └── auth.service.ts           # Caso de uso de login (bcrypt + JWT + auditoria)
 │   │   │   ├── infrastructure/
 │   │   │   │   └── strategies/
 │   │   │   │       └── jwt.strategy.ts           # Estrategia JWT (Passport)
+│   │   │   ├── presentation/
+│   │   │   │   └── controllers/
+│   │   │   │       └── auth.controller.ts        # Endpoint publico POST /auth/login com Swagger
 │   │   │   └── auth.module.ts                    # Wiring do modulo Auth
 │   │   ├── brands/
 │   │   │   ├── application/
-│   │   │   │   └── mappers/brand.mapper.ts       # Conversao Domain <-> ORM de Brand
+│   │   │   │   ├── dtos/
+│   │   │   │   │   ├── brand-response.dto.ts     # DTO de resposta publica para marcas
+│   │   │   │   │   ├── create-brand.dto.ts       # DTO de criacao de marca
+│   │   │   │   │   └── update-brand.dto.ts       # DTO de atualizacao parcial de marca
+│   │   │   │   ├── mappers/brand.mapper.ts       # Conversao Domain <-> ORM de Brand
+│   │   │   │   └── services/
+│   │   │   │       └── brand.service.ts          # Casos de uso CRUD de marcas com auditoria
 │   │   │   ├── domain/
 │   │   │   │   ├── entities/brand.entity.ts      # Entidade de dominio Brand
 │   │   │   │   └── interfaces/brand-repository.interface.ts # Porta IBrandRepository
@@ -125,10 +139,19 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   │   │   └── persistence/
 │   │   │   │       ├── entities/brand.orm-entity.ts # Entidade TypeORM de brands
 │   │   │   │       └── repositories/typeorm-brand.repository.ts # Repo concreto TypeORM
+│   │   │   ├── presentation/
+│   │   │   │   └── controllers/
+│   │   │   │       └── brand.controller.ts       # Endpoints REST de marcas
 │   │   │   └── brands.module.ts                  # Wiring do modulo Brands
 │   │   ├── models/
 │   │   │   ├── application/
-│   │   │   │   └── mappers/model.mapper.ts       # Conversao Domain <-> ORM de Model
+│   │   │   │   ├── dtos/
+│   │   │   │   │   ├── create-model.dto.ts       # DTO de criacao de modelo com brandId
+│   │   │   │   │   ├── model-response.dto.ts      # DTO de resposta publica para modelos
+│   │   │   │   │   └── update-model.dto.ts       # DTO de atualizacao parcial de modelo
+│   │   │   │   ├── mappers/model.mapper.ts       # Conversao Domain <-> ORM de Model
+│   │   │   │   └── services/
+│   │   │   │       └── model.service.ts          # Casos de uso CRUD de modelos com auditoria
 │   │   │   ├── domain/
 │   │   │   │   ├── entities/model.entity.ts      # Entidade de dominio Model
 │   │   │   │   └── interfaces/model-repository.interface.ts # Porta IModelRepository
@@ -136,10 +159,17 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   │   │   └── persistence/
 │   │   │   │       ├── entities/model.orm-entity.ts # Entidade TypeORM de models
 │   │   │   │       └── repositories/typeorm-model.repository.ts # Repo concreto TypeORM
+│   │   │   ├── presentation/
+│   │   │   │   └── controllers/
+│   │   │   │       └── model.controller.ts       # Endpoints REST de modelos
 │   │   │   └── models.module.ts                  # Wiring do modulo Models
 │   │   ├── users/
 │   │   │   ├── application/
-│   │   │   │   └── mappers/user.mapper.ts        # Conversao Domain <-> ORM de User
+│   │   │   │   ├── dtos/
+│   │   │   │   │   └── user-response.dto.ts      # DTO de resposta sem password_hash
+│   │   │   │   ├── mappers/user.mapper.ts        # Conversao Domain <-> ORM de User
+│   │   │   │   └── services/
+│   │   │   │       └── user.service.ts           # Casos de uso de consulta protegida de usuarios
 │   │   │   ├── domain/
 │   │   │   │   ├── entities/user.entity.ts       # Entidade de dominio User
 │   │   │   │   └── interfaces/user-repository.interface.ts # Porta IUserRepository
@@ -147,10 +177,19 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   │   │   └── persistence/
 │   │   │   │       ├── entities/user.orm-entity.ts # Entidade TypeORM de users
 │   │   │   │       └── repositories/typeorm-user.repository.ts # Repo concreto TypeORM
+│   │   │   ├── presentation/
+│   │   │   │   └── controllers/
+│   │   │   │       └── user.controller.ts        # Endpoints GET /users e GET /users/:id
 │   │   │   └── users.module.ts                   # Wiring do modulo Users
 │   │   └── vehicles/
 │   │       ├── application/
-│   │       │   └── mappers/vehicle.mapper.ts     # Conversao Domain <-> ORM de Vehicle
+│   │       │   ├── dtos/
+│   │       │   │   ├── create-vehicle.dto.ts     # DTO de criacao de veiculo
+│   │       │   │   ├── update-vehicle.dto.ts     # DTO de atualizacao parcial de veiculo
+│   │       │   │   └── vehicle-response.dto.ts   # DTOs de resposta de veiculo (item/lista)
+│   │       │   ├── mappers/vehicle.mapper.ts     # Conversao Domain <-> ORM de Vehicle
+│   │       │   └── services/
+│   │       │       └── vehicle.service.ts        # Casos de uso CRUD com cache/eventos/auditoria
 │   │       ├── domain/
 │   │       │   ├── entities/vehicle.entity.ts    # Entidade de dominio Vehicle
 │   │       │   └── interfaces/vehicle-repository.interface.ts # Porta IVehicleRepository
@@ -159,6 +198,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │       │   └── persistence/
 │   │       │       ├── entities/vehicle.orm-entity.ts # Entidade TypeORM de vehicles
 │   │       │       └── repositories/typeorm-vehicle.repository.ts # Repo concreto TypeORM
+│   │       ├── presentation/
+│   │       │   └── controllers/
+│   │       │       └── vehicle.controller.ts     # Endpoints REST de veiculos
 │   │       └── vehicles.module.ts                # Wiring do modulo Vehicles
 │   ├── app.controller.spec.ts                    # Teste unitario inicial do controller
 │   ├── app.controller.ts                         # Endpoint basico de health
@@ -324,6 +366,32 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`             | ORM Entity TypeORM de `vehicles` com FK `model_id` e soft delete                            |
 | `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts` | Repositorio TypeORM concreto para a porta `IVehicleRepository`                              |
 
+### Entradas adicionadas (append) — Fase 6
+
+| Arquivo                                                               | Propósito                                                                                               |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `src/modules/auth/application/dtos/login.dto.ts`                      | DTO de autenticacao por nickname/senha com validacao e schema Swagger                                   |
+| `src/modules/auth/application/services/auth.service.ts`               | Caso de uso de login com bcrypt, JWT e emissao de auditoria `AUTH`                                      |
+| `src/modules/auth/presentation/controllers/auth.controller.ts`        | Controller da rota publica `POST /api/v1/auth/login` com contrato Swagger completo                      |
+| `src/modules/vehicles/application/dtos/create-vehicle.dto.ts`         | DTO de criacao de veiculo com validacoes de contrato HTTP e exemplos Swagger                            |
+| `src/modules/vehicles/application/dtos/update-vehicle.dto.ts`         | DTO parcial para atualizacao de veiculo usando `PartialType`                                            |
+| `src/modules/vehicles/application/dtos/vehicle-response.dto.ts`       | DTOs de serializacao de resposta de veiculos (item e listagem paginada)                                 |
+| `src/modules/vehicles/application/services/vehicle.service.ts`        | Casos de uso CRUD de veiculos com cache Redis, eventos RabbitMQ e auditoria de servico                  |
+| `src/modules/vehicles/presentation/controllers/vehicle.controller.ts` | Endpoints REST de veiculos com paginacao defensiva, JWT e respostas Swagger 200/201/400/401/404/409/429 |
+| `src/modules/models/application/dtos/create-model.dto.ts`             | DTO de criacao de modelo associado a `brandId`                                                          |
+| `src/modules/models/application/dtos/update-model.dto.ts`             | DTO parcial de atualizacao de modelo                                                                    |
+| `src/modules/models/application/dtos/model-response.dto.ts`           | DTO de resposta publica para modelos                                                                    |
+| `src/modules/models/application/services/model.service.ts`            | Casos de uso CRUD de modelos com validacao de associacao de marca e auditoria                           |
+| `src/modules/models/presentation/controllers/model.controller.ts`     | Endpoints REST de modelos com contratos Swagger e seguranca JWT                                         |
+| `src/modules/brands/application/dtos/create-brand.dto.ts`             | DTO de criacao de marca com validacao de nome                                                           |
+| `src/modules/brands/application/dtos/update-brand.dto.ts`             | DTO parcial de atualizacao de marca                                                                     |
+| `src/modules/brands/application/dtos/brand-response.dto.ts`           | DTO de resposta publica para marcas                                                                     |
+| `src/modules/brands/application/services/brand.service.ts`            | Casos de uso CRUD de marcas com auditoria de leitura/mutacao                                            |
+| `src/modules/brands/presentation/controllers/brand.controller.ts`     | Endpoints REST de marcas com cobertura Swagger completa                                                 |
+| `src/modules/users/application/dtos/user-response.dto.ts`             | DTO de resposta de usuarios sem exposicao de `password_hash`                                            |
+| `src/modules/users/application/services/user.service.ts`              | Casos de uso de consulta protegida de usuarios com auditoria `READ`                                     |
+| `src/modules/users/presentation/controllers/user.controller.ts`       | Endpoints `GET /users` e `GET /users/:id` protegidos por JWT e documentados no Swagger                  |
+
 ---
 
 ## Atualizacao de Ciclo
@@ -343,5 +411,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Data: 2026-07-03
 - Fase: Fase 5 — Infrastructure Layer (Adapters, Migrations, Seed)
 - Acao: append de novos arquivos de ORM entities, mappers, repositories concretos, adapters Redis/RabbitMQ/Mongo, listeners resilientes, migrations SQL Server e seed idempotente
+
+- Data: 2026-07-03
+- Fase: Fase 6 — Application + Presentation Layer
+- Acao: append de novos arquivos de services/DTOs/controllers de Auth, Vehicles, Models, Brands e Users com contratos Swagger, cache/eventos/auditoria e erros estaveis
 
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._

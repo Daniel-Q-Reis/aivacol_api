@@ -372,3 +372,97 @@ Comprovacao de que a unicidade vale apenas para registro ativo.
   - commit da fase 5 com mensagem prevista no checklist
 - `struct.md` atualizado tambem no bloco **Esqueleto de Navegacao (Humano)** para refletir a arvore real apos os arquivos criados na fase
 - Reforco adicional de comentarios tecnicos pontuais (secao 5.7) em repositories para melhorar manutencao humana sem poluicao de codigo
+
+---
+
+## Fase 6 — Application + Presentation Layer (2026-07-03)
+
+### ✅ Preflight executado na branch da fase
+
+- `docker compose up --build -d`: **OK**
+- `docker compose run --rm app npm run migration:run`: **OK** (No migrations are pending)
+- `docker compose run --rm app npm run seed`: **OK**
+- `GET http://localhost:3000/api/docs`: **200**
+
+### ⚠️ Correcoes aplicadas durante preflight/validacao
+
+- Ajuste em `src/config/database.config.ts` para resolver glob de entities/migrations com `join(...)` por runtime (evitando `Cannot use import statement outside a module` no bootstrap)
+- Ajuste em `src/modules/users/infrastructure/persistence/repositories/typeorm-user.repository.ts` para `addSelect('user.passwordHash')` (evitou `passwordHash` indefinido no login)
+- Correcao de dados de seed em `seed_vehicles.json` para RENAVAM com digito verificador valido
+- Correcao de idempotencia no `seed.ts` para atualizar tambem `licensePlate/chassis/renavam` ao atualizar veiculos existentes
+- Correcao de comparacao de IDs no `vehicle.service.ts` (case-insensitive) para evitar falso conflito em `update`
+- Soft delete tecnico de registro legado de teste (`TES9T99`) com RENAVAM invalido que estava contaminando listagem
+
+### ✅ Implementacoes entregues (escopo da Fase 6)
+
+- Auth:
+  - `auth.service.ts` com login por nickname + password, `bcrypt.compare`, `JwtService.signAsync`, auditoria `AUTH`
+  - `login.dto.ts` com validacao e Swagger
+  - `auth.controller.ts` com rota publica `POST /api/v1/auth/login` e respostas 201/400/401/429
+  - `auth.module.ts` com wiring final de service/controller
+- Vehicles:
+  - `vehicle.service.ts` com CRUD completo, soft delete, paginacao defensiva, cache Redis em listagem e por id, invalidacao em mutacoes, eventos `vehicle.created` e `vehicle.updated`, auditoria em todos os metodos
+  - DTOs `create/update/response` entregues
+  - `vehicle.controller.ts` com Swagger completo (200/201/400/401/404/409/429) e `@ApiBearerAuth`
+- Models:
+  - CRUD completo em `model.service.ts`, DTOs e `model.controller.ts`
+  - associacao obrigatoria com `brandId`
+  - auditoria `audit.service_interaction` em create/read/update/delete
+- Brands:
+  - CRUD completo em `brand.service.ts`, DTOs e `brand.controller.ts`
+  - auditoria `audit.service_interaction` em create/read/update/delete
+- Users:
+  - `user.service.ts` com `findAll/findById`, `user-response.dto.ts`, `user.controller.ts`
+  - sem exposicao de `password_hash` no contrato publico
+  - auditoria de consultas
+- Erros e filtro global:
+  - expansao de `error-catalog.ts` com codigos estaveis exigidos da fase
+  - integracao no `GlobalExceptionFilter` para priorizar mensagem/status PT-BR do catalogo quando houver `code`
+
+### 🧪 Comandos executados (gates e validacao)
+
+- Qualidade/gates:
+  - `docker compose run --rm app npm run lint`
+  - `docker compose run --rm app npm run lint:fix`
+  - `docker compose run --rm app npm run typecheck`
+- Preflight:
+  - `docker compose up --build -d`
+  - `docker compose run --rm app npm run migration:run`
+  - `docker compose run --rm app npm run seed`
+- Validacao funcional via HTTP (container `app`):
+  - login, 401 sem token, CRUD vehicles/models/brands, consultas users
+- Evidencias infra:
+  - MongoDB audit logs via `mongosh`
+  - Redis key/value cache de vehicles via `redis-cli`
+  - RabbitMQ eventos `vehicle.created`/`vehicle.updated` via fila temporaria `phase6-events`
+
+### 📌 Evidencias objetivas de validacao
+
+- Login JWT: `LOGIN_STATUS 201 HAS_TOKEN true`
+- Rotas protegidas sem token: `UNAUTHORIZED_STATUS 401`
+- Swagger: `SWAGGER_STATUS 200`
+- CRUD Vehicles: `VEHICLE_CREATE_STATUS 201`, `VEHICLE_LIST_1_STATUS 200`, `VEHICLE_LIST_2_STATUS 200`, `VEHICLE_GET_1_STATUS 200`, `VEHICLE_GET_2_STATUS 200`, `VEHICLE_UPDATE_STATUS 200`, `VEHICLE_DELETE_STATUS 200`
+- CRUD Models: `MODEL_CREATE_STATUS 201`, `MODEL_GET_STATUS 200`, `MODEL_LIST_STATUS 200`, `MODEL_UPDATE_STATUS 200`, `MODEL_DELETE_STATUS 200`
+- CRUD Brands: `BRAND_CREATE_STATUS 201`, `BRAND_GET_STATUS 200`, `BRAND_LIST_STATUS 200`, `BRAND_UPDATE_STATUS 200`, `BRAND_DELETE_STATUS 200`
+- Users protegido: `USERS_LIST_STATUS 200 HAS_PASSWORD_FIELD false`, `USERS_GET_STATUS 200`
+- Cache Redis efetivo:
+  - logs de latencia: primeira listagem `durationMs` maior e segunda `durationMs` proxima de zero para mesma chave
+  - chave comprovada: `vehicles:list:1:5:createdAt:desc` com payload serializado no Redis
+- Auditoria MongoDB:
+  - registros recentes com `action`/`entity`: `AUTH`, `BRAND`, `MODEL`, `VEHICLE`, `USER`
+  - metadata com `operation` e `correlationId`
+- RabbitMQ:
+  - exchange `fleet-events` presente
+  - captura em fila temporaria mostrou mensagens `vehicle.created` e `vehicle.updated` com payload e metadados (`eventId`, `occurredAt`, `correlationId`)
+
+### 📝 Comentarios de qualidade (secao 5.7)
+
+- `src/modules/auth/application/services/auth.service.ts`: comentario de trade-off de seguranca contra enumeracao de credenciais
+- `src/modules/vehicles/application/services/vehicle.service.ts`: comentario sobre estrategia de chaves de cache/invalidacao por pattern
+- `src/modules/vehicles/presentation/controllers/vehicle.controller.ts`: comentario de contrato para centralizar normalizacao de query no service
+- `src/common/filters/global-exception.filter.ts`: comentario no mapeamento de mensagens framework -> contrato PT-BR estavel
+
+### 🔜 Proximos passos (Fase 7)
+
+- Iniciar Fase 7 focada em testes unitarios/e2e e cobertura global >= 90%
+- Cobrir casos de erro por `code` estavel e cenarios de cache/eventos/auditoria em testes automatizados
