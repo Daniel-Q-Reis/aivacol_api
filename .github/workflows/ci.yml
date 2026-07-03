@@ -32,4 +32,32 @@ jobs:
         run: npm run typecheck
 
       - name: Unit tests
+        env:
+          NODE_ENV: test
+          APP_PORT: '3000'
+          CORS_ORIGINS: http://localhost:3000
+          DB_HOST: sqlserver
+          DB_PORT: '1433'
+          DB_USERNAME: sa
+          DB_PASSWORD: ci_dummy_password
+          DB_DATABASE: aivacol_fleet
+          DB_POOL_MIN: '2'
+          DB_POOL_MAX: '10'
+          DB_CONNECTION_TIMEOUT_MS: '30000'
+          REDIS_HOST: redis
+          REDIS_PORT: '6379'
+          CACHE_TTL: '300'
+          RABBITMQ_HOST: rabbitmq
+          RABBITMQ_PORT: '5672'
+          RABBITMQ_USER: ci_dummy_user
+          RABBITMQ_PASS: ci_dummy_password
+          MONGO_URI: mongodb://mongodb:27017/aivacol_audit
+          JWT_SECRET: ci_dummy_jwt_secret
+          JWT_EXPIRES_IN: 1h
+          THROTTLE_TTL_SECONDS: '60'
+          THROTTLE_LIMIT: '100'
+          SEED_USER_NICKNAME: aivacol
+          SEED_USER_NAME: Aivacol Admin
+          SEED_USER_EMAIL: admin@aivacol.com
+          SEED_USER_PASSWORD: ci_dummy_seed_password
         run: npm run test
