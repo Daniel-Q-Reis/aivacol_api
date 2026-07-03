@@ -24,37 +24,37 @@
 
 ## Regras Obrigatórias para CADA Ciclo de Trabalho
 
-- [ ] Ao final de cada fase, executar `git status`
-- [ ] Atualizar `struct.md` com todos os arquivos criados/deletados
-- [ ] Atualizar `ACHIEVEMENTS.md` com o que foi implementado
-- [ ] Garantir que `lint`, `lint:fix` e `typecheck` passam
-- [ ] Commitar com mensagem semântica (feat/fix/test/chore/docs)
-- [ ] NUNCA executar `npm install` no host — apenas dentro do container Docker
-- [ ] NUNCA criar código bash no host — apenas PowerShell
+- [x] Ao final de cada fase, executar `git status`
+- [x] Atualizar `struct.md` com todos os arquivos criados/deletados
+- [x] Atualizar `ACHIEVEMENTS.md` com o que foi implementado
+- [x] Garantir que `lint`, `lint:fix` e `typecheck` passam (N/A nesta fase: scaffold NestJS inicia na Fase 2)
+- [x] Commitar com mensagem semântica (feat/fix/test/chore/docs)
+- [x] NUNCA executar `npm install` no host — apenas dentro do container Docker
+- [x] NUNCA criar código bash no host — apenas PowerShell
 
 ---
 
 ## Definition of Done por Fase
 
-- [ ] Artefatos da fase criados/alterados conforme checklist
-- [ ] `struct.md` atualizado com arquivos criados/deletados
-- [ ] `ACHIEVEMENTS.md` atualizado com evidências e comandos executados
-- [ ] Validações da fase executadas com sucesso
-- [ ] `git status` revisado antes do commit
-- [ ] Commit semântico criado ao final da fase
+- [x] Artefatos da fase criados/alterados conforme checklist
+- [x] `struct.md` atualizado com arquivos criados/deletados
+- [x] `ACHIEVEMENTS.md` atualizado com evidências e comandos executados
+- [x] Validações da fase executadas com sucesso
+- [x] `git status` revisado antes do commit
+- [x] Commit semântico criado ao final da fase
 
 ---
 
 ## Estratégia de Branches e CI
 
-- [ ] **Fase 0 (planejamento)** pode ocorrer diretamente em `main` para acelerar alinhamento inicial
-- [ ] **A partir da Fase 1**, todo trabalho deve ocorrer em branch dedicada com PR para `main`
+- [x] **Fase 0 (planejamento)** pode ocorrer diretamente em `main` para acelerar alinhamento inicial
+- [x] **A partir da Fase 1**, todo trabalho deve ocorrer em branch dedicada com PR para `main`
 - [ ] CI obrigatório em todo PR: `lint`, `typecheck`, `test` (e `test:e2e` quando aplicável)
 - [ ] Merge em `main` apenas com CI verde e checklist da fase preenchido
 
 ### Convenção de branches por fase
 
-- [ ] Fase 1 inicia branch `feat/phase-1-docker-infra`
+- [x] Fase 1 inicia branch `feat/phase-1-docker-infra`
 - [ ] Fase 2 inicia branch `feat/phase-2-nest-bootstrap`
 - [ ] Fase 3 inicia branch `feat/phase-3-cross-cutting`
 - [ ] Fase 4 inicia branch `feat/phase-4-domain`
@@ -65,7 +65,7 @@
 
 ### Regra de início de branch
 
-- [ ] Criar branch no começo da fase (antes de criar/alterar arquivos da fase)
+- [x] Criar branch no começo da fase (antes de criar/alterar arquivos da fase)
 - [ ] Subir branch com `git push -u origin <branch>` no primeiro push
 - [ ] Abrir PR ao concluir a fase e só então fazer merge em `main`
 
@@ -83,58 +83,58 @@
 ## Fase 1 — Scaffolding e Infraestrutura Docker
 
 ### Docker Compose
-- [ ] Criar `docker-compose.yml` com 5 serviços core + 1 serviço auxiliar (`benchmark-runner`):
-  - [ ] `app` — Node.js 18 Alpine, hot-reload com volumes, porta 3000
-  - [ ] `sqlserver` — `mcr.microsoft.com/mssql/server:2022-latest`, porta 1433, health check
-  - [ ] `redis` — `redis:7-alpine`, porta 6379, persistência com AOF
-  - [ ] `rabbitmq` — `rabbitmq:3-management-alpine`, portas 5672/15672, health check
-  - [ ] `mongodb` — `mongo:7`, porta 27017
-- [ ] Configurar rede interna `aivacol-network`
-- [ ] Explicitar port mappings no host para UX/debug do examinador:
-  - [ ] `3000:3000` (app)
-  - [ ] `1433:1433` (sqlserver)
-  - [ ] `6379:6379` (redis)
-  - [ ] `5672:5672` e `15672:15672` (rabbitmq)
-  - [ ] `27017:27017` (mongodb)
-- [ ] Configurar named volumes para persistência de dados
-- [ ] Configurar `depends_on` com conditions (health checks)
-- [ ] Implementar espera ativa no `app` para dependências (`sqlserver`, `redis`, `rabbitmq`, `mongodb`) antes do bootstrap
-- [ ] Garantir ordem determinística de subida: `migrate.ps1` -> `seed.ps1` -> `dev.ps1`
+- [x] Criar `docker-compose.yml` com 5 serviços core + 1 serviço auxiliar (`benchmark-runner`):
+  - [x] `app` — Node.js 18 Alpine, hot-reload com volumes, porta 3000
+  - [x] `sqlserver` — `mcr.microsoft.com/mssql/server:2022-latest`, porta 1433, health check
+  - [x] `redis` — `redis:7-alpine`, porta 6379, persistência com AOF
+  - [x] `rabbitmq` — `rabbitmq:3-management-alpine`, portas 5672/15672, health check
+  - [x] `mongodb` — `mongo:7`, porta 27017
+- [x] Configurar rede interna `aivacol-network`
+- [x] Explicitar port mappings no host para UX/debug do examinador:
+  - [x] `3000:3000` (app)
+  - [x] `1433:1433` (sqlserver)
+  - [x] `6379:6379` (redis)
+  - [x] `5672:5672` e `15672:15672` (rabbitmq)
+  - [x] `27017:27017` (mongodb)
+- [x] Configurar named volumes para persistência de dados
+- [x] Configurar `depends_on` com conditions (health checks)
+- [x] Implementar espera ativa no `app` para dependências (`sqlserver`, `redis`, `rabbitmq`, `mongodb`) antes do bootstrap
+- [x] Garantir ordem determinística de subida: `migrate.ps1` -> `seed.ps1` -> `dev.ps1`
 
 ### Dockerfile
-- [ ] Criar `Dockerfile` multistage:
-  - [ ] Stage `dev` — Node.js 18 Alpine, instala deps, CMD com `npm run start:dev`
-  - [ ] Stage `builder` — copia source, roda `npm run build`
-  - [ ] Stage `production` — imagem mínima, usuário não-root, apenas `dist/` e `node_modules` de produção
-- [ ] Adicionar `HEALTHCHECK` no stage production
+- [x] Criar `Dockerfile` multistage:
+  - [x] Stage `dev` — Node.js 18 Alpine, instala deps, CMD com fallback para `npm run start:dev` quando disponível
+  - [x] Stage `builder` — copia source, roda build quando disponível
+  - [x] Stage `production` — imagem mínima, usuário não-root, apenas `dist/` e `node_modules` de produção
+- [x] Adicionar `HEALTHCHECK` no stage production
 
 ### Configuração
-- [ ] Criar `.env` com todas as variáveis (conforme MASTER.md seção 5.4)
-- [ ] Criar `.env.example` (sem valores sensíveis)
-- [ ] Criar `.dockerignore` (node_modules, dist, .git, coverage, test)
-- [ ] Criar `.gitignore` (node_modules, dist, .env, coverage)
+- [x] Criar `.env` com todas as variáveis (conforme MASTER.md seção 5.4)
+- [x] Criar `.env.example` (sem valores sensíveis)
+- [x] Criar `.dockerignore` (node_modules, dist, .git, coverage, test)
+- [x] Criar `.gitignore` (node_modules, dist, .env, coverage)
 
 ### Scripts PowerShell
-- [ ] `scripts/dev.ps1` — `docker compose up --build -d` + mensagens coloridas
-- [ ] `scripts/stop.ps1` — `docker compose down`
-- [ ] `scripts/logs.ps1` — `docker compose logs -f app`
-- [ ] `scripts/test.ps1` — executa `npm run test:cov` dentro do container
-- [ ] `scripts/test-e2e.ps1` — executa `npm run test:e2e` dentro do container
-- [ ] `scripts/lint.ps1` — executa `npm run lint` + `npm run lint:fix` + `npm run typecheck` dentro do container
-- [ ] `scripts/migrate.ps1` — executa migrations TypeORM dentro do container
-- [ ] `scripts/seed.ps1` — executa seed do banco dentro do container
-- [ ] `scripts/benchmark.ps1` — executa Autocannon em runner dedicado (container separado da app)
-- [ ] `scripts/benchmark.ts` — implementa cenários Autocannon; chamado pelo `scripts/benchmark.ps1`
-- [ ] `scripts/benchmark.ps1` deve usar `docker compose --profile tools run --rm benchmark-runner`
-- [ ] `scripts/benchmark.ts` deve apontar para `http://app:3000` por padrão (env `BENCHMARK_BASE_URL` opcional)
+- [x] `scripts/dev.ps1` — `docker compose up --build -d` + mensagens coloridas
+- [x] `scripts/stop.ps1` — `docker compose down`
+- [x] `scripts/logs.ps1` — `docker compose logs -f app`
+- [x] `scripts/test.ps1` — executa `npm run test:cov` dentro do container
+- [x] `scripts/test-e2e.ps1` — executa `npm run test:e2e` dentro do container
+- [x] `scripts/lint.ps1` — executa `npm run lint` + `npm run lint:fix` + `npm run typecheck` dentro do container
+- [x] `scripts/migrate.ps1` — executa migrations TypeORM dentro do container
+- [x] `scripts/seed.ps1` — executa seed do banco dentro do container
+- [x] `scripts/benchmark.ps1` — executa Autocannon em runner dedicado (container separado da app)
+- [x] `scripts/benchmark.ts` — implementa cenários Autocannon; chamado pelo `scripts/benchmark.ps1`
+- [x] `scripts/benchmark.ps1` deve usar `docker compose --profile tools run --rm benchmark-runner`
+- [x] `scripts/benchmark.ts` deve apontar para `http://app:3000` por padrão (env `BENCHMARK_BASE_URL` opcional)
 
 ### Validação Fase 1
-- [ ] `docker compose up --build` sobe todos os 5 serviços sem erros
-- [ ] `docker compose ps` mostra todos healthy/running
-- [ ] Criar `docs/runbooks/infra-contingency.md` com plano de contingência operacional
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `chore: setup Docker infrastructure`
+- [x] `docker compose up --build` sobe todos os 5 serviços sem erros
+- [x] `docker compose ps` mostra todos healthy/running
+- [x] Criar `docs/runbooks/infra-contingency.md` com plano de contingência operacional
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
+- [x] Commit: `chore: setup Docker infrastructure`
 
 ---
 

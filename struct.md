@@ -1,7 +1,8 @@
 # struct.md — Mapa de Arquivos do Projeto
 
+> Arquitetura adotada: backend unico em NestJS com Clean Architecture (Domain, Application, Presentation e Infrastructure), desacoplamento por portas/adapters e eventos internos.
 > **Atualizado automaticamente pelas IAs executoras ao final de cada ciclo.**
-> Última atualização: 2026-07-02 (Fase 0 — Planejamento)
+> Última atualização: 2026-07-02 (Fase 1 — Scaffolding e Infraestrutura Docker)
 > Nota: este arquivo lista somente o que ja existe no repositorio (nao e roadmap preditivo).
 
 ## Regra de Atualização
@@ -11,6 +12,54 @@ Ao final de CADA ciclo de trabalho:
 2. Para cada arquivo **criado** (new file) → adicionar à tabela abaixo com caminho e propósito
 3. Para cada arquivo **deletado** → remover da tabela
 4. **NUNCA criar arquivos duplicados** — consultar esta tabela ANTES de criar qualquer arquivo
+
+---
+
+## Esqueleto de Navegacao (Humano)
+
+> Referencia de navegacao da arquitetura escolhida (visao humana).  
+> A tabela "Arquivos do Projeto" abaixo continua sendo a fonte objetiva dos arquivos existentes.
+> Regra de padrao: refletir somente o que existe agora no repositorio, listar diretorios primeiro e itens da raiz por ultimo (de cima para baixo).
+
+```text
+aivacol_api/                                     # Raiz do repositorio backend unico
+├── .agents/                                     # Artefatos auxiliares gerados por ferramentas de execucao
+├── docs/                                        # Base documental de decisoes e runbooks
+│   ├── adr/                                     # ADRs de arquitetura e trade-offs tecnicos
+│   │   ├── ADR-001-clean-architecture.md        # Decisao de Clean Architecture com ports/adapters
+│   │   ├── ADR-002-event-driven-decoupling.md   # Decisao de desacoplamento interno via eventos
+│   │   ├── ADR-003-data-lifecycle-soft-delete-and-audit.md # Ciclo de vida de dados e auditoria
+│   │   └── ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md # Indices filtrados no SQL Server
+│   └── runbooks/                                # Guias operacionais para suporte/contingencia
+│       └── infra-contingency.md                 # Runbook para falhas de infraestrutura local
+├── scripts/                                     # Automacoes PowerShell/Node para ciclo de desenvolvimento
+│   ├── benchmark.ps1                            # Executa benchmark no runner dedicado (profile tools)
+│   ├── benchmark.ts                             # Script de carga (cache quente/frio) para Autocannon
+│   ├── container-healthcheck.js                 # Healthcheck HTTP do container da app
+│   ├── dev-container-start.js                   # Boot da app com wait-for-deps e fallback da Fase 1
+│   ├── dev.ps1                                  # Sobe stack Docker com build
+│   ├── lint.ps1                                 # Executa lint/lint:fix/typecheck no container app
+│   ├── logs.ps1                                 # Exibe logs de servico no Docker Compose
+│   ├── migrate.ps1                              # Executa migrations no container app
+│   ├── placeholder-app.js                       # Servidor placeholder para manter app healthy na Fase 1
+│   ├── seed.ps1                                 # Executa seed no container app
+│   ├── stop.ps1                                 # Desliga stack e remove orfaos
+│   ├── test-e2e.ps1                             # Executa testes end-to-end no container app
+│   ├── test.ps1                                 # Executa cobertura de testes no container app
+│   └── wait-for-deps.js                         # Espera ativa das dependencias antes do bootstrap
+├── .dockerignore                                # Exclusoes de contexto de build Docker
+├── .env.example                                 # Template de variaveis sem segredos
+├── .gitignore                                   # Regras de exclusao de artefatos locais
+├── ACHIEVEMENTS.md                              # Registro de entregas e evidencias por fase
+├── Dockerfile                                   # Build multistage para desenvolvimento e producao
+├── MASTER.md                                    # Fonte de verdade de arquitetura, regras e governanca
+├── README.md                                    # Guia geral do projeto
+├── docker-compose.yml                           # Orquestracao de servicos da stack local
+├── implementation_plan.md                       # Plano macro de implementacao por fases
+├── objetivos.md                                 # Requisitos originais do desafio
+├── struct.md                                    # Mapa de arquivos + esqueleto de navegacao humano
+└── task.md                                      # Checklist de execucao por fase
+```
 
 ---
 
@@ -31,6 +80,25 @@ Ao final de CADA ciclo de trabalho:
 | `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md` | ADR da estrategia de soft delete e auditoria complementar |
 | `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md` | ADR da decisao de usar SQL raw em migrations para indices filtrados no SQL Server |
 | `docs/runbooks/infra-contingency.md` | Runbook de contingencia para falhas de infraestrutura e recuperacao operacional |
+| `docker-compose.yml` | Orquestracao Docker da Fase 1 com app, sqlserver, redis, rabbitmq, mongodb e benchmark-runner |
+| `Dockerfile` | Build multistage (dev, builder, production) com usuario nao-root e healthcheck no stage final |
+| `.dockerignore` | Exclusoes de contexto de build Docker para reduzir ruido e tempo de build |
+| `.env` | Variaveis locais de ambiente para desenvolvimento via Docker Compose (arquivo nao versionado) |
+| `.env.example` | Template de variaveis de ambiente sem segredos para onboarding/reproducao |
+| `scripts/dev.ps1` | Sobe a stack com build e mostra status dos servicos |
+| `scripts/stop.ps1` | Desliga containers e remove orfaos da stack local |
+| `scripts/logs.ps1` | Stream de logs por servico via Docker Compose |
+| `scripts/test.ps1` | Executa cobertura de testes no container app (com fallback N/A na Fase 1) |
+| `scripts/test-e2e.ps1` | Executa testes E2E no container app (com fallback N/A na Fase 1) |
+| `scripts/lint.ps1` | Executa lint, lint:fix e typecheck no container app (com fallback N/A na Fase 1) |
+| `scripts/migrate.ps1` | Executa migrations via container app (com fallback N/A na Fase 1) |
+| `scripts/seed.ps1` | Executa seed via container app (com fallback N/A na Fase 1) |
+| `scripts/benchmark.ps1` | Entrada oficial de benchmark com `docker compose --profile tools run --rm benchmark-runner` |
+| `scripts/benchmark.ts` | Cenarios de benchmark (cache quente/frio) com base padrao `http://app:3000` |
+| `scripts/wait-for-deps.js` | Espera ativa de dependencias TCP antes do bootstrap da app |
+| `scripts/dev-container-start.js` | Orquestra boot da app no container (wait-for-deps + fallback ate Fase 2) |
+| `scripts/placeholder-app.js` | Servidor placeholder para manter app healthy durante a Fase 1 |
+| `scripts/container-healthcheck.js` | Healthcheck HTTP interno usado no compose e no stage production |
 | `.agents/` | Artefato gerado automaticamente por ferramentas CLI; sem impacto funcional na aplicacao |
 
 ---
