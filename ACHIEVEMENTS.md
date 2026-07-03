@@ -275,3 +275,91 @@ _Adicionar novas seções ao final deste arquivo para manter ordem cronológica 
 
 - Politica de env (referencia de governanca): **N/A nesta fase**
 - Justificativa: a Fase 4 foi estritamente de dominio puro (entidades, VOs, portas e excecoes), sem introducao/alteracao de configuracao externa ou variaveis de ambiente
+
+---
+
+## Fase 5 — Infrastructure Layer (Adapters, Migrations, Seed) (2026-07-03)
+
+### ✅ Implementacoes concluídas
+
+- ORM Entities TypeORM entregues para `users`, `brands`, `models` e `vehicles` com metadados obrigatorios (`created_at`, `updated_at`, `created_by`) e `deleted_at` para soft delete
+- Mappers Domain ↔ ORM implementados: `vehicle.mapper.ts`, `model.mapper.ts`, `brand.mapper.ts`, `user.mapper.ts`
+- Repositories concretos implementados para todas as portas da Fase 4: `TypeOrmVehicleRepository`, `TypeOrmModelRepository`, `TypeOrmBrandRepository`, `TypeOrmUserRepository`
+- Adapter de cache Redis entregue (`RedisCacheService`) com `get/set/del/delByPattern`, TTL por env e fail graceful
+- Adapter de mensageria RabbitMQ entregue (`RabbitmqEventPublisher`) com confirm/retry/backoff/DLQ e fail graceful
+- Adapter de auditoria Mongo entregue (`MongoAuditLogger`) + schema com indices relevantes e TTL parametrizavel
+- Listeners assincronos resilientes entregues (`service-audit.listener.ts` e `vehicle-messaging.listener.ts`) com `@OnEvent(..., { async: true })`, sem rethrow e com `eventId`
+- Migrations SQL Server criadas para users/brands/models/vehicles com SQL raw e indices unicos filtrados para ativos (`deleted_at IS NULL`) em `license_plate`, `chassis`, `renavam`
+- Seed idempotente entregue (`seed.ts` + `seed_vehicles.json`) com usuario padrao `aivacol` e hash de senha
+- Wiring dos modulos de feature atualizado (`vehicles.module.ts`, `models.module.ts`, `brands.module.ts`, `users.module.ts`) com tokens de injecao corretos
+
+### 🧪 Comandos executados
+
+- `git checkout main && git pull origin main && git checkout -b feat/phase-5-infra-adapters`
+- `docker compose run --rm app npm run lint`
+- `docker compose run --rm app npm run lint:fix`
+- `docker compose run --rm app npm run typecheck`
+- `docker compose up --build -d`
+- `docker compose run --rm app npm run migration:run`
+- `docker compose run --rm app npm run seed`
+- `docker compose exec redis redis-cli ping`
+- `docker compose exec rabbitmq rabbitmq-diagnostics -q ping`
+- `docker compose exec mongodb mongosh --quiet --eval "db.adminCommand('ping').ok"`
+- Validacao SQL do cenario create -> soft delete -> recreate via `sqlcmd` no container do SQL Server
+- Validacao SQL dos indices filtrados via `sys.indexes`
+
+### 📌 Evidencias de validacao
+
+- `npm run lint`: **OK** (container)
+- `npm run lint:fix`: **OK** (container)
+- `npm run typecheck`: **OK** (container)
+- Migrations: **4/4 aplicadas com sucesso** (`CreateUsersTable`, `CreateBrandsTable`, `CreateModelsTable`, `CreateVehiclesTable`)
+- Seed: **OK**, com criacao de usuario `aivacol`, brands/models e veiculos de exemplo
+- Redis: **PONG**
+- RabbitMQ: **Ping succeeded**
+- MongoDB: **1** em `db.adminCommand('ping').ok`
+
+### 🧾 Evidencia dos indices filtrados (ADR-004)
+
+Consulta executada em `sys.indexes` retornou:
+
+- `UQ_vehicles_license_plate_active` -> `is_unique=1`, `filter_definition=([deleted_at] IS NULL)`
+- `UQ_vehicles_chassis_active` -> `is_unique=1`, `filter_definition=([deleted_at] IS NULL)`
+- `UQ_vehicles_renavam_active` -> `is_unique=1`, `filter_definition=([deleted_at] IS NULL)`
+
+### 🔁 Evidencia do cenario create -> soft delete -> recreate
+
+Teste SQL executado para chave de negocio `TES9T99` / `9BWZZZ377VT004299` / `24999999949`:
+
+- Insercao inicial do veiculo: **OK**
+- Soft delete (`deleted_at` preenchido): **OK**
+- Recriacao com mesma placa/chassi/renavam: **OK**
+- Resultado final:
+  - `active_count = 1`
+  - `total_count = 2`
+
+Comprovacao de que a unicidade vale apenas para registro ativo.
+
+### ⚠️ Problemas encontrados e correcoes
+
+- **Falha de lint por CRLF historico em arquivos de dominio**: resolvido com `npm run lint:fix` no container e revalidacao com `npm run lint`
+- **Typecheck no mapper de vehicle (construtores privados de VO)**: corrigido para uso de `LicensePlate.create`, `Chassis.create`, `Renavam.create`
+- **Typecheck no `messaging.module.ts` (assinatura de `forRootAsync`)**: corrigido para chamada compativel com a versao instalada
+- **Teste SQL direto com indices filtrados exigindo `QUOTED_IDENTIFIER ON`**: corrigido com `SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON;` nas consultas de validacao
+
+### ✅ Conformidade com governanca (MASTER)
+
+- Secao 5.7 (comentarios): **aderente**
+  - Comentarios tecnicos nao obvios adicionados em adapters criticos (Redis, RabbitMQ, Mongo audit)
+  - Comentarios em migrations com SQL raw e indices filtrados
+  - Comentarios de resiliência nos listeners (never throw / fire-and-forget)
+  - Comentario de idempotencia no seed
+- Secao 5.8 (env/config fail-fast): **aderente**
+  - `database.config.ts` atualizado para suportar TS/JS em migrations/entities sem quebrar startup de runtime e CLI
+  - Adapters com comportamento fail graceful para dependencias externas (cache/messaging/audit)
+
+### 🔜 Proximos passos (Fase 6)
+
+- Implementar camada Application + Presentation (services, DTOs, controllers e auth/login)
+- Integrar emissoes de eventos de auditoria e mensageria a partir dos casos de uso
+- Documentar contratos Swagger completos e respostas padronizadas por `error code`

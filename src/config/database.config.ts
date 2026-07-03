@@ -43,8 +43,12 @@ export function getDatabaseConfig(): DataSourceOptions {
     database: getRequiredEnv('DB_DATABASE'),
     synchronize: false,
     logging: false,
-    entities: ['dist/**/*.orm-entity.js'],
-    migrations: ['dist/infrastructure/database/migrations/*.js'],
+    // Keep both TS/JS globs so CLI migrations work in ts-node and runtime works from dist.
+    entities: ['src/**/*.orm-entity.ts', 'dist/**/*.orm-entity.js'],
+    migrations: [
+      'src/infrastructure/database/migrations/*.ts',
+      'dist/infrastructure/database/migrations/*.js',
+    ],
     options: {
       // Local Docker SQL Server runs with self-signed cert by default.
       encrypt: false,

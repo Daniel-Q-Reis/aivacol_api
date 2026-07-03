@@ -7,6 +7,7 @@ export interface AuditLogEntry {
   entity: string;
   entityId?: string;
   userId?: string;
+  changes?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   timestamp?: Date;
 }

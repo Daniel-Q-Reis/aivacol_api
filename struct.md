@@ -200,6 +200,38 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `src/modules/auth/infrastructure/strategies/jwt.strategy.ts`             | Estrategia JWT do Passport para validar bearer token e normalizar payload do usuario          |
 | `src/infrastructure/lifecycle/graceful-shutdown.service.ts`              | Service de shutdown graceful para fechar conexoes externas sem derrubar o bootstrap           |
 
+### Entradas adicionadas (append) — Fase 5
+
+| Arquivo                                                                                      | Propósito                                                                                   |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `seed_vehicles.json`                                                                         | Dataset de seed com veiculos de exemplo para bootstrap idempotente da base relacional       |
+| `src/infrastructure/cache/cache.module.ts`                                                   | Modulo de cache com provider `CACHE_SERVICE` apontando para adapter Redis                   |
+| `src/infrastructure/cache/redis-cache.service.ts`                                            | Adapter Redis que implementa `ICacheService` com fail graceful e invalidacao por pattern    |
+| `src/infrastructure/messaging/messaging.module.ts`                                           | Modulo de mensageria RabbitMQ com exchange `fleet-events` e conexao async resiliente        |
+| `src/infrastructure/messaging/rabbitmq-event-publisher.ts`                                   | Adapter RabbitMQ que implementa `IEventPublisher` com retry/backoff e fallback para DLQ     |
+| `src/infrastructure/audit/audit.module.ts`                                                   | Modulo de auditoria MongoDB com binding do token `AUDIT_LOGGER`                             |
+| `src/infrastructure/audit/listeners/service-audit.listener.ts`                               | Listener assincrono de auditoria que consome `audit.service_interaction` sem relancar erros |
+| `src/infrastructure/audit/mongo-audit-logger.ts`                                             | Adapter Mongo que implementa `IAuditLogger` com escrita best-effort                         |
+| `src/infrastructure/audit/schemas/audit-log.schema.ts`                                       | Schema Mongoose de auditoria com indices e TTL parametrizavel                               |
+| `src/infrastructure/database/migrations/1761900000000-CreateUsersTable.ts`                   | Migration SQL Server para tabela `users` com indices filtrados de ativos                    |
+| `src/infrastructure/database/migrations/1761900001000-CreateBrandsTable.ts`                  | Migration SQL Server para tabela `brands` e FK para `users`                                 |
+| `src/infrastructure/database/migrations/1761900002000-CreateModelsTable.ts`                  | Migration SQL Server para tabela `models` com FK para `brands`                              |
+| `src/infrastructure/database/migrations/1761900003000-CreateVehiclesTable.ts`                | Migration SQL Server para tabela `vehicles` com FKs e unicidade filtrada por ativo          |
+| `src/infrastructure/database/seeds/seed.ts`                                                  | Seed idempotente de usuarios, marcas, modelos e veiculos com hash de senha                  |
+| `src/modules/brands/application/mappers/brand.mapper.ts`                                     | Mapper bidirecional dominio/ORM para Brand                                                  |
+| `src/modules/brands/infrastructure/persistence/entities/brand.orm-entity.ts`                 | ORM Entity TypeORM de `brands` com metadados e soft delete                                  |
+| `src/modules/brands/infrastructure/persistence/repositories/typeorm-brand.repository.ts`     | Repositorio TypeORM concreto para a porta `IBrandRepository`                                |
+| `src/modules/models/application/mappers/model.mapper.ts`                                     | Mapper bidirecional dominio/ORM para Model                                                  |
+| `src/modules/models/infrastructure/persistence/entities/model.orm-entity.ts`                 | ORM Entity TypeORM de `models` com FK `brand_id` e soft delete                              |
+| `src/modules/models/infrastructure/persistence/repositories/typeorm-model.repository.ts`     | Repositorio TypeORM concreto para a porta `IModelRepository`                                |
+| `src/modules/users/application/mappers/user.mapper.ts`                                       | Mapper bidirecional dominio/ORM para User                                                   |
+| `src/modules/users/infrastructure/persistence/entities/user.orm-entity.ts`                   | ORM Entity TypeORM de `users` com `password_hash` tecnico, metadados e soft delete          |
+| `src/modules/users/infrastructure/persistence/repositories/typeorm-user.repository.ts`       | Repositorio TypeORM concreto para a porta `IUserRepository`                                 |
+| `src/modules/vehicles/application/mappers/vehicle.mapper.ts`                                 | Mapper bidirecional dominio/ORM para Vehicle usando Value Objects                           |
+| `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`                | Listener assincrono de eventos de veiculo com `eventId` para idempotencia                   |
+| `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`             | ORM Entity TypeORM de `vehicles` com FK `model_id` e soft delete                            |
+| `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts` | Repositorio TypeORM concreto para a porta `IVehicleRepository`                              |
+
 ---
 
 ## Atualizacao de Ciclo
@@ -215,5 +247,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Data: 2026-07-03
 - Fase: Fase 4 — Domain Layer
 - Acao: append de arquivos novos de excecoes, value objects, entidades e portas puras de dominio com preservacao do historico previo
+
+- Data: 2026-07-03
+- Fase: Fase 5 — Infrastructure Layer (Adapters, Migrations, Seed)
+- Acao: append de novos arquivos de ORM entities, mappers, repositories concretos, adapters Redis/RabbitMQ/Mongo, listeners resilientes, migrations SQL Server e seed idempotente
 
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._

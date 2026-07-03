@@ -28,27 +28,27 @@ Politica final de autenticacao e Swagger:
 
 ## ✅ Checklist do Desafio
 
-| Criterio | Status | Observacao |
-|---|---|---|
-| Arquitetura limpa | 📋 Planejado | Definida no `MASTER.md` com DIP e portas |
-| CRUD Vehicles | 📋 Planejado | Fases 4-7 |
-| CRUD Models | 📋 Planejado | Fases 4-7 |
-| CRUD Brands | 📋 Planejado | Fases 4-7 |
-| Users e relacionamento | 📋 Planejado | Seed, autenticacao e consultas protegidas |
-| JWT em rotas | 📋 Planejado | Guard global + `@Public()` apenas login |
-| Redis cache em vehicles | 📋 Planejado | TTL configuravel + invalidacao automatica |
-| Swagger/OpenAPI | 📋 Planejado | `/api/docs` com decorators obrigatorios |
-| Postman collection | 📋 Planejado | Entrega prevista na raiz |
-| Observabilidade | 📋 Planejado | Correlation ID, logging interceptor e filter global |
-| RabbitMQ | 📋 Planejado | Estrategia de producao: confirmacao, retry, DLQ e idempotencia |
-| Auditoria MongoDB | 📋 Planejado | Todas as interacoes de servico: AUTH, READ e MUTATION |
-| Docker multistage + Compose | 📋 Planejado | Fase 1 |
-| Testes >= 90% | 📋 Planejado | Fase 7 |
-| Benchmark | 📋 Planejado | Autocannon em runner dedicado |
-| CI (GitHub Actions) | 📋 Planejado | lint + typecheck + test |
-| Lint, lint:fix, typecheck | 📋 Planejado | Scripts e gates por fase |
-| Catálogo de erros versionável | 📋 Planejado | `code` estável por erro + tabela no README |
-| Throttling / Rate limiting | 📋 Planejado | Limites por env + retorno `429` |
+| Criterio                      | Status       | Observacao                                                     |
+| ----------------------------- | ------------ | -------------------------------------------------------------- |
+| Arquitetura limpa             | 📋 Planejado | Definida no `MASTER.md` com DIP e portas                       |
+| CRUD Vehicles                 | 📋 Planejado | Fases 4-7                                                      |
+| CRUD Models                   | 📋 Planejado | Fases 4-7                                                      |
+| CRUD Brands                   | 📋 Planejado | Fases 4-7                                                      |
+| Users e relacionamento        | 📋 Planejado | Seed, autenticacao e consultas protegidas                      |
+| JWT em rotas                  | 📋 Planejado | Guard global + `@Public()` apenas login                        |
+| Redis cache em vehicles       | 📋 Planejado | TTL configuravel + invalidacao automatica                      |
+| Swagger/OpenAPI               | 📋 Planejado | `/api/docs` com decorators obrigatorios                        |
+| Postman collection            | 📋 Planejado | Entrega prevista na raiz                                       |
+| Observabilidade               | 📋 Planejado | Correlation ID, logging interceptor e filter global            |
+| RabbitMQ                      | 📋 Planejado | Estrategia de producao: confirmacao, retry, DLQ e idempotencia |
+| Auditoria MongoDB             | 📋 Planejado | Todas as interacoes de servico: AUTH, READ e MUTATION          |
+| Docker multistage + Compose   | 📋 Planejado | Fase 1                                                         |
+| Testes >= 90%                 | 📋 Planejado | Fase 7                                                         |
+| Benchmark                     | 📋 Planejado | Autocannon em runner dedicado                                  |
+| CI (GitHub Actions)           | 📋 Planejado | lint + typecheck + test                                        |
+| Lint, lint:fix, typecheck     | 📋 Planejado | Scripts e gates por fase                                       |
+| Catálogo de erros versionável | 📋 Planejado | `code` estável por erro + tabela no README                     |
+| Throttling / Rate limiting    | 📋 Planejado | Limites por env + retorno `429`                                |
 
 ## 🚀 Diferenciais de Engenharia
 
@@ -60,6 +60,11 @@ Politica final de autenticacao e Swagger:
 - `scripts/benchmark.ps1` e o entrypoint oficial e delega a carga para `scripts/benchmark.ts`, evitando ambiguidade entre shell e script de benchmark.
 - Campo tecnico `password_hash` em users foi adicionado apenas para viabilizar JWT, sem exposicao no contrato publico.
 - Trade-off de mensageria documentado: `@golevelup/nestjs-rabbitmq` priorizado sobre `@nestjs/microservices` para melhor ergonomia com confirm, retry e DLQ.
+
+### Nota tecnica sobre `users.password_hash`
+
+- O campo `password_hash` existe exclusivamente para autenticacao JWT e nunca deve ser exposto em contratos publicos da API.
+- Entidade de dominio e repositorio tratam esse campo como detalhe tecnico de credencial interna.
 
 ### Observacao operacional sobre healthcheck
 

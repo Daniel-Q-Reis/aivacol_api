@@ -58,7 +58,7 @@
 - [x] Fase 2 inicia branch `feat/phase-2-nest-bootstrap`
 - [x] Fase 3 inicia branch `feat/phase-3-cross-cutting`
 - [x] Fase 4 inicia branch `feat/phase-4-domain`
-- [ ] Fase 5 inicia branch `feat/phase-5-infra-adapters`
+- [x] Fase 5 inicia branch `feat/phase-5-infra-adapters`
 - [ ] Fase 6 inicia branch `feat/phase-6-application-presentation`
 - [ ] Fase 7 inicia branch `feat/phase-7-tests-quality`
 - [ ] Fase 8 inicia branch `feat/phase-8-docs-release`
@@ -368,128 +368,128 @@
 
 ### ORM Entities (TypeORM)
 
-- [ ] `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`
-  - [ ] `@Entity('vehicles')` com todas as colunas e FKs
-  - [ ] `@ManyToOne(() => ModelOrmEntity)` com `@JoinColumn({ name: 'model_id' })`
-  - [ ] `@CreateDateColumn`, `@UpdateDateColumn`
-- [ ] `src/modules/models/infrastructure/persistence/entities/model.orm-entity.ts`
-  - [ ] `@Entity('models')` com FK `brand_id` para `brands`
-  - [ ] `@ManyToOne(() => BrandOrmEntity)`
-- [ ] `src/modules/brands/infrastructure/persistence/entities/brand.orm-entity.ts`
-  - [ ] `@Entity('brands')`
-- [ ] `src/modules/users/infrastructure/persistence/entities/user.orm-entity.ts`
-  - [ ] `@Entity('users')` com `nickname`, `name`, `email`, metadados (`created_at`, `updated_at`, `created_by`) e campo técnico `password_hash`
+- [x] `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`
+  - [x] `@Entity('vehicles')` com todas as colunas e FKs
+  - [x] `@ManyToOne(() => ModelOrmEntity)` com `@JoinColumn({ name: 'model_id' })`
+  - [x] `@CreateDateColumn`, `@UpdateDateColumn`
+- [x] `src/modules/models/infrastructure/persistence/entities/model.orm-entity.ts`
+  - [x] `@Entity('models')` com FK `brand_id` para `brands`
+  - [x] `@ManyToOne(() => BrandOrmEntity)`
+- [x] `src/modules/brands/infrastructure/persistence/entities/brand.orm-entity.ts`
+  - [x] `@Entity('brands')`
+- [x] `src/modules/users/infrastructure/persistence/entities/user.orm-entity.ts`
+  - [x] `@Entity('users')` com `nickname`, `name`, `email`, metadados (`created_at`, `updated_at`, `created_by`) e campo técnico `password_hash`
   - [ ] Documentar no README que `password_hash` é extensão técnica para autenticação JWT e não faz parte do contrato público
 
 ### Mappers (Domain ↔ ORM)
 
-- [ ] `src/modules/vehicles/application/mappers/vehicle.mapper.ts` — toDomain / toOrm
-- [ ] `src/modules/models/application/mappers/model.mapper.ts` — toDomain / toOrm
-- [ ] `src/modules/brands/application/mappers/brand.mapper.ts` — toDomain / toOrm
-- [ ] `src/modules/users/application/mappers/user.mapper.ts` — toDomain / toOrm
+- [x] `src/modules/vehicles/application/mappers/vehicle.mapper.ts` — toDomain / toOrm
+- [x] `src/modules/models/application/mappers/model.mapper.ts` — toDomain / toOrm
+- [x] `src/modules/brands/application/mappers/brand.mapper.ts` — toDomain / toOrm
+- [x] `src/modules/users/application/mappers/user.mapper.ts` — toDomain / toOrm
 
 ### Repository Implementations
 
-- [ ] `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts`
-  - [ ] Implementa `IVehicleRepository`
-  - [ ] Usa `Repository<VehicleOrmEntity>` do TypeORM
-  - [ ] Mapeia entre ORM Entity e Domain Entity via Mapper
-- [ ] `src/modules/models/infrastructure/persistence/repositories/typeorm-model.repository.ts`
-  - [ ] Implementa `IModelRepository`
-- [ ] `src/modules/brands/infrastructure/persistence/repositories/typeorm-brand.repository.ts`
-  - [ ] Implementa `IBrandRepository`
-- [ ] `src/modules/users/infrastructure/persistence/repositories/typeorm-user.repository.ts`
-  - [ ] Implementa `IUserRepository`
+- [x] `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts`
+  - [x] Implementa `IVehicleRepository`
+  - [x] Usa `Repository<VehicleOrmEntity>` do TypeORM
+  - [x] Mapeia entre ORM Entity e Domain Entity via Mapper
+- [x] `src/modules/models/infrastructure/persistence/repositories/typeorm-model.repository.ts`
+  - [x] Implementa `IModelRepository`
+- [x] `src/modules/brands/infrastructure/persistence/repositories/typeorm-brand.repository.ts`
+  - [x] Implementa `IBrandRepository`
+- [x] `src/modules/users/infrastructure/persistence/repositories/typeorm-user.repository.ts`
+  - [x] Implementa `IUserRepository`
 
 ### Cache (Redis)
 
-- [ ] `src/infrastructure/cache/redis-cache.service.ts`
-  - [ ] Implementa `ICacheService`
-  - [ ] Usa `ioredis` diretamente
-  - [ ] Métodos: `get<T>`, `set<T>`, `del`, `delByPattern` (via SCAN + DEL)
-  - [ ] TTL configurável via `CACHE_TTL` env var
-  - [ ] Graceful: se Redis cair, loga erro e retorna null/void (não quebra app)
-- [ ] `src/infrastructure/cache/cache.module.ts`
+- [x] `src/infrastructure/cache/redis-cache.service.ts`
+  - [x] Implementa `ICacheService`
+  - [x] Usa `ioredis` diretamente
+  - [x] Métodos: `get<T>`, `set<T>`, `del`, `delByPattern` (via SCAN + DEL)
+  - [x] TTL configurável via `CACHE_TTL` env var
+  - [x] Graceful: se Redis cair, loga erro e retorna null/void (não quebra app)
+- [x] `src/infrastructure/cache/cache.module.ts`
 
 ### Mensageria (RabbitMQ)
 
-- [ ] `src/infrastructure/messaging/rabbitmq-event-publisher.ts`
-  - [ ] Implementa `IEventPublisher`
-  - [ ] Usa `@golevelup/nestjs-rabbitmq` (`AmqpConnection`)
+- [x] `src/infrastructure/messaging/rabbitmq-event-publisher.ts`
+  - [x] Implementa `IEventPublisher`
+  - [x] Usa `@golevelup/nestjs-rabbitmq` (`AmqpConnection`)
   - [ ] Registrar trade-off da escolha (`@golevelup/nestjs-rabbitmq` vs `@nestjs/microservices`) em ADR e README
-  - [ ] Publica em exchange `fleet-events` com routing key por tipo de evento
-  - [ ] Publisher confirms habilitado para confirmação de entrega
-  - [ ] Publicação com roteamento obrigatório e tratamento de unroutable messages
-  - [ ] Retry com backoff exponencial para falhas transitórias
-  - [ ] Estratégia de DLQ para mensagens que excederem tentativas
-  - [ ] Graceful: se RabbitMQ cair, loga erro (não quebra app)
-- [ ] `src/infrastructure/messaging/messaging.module.ts`
-  - [ ] `RabbitMQModule.forRootAsync()` com `connectionInitOptions: { wait: false }`
+  - [x] Publica em exchange `fleet-events` com routing key por tipo de evento
+  - [x] Publisher confirms habilitado para confirmação de entrega
+  - [x] Publicação com roteamento obrigatório e tratamento de unroutable messages
+  - [x] Retry com backoff exponencial para falhas transitórias
+  - [x] Estratégia de DLQ para mensagens que excederem tentativas
+  - [x] Graceful: se RabbitMQ cair, loga erro (não quebra app)
+- [x] `src/infrastructure/messaging/messaging.module.ts`
+  - [x] `RabbitMQModule.forRootAsync()` com `connectionInitOptions: { wait: false }`
 
 ### Auditoria (MongoDB)
 
-- [ ] `src/infrastructure/audit/schemas/audit-log.schema.ts`
-  - [ ] Schema Mongoose: action, entity, entityId, userId, timestamp, changes, metadata
-  - [ ] Índices em userId, entity, createdAt
-  - [ ] TTL index opcional (ex: 90 dias)
-- [ ] `src/infrastructure/audit/mongo-audit-logger.ts`
-  - [ ] Implementa `IAuditLogger`
-  - [ ] Usa Mongoose Model para inserir logs
-  - [ ] Graceful: se MongoDB cair, loga erro (não quebra app)
-- [ ] `src/infrastructure/audit/audit.module.ts`
+- [x] `src/infrastructure/audit/schemas/audit-log.schema.ts`
+  - [x] Schema Mongoose: action, entity, entityId, userId, timestamp, changes, metadata
+  - [x] Índices em userId, entity, createdAt
+  - [x] TTL index opcional (ex: 90 dias)
+- [x] `src/infrastructure/audit/mongo-audit-logger.ts`
+  - [x] Implementa `IAuditLogger`
+  - [x] Usa Mongoose Model para inserir logs
+  - [x] Graceful: se MongoDB cair, loga erro (não quebra app)
+- [x] `src/infrastructure/audit/audit.module.ts`
 
 ### Event Listeners (Desacoplamento)
 
-- [ ] `src/infrastructure/audit/listeners/service-audit.listener.ts`
-  - [ ] `@OnEvent('audit.service_interaction', { async: true })`
-  - [ ] Registra `AUTH`, `READ` e `MUTATION` (todas as interações de serviço)
-  - [ ] Chama `IAuditLogger.log()` dentro de try-catch
-  - [ ] **NUNCA relança exceção**
-- [ ] `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`
-  - [ ] `@OnEvent('vehicle.created', { async: true })`
-  - [ ] `@OnEvent('vehicle.updated', { async: true })`
-  - [ ] Chama `IEventPublisher.publish()` dentro de try-catch
-  - [ ] Inclui `eventId` para idempotência de consumo
-  - [ ] **NUNCA relança exceção**
+- [x] `src/infrastructure/audit/listeners/service-audit.listener.ts`
+  - [x] `@OnEvent('audit.service_interaction', { async: true })`
+  - [x] Registra `AUTH`, `READ` e `MUTATION` (todas as interações de serviço)
+  - [x] Chama `IAuditLogger.log()` dentro de try-catch
+  - [x] **NUNCA relança exceção**
+- [x] `src/modules/vehicles/infrastructure/listeners/vehicle-messaging.listener.ts`
+  - [x] `@OnEvent('vehicle.created', { async: true })`
+  - [x] `@OnEvent('vehicle.updated', { async: true })`
+  - [x] Chama `IEventPublisher.publish()` dentro de try-catch
+  - [x] Inclui `eventId` para idempotência de consumo
+  - [x] **NUNCA relança exceção**
 
 ### Migrations
 
-- [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateUsersTable.ts`
-- [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateBrandsTable.ts`
-- [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateModelsTable.ts` (FK para brands)
-- [ ] `src/infrastructure/database/migrations/TIMESTAMP-CreateVehiclesTable.ts` (FK para models)
-- [ ] Adicionar `deleted_at` nas entidades com soft delete
-- [ ] Implementar unicidade para registros ativos (`deleted_at IS NULL`) em `license_plate`, `chassis` e `renavam`
-- [ ] Implementar índices filtrados com SQL raw via `queryRunner.query(...)` (não via decorator TypeORM)
-- [ ] Garantir `down` explícito removendo os índices filtrados
+- [x] `src/infrastructure/database/migrations/TIMESTAMP-CreateUsersTable.ts`
+- [x] `src/infrastructure/database/migrations/TIMESTAMP-CreateBrandsTable.ts`
+- [x] `src/infrastructure/database/migrations/TIMESTAMP-CreateModelsTable.ts` (FK para brands)
+- [x] `src/infrastructure/database/migrations/TIMESTAMP-CreateVehiclesTable.ts` (FK para models)
+- [x] Adicionar `deleted_at` nas entidades com soft delete
+- [x] Implementar unicidade para registros ativos (`deleted_at IS NULL`) em `license_plate`, `chassis` e `renavam`
+- [x] Implementar índices filtrados com SQL raw via `queryRunner.query(...)` (não via decorator TypeORM)
+- [x] Garantir `down` explícito removendo os índices filtrados
 
 ### Seed
 
-- [ ] `src/infrastructure/database/seeds/seed.ts`
-  - [ ] Cria usuário `aivacol` com senha hash
-  - [ ] Cria brands de exemplo (ex: Fiat, Volkswagen, Chevrolet, Toyota)
-  - [ ] Cria models de exemplo (ex: Gol, Onix, Argo, Corolla)
-  - [ ] Cria vehicles de exemplo
-- [ ] `seed_vehicles.json` na raiz do projeto (dados mock)
+- [x] `src/infrastructure/database/seeds/seed.ts`
+  - [x] Cria usuário `aivacol` com senha hash
+  - [x] Cria brands de exemplo (ex: Fiat, Volkswagen, Chevrolet, Toyota)
+  - [x] Cria models de exemplo (ex: Gol, Onix, Argo, Corolla)
+  - [x] Cria vehicles de exemplo
+- [x] `seed_vehicles.json` na raiz do projeto (dados mock)
 
 ### Feature Modules (wiring DI)
 
-- [ ] `src/modules/vehicles/vehicles.module.ts` — registra providers com tokens de injeção
-- [ ] `src/modules/models/models.module.ts`
-- [ ] `src/modules/brands/brands.module.ts`
-- [ ] `src/modules/users/users.module.ts`
+- [x] `src/modules/vehicles/vehicles.module.ts` — registra providers com tokens de injeção
+- [x] `src/modules/models/models.module.ts`
+- [x] `src/modules/brands/brands.module.ts`
+- [x] `src/modules/users/users.module.ts`
 
 ### Validação Fase 5
 
-- [ ] Migrations rodam sem erros no SQL Server
-- [ ] Seed popula o banco com dados de exemplo
-- [ ] Redis conecta e responde a PING
-- [ ] RabbitMQ conecta (ou falha gracefully)
-- [ ] MongoDB conecta (ou falha gracefully)
-- [ ] Cenário validado: criar veículo, soft delete, recriar com mesma placa/chassi/renavam sem violar unicidade de ativo
-- [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
+- [x] Migrations rodam sem erros no SQL Server
+- [x] Seed popula o banco com dados de exemplo
+- [x] Redis conecta e responde a PING
+- [x] RabbitMQ conecta (ou falha gracefully)
+- [x] MongoDB conecta (ou falha gracefully)
+- [x] Cenário validado: criar veículo, soft delete, recriar com mesma placa/chassi/renavam sem violar unicidade de ativo
+- [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `feat: add infrastructure layer (TypeORM, Redis, RabbitMQ, MongoDB)`
 
 ---

@@ -10,6 +10,8 @@ import { BrandsModule } from './modules/brands/brands.module';
 import { ModelsModule } from './modules/models/models.module';
 import { UsersModule } from './modules/users/users.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { AuditModule } from './infrastructure/audit/audit.module';
+import { CacheModule } from './infrastructure/cache/cache.module';
 import { HealthController } from './common/controllers/health.controller';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ThrottlerExceptionFilter } from './common/filters/throttler-exception.filter';
@@ -58,6 +60,8 @@ import { GracefulShutdownService } from './infrastructure/lifecycle/graceful-shu
       },
     }),
     // Feature modules are wired early as placeholders to stabilize imports and DI graph.
+    CacheModule,
+    AuditModule,
     VehiclesModule,
     ModelsModule,
     BrandsModule,
