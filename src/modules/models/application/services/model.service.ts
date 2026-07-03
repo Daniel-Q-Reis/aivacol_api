@@ -160,9 +160,11 @@ export class ModelService {
     // Uniqueness scope is brand-bound: same model name may exist under different brands.
     const all = await this.modelRepository.findAll();
     const normalized = name.trim().toLowerCase();
+    // SQL Server may roundtrip UUID casing differently; normalize IDs to keep uniqueness deterministic.
+    const normalizedBrandId = brandId.trim().toLowerCase();
     const duplicate = all.find(
       (item) =>
-        item.brandId === brandId &&
+        item.brandId.trim().toLowerCase() === normalizedBrandId &&
         item.name.trim().toLowerCase() === normalized &&
         item.id !== ignoreModelId,
     );

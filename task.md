@@ -60,7 +60,7 @@
 - [x] Fase 4 inicia branch `feat/phase-4-domain`
 - [x] Fase 5 inicia branch `feat/phase-5-infra-adapters`
 - [ ] Fase 6 inicia branch `feat/phase-6-application-presentation`
-- [ ] Fase 7 inicia branch `feat/phase-7-tests-quality`
+- [x] Fase 7 inicia branch `feat/phase-7-tests-quality`
 - [ ] Fase 8 inicia branch `feat/phase-8-docs-release`
 
 ### Regra de início de branch
@@ -656,79 +656,79 @@
 
 ### Testes Unitários — Domain
 
-- [ ] `vehicle.entity.spec.ts` — validação de placa, chassi, renavam, ano
-- [ ] `model.entity.spec.ts` — validação de nome
-- [ ] `brand.entity.spec.ts` — validação de nome
-- [ ] Value Objects specs (license-plate, chassis, renavam)
+- [x] `vehicle.entity.spec.ts` — validação de placa, chassi, renavam, ano
+- [x] `model.entity.spec.ts` — validação de nome
+- [x] `brand.entity.spec.ts` — validação de nome
+- [x] Value Objects specs (license-plate, chassis, renavam)
 
 ### Testes Unitários — Application (Services/Use Cases)
 
-- [ ] `vehicle.service.spec.ts`
-  - [ ] Testar `create` — sucesso, placa duplicada, model inexistente
-  - [ ] Testar `findAll` — cache hit, cache miss
-  - [ ] Testar `findById` — sucesso, não encontrado
-  - [ ] Testar `update` — sucesso, não encontrado
-  - [ ] Testar `delete` — sucesso, não encontrado
-  - [ ] Verificar que eventos são emitidos
-  - [ ] Verificar que cache é invalidado
-- [ ] `model.service.spec.ts` — CRUD completo mockado
-- [ ] `brand.service.spec.ts` — CRUD completo mockado
-- [ ] `auth.service.spec.ts` — login válido, inválido, token gerado
+- [x] `vehicle.service.spec.ts`
+  - [x] Testar `create` — sucesso, placa duplicada, model inexistente
+  - [x] Testar `findAll` — cache hit, cache miss
+  - [x] Testar `findById` — sucesso, não encontrado
+  - [x] Testar `update` — sucesso, não encontrado
+  - [x] Testar `delete` — sucesso, não encontrado
+  - [x] Verificar que eventos são emitidos
+  - [x] Verificar que cache é invalidado
+- [x] `model.service.spec.ts` — CRUD completo mockado
+- [x] `brand.service.spec.ts` — CRUD completo mockado
+- [x] `auth.service.spec.ts` — login válido, inválido, token gerado
 
 ### Testes Unitários — Infrastructure
 
-- [ ] `redis-cache.service.spec.ts` — mock ioredis, get/set/del/delByPattern
-- [ ] `mongo-audit-logger.spec.ts` — mock mongoose model, log entry
-- [ ] `rabbitmq-event-publisher.spec.ts` — mock AmqpConnection, publish
-  - [ ] Cobre publisher confirm, retry/backoff e fallback para DLQ
-- [ ] `service-audit.listener.spec.ts` — verifica que exceções são engolidas e não interrompem o fluxo principal
-- [ ] `vehicle-messaging.listener.spec.ts` — verifica que exceções são engolidas
-- [ ] `typeorm-vehicle.repository.spec.ts` — mock Repository, findById/create/update/delete
+- [x] `redis-cache.service.spec.ts` — mock ioredis, get/set/del/delByPattern
+- [x] `mongo-audit-logger.spec.ts` — mock mongoose model, log entry
+- [x] `rabbitmq-event-publisher.spec.ts` — mock AmqpConnection, publish
+  - [x] Cobre publisher confirm, retry/backoff e fallback para DLQ
+- [x] `service-audit.listener.spec.ts` — verifica que exceções são engolidas e não interrompem o fluxo principal
+- [x] `vehicle-messaging.listener.spec.ts` — verifica que exceções são engolidas
+- [x] `typeorm-vehicle.repository.spec.ts` — mock Repository, findById/create/update/delete
 
 ### Testes Unitários — Common
 
-- [ ] `global-exception.filter.spec.ts` — DomainException→404, HttpException→status, Error→500
-- [ ] `logging.interceptor.spec.ts` — verifica log output
-- [ ] `jwt-auth.guard.spec.ts` — verifica @Public() bypass
-- [ ] `throttler.guard.spec.ts` — limite excedido retorna 429
+- [x] `global-exception.filter.spec.ts` — DomainException→404, HttpException→status, Error→500
+- [x] `logging.interceptor.spec.ts` — verifica log output
+- [x] `jwt-auth.guard.spec.ts` — verifica @Public() bypass
+- [x] `throttler.guard.spec.ts` — limite excedido retorna 429
 
 ### Testes E2E
 
-- [ ] `auth.e2e-spec.ts`
-  - [ ] Login com credenciais válidas → 201 + token
-  - [ ] Login com credenciais inválidas → 401
-  - [ ] Acesso a rota protegida sem token → 401
-  - [ ] Acesso a rota protegida com token válido → 200
-- [ ] `vehicles.e2e-spec.ts`
-  - [ ] CRUD completo via HTTP (create → read → update → delete)
-  - [ ] Validação de campos obrigatórios → 400
-  - [ ] Buscar veículo inexistente → 404
-  - [ ] Criar veículo, soft delete e recriar com mesma placa/chassi/renavam
-- [ ] `models.e2e-spec.ts` — CRUD completo via HTTP
-- [ ] `brands.e2e-spec.ts` — CRUD completo via HTTP
-- [ ] `health.e2e-spec.ts` — `GET /api/v1/health` → 200
-  - [ ] Sem token → 401
-  - [ ] Com token válido → 200
-- [ ] `rate-limit.e2e-spec.ts`
-  - [ ] Exceder limite no intervalo -> `429` + `RATE_LIMIT_EXCEEDED`
+- [x] `auth.e2e-spec.ts`
+  - [x] Login com credenciais válidas → 201 + token
+  - [x] Login com credenciais inválidas → 401
+  - [x] Acesso a rota protegida sem token → 401
+  - [x] Acesso a rota protegida com token válido → 200
+- [x] `vehicles.e2e-spec.ts`
+  - [x] CRUD completo via HTTP (create → read → update → delete)
+  - [x] Validação de campos obrigatórios → 400
+  - [x] Buscar veículo inexistente → 404
+  - [x] Criar veículo, soft delete e recriar com mesma placa/chassi/renavam
+- [x] `models.e2e-spec.ts` — CRUD completo via HTTP
+- [x] `brands.e2e-spec.ts` — CRUD completo via HTTP
+- [x] `health.e2e-spec.ts` — `GET /api/v1/health` → 200
+  - [x] Sem token → 401
+  - [x] Com token válido → 200
+- [x] `rate-limit.e2e-spec.ts`
+  - [x] Exceder limite no intervalo -> `429` + `RATE_LIMIT_EXCEEDED`
 
 ### Coverage
 
-- [ ] Executar `npm run test:cov`
-- [ ] Verificar que coverage global ≥ 90%:
-  - [ ] Branches ≥ 80%
-  - [ ] Functions ≥ 90%
-  - [ ] Lines ≥ 90%
-  - [ ] Statements ≥ 90%
+- [x] Executar `npm run test:cov`
+- [x] Verificar que coverage global ≥ 90%:
+  - [x] Branches ≥ 80%
+  - [x] Functions ≥ 90%
+  - [x] Lines ≥ 90%
+  - [x] Statements ≥ 90%
 
 ### Validação Fase 7
 
-- [ ] Todos os testes unitários passam
-- [ ] Todos os testes e2e passam
-- [ ] Coverage ≥ 90%
-- [ ] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
+- [x] Todos os testes unitários passam
+- [x] Todos os testes e2e passam
+- [x] Coverage ≥ 90%
+- [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
 - [ ] Commit: `test: add unit and e2e tests (coverage >= 90%)`
 
 ---

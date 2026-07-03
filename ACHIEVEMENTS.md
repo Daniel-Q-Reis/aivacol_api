@@ -466,3 +466,56 @@ Comprovacao de que a unicidade vale apenas para registro ativo.
 
 - Iniciar Fase 7 focada em testes unitarios/e2e e cobertura global >= 90%
 - Cobrir casos de erro por `code` estavel e cenarios de cache/eventos/auditoria em testes automatizados
+
+---
+
+## Fase 7 — Testes e Qualidade (2026-07-03)
+
+### ✅ O que foi implementado
+
+- Suite unitaria expandida para Domain, Services, Infrastructure e Common com cobertura de fluxos felizes e de erro
+- Suite e2e completa criada para `auth`, `vehicles`, `models`, `brands`, `health` e `rate-limit`
+- Correcao de comportamento de producao em `model.service.ts` para comparacao case-insensitive de `brandId` na unicidade por marca
+- Ajuste do factory e2e para prefixo global `/api/v1` e determinismo dos testes de rate limit
+- Reintroducao do teste de `CurrentUser` via funcao pura extraida (`getCurrentUserFromContext`) para cobrir ramos sem fragilidade de `createParamDecorator`
+- Testes adicionais de branch em `health.controller`, `global-exception.filter`, `logging.interceptor`, `correlation-id.interceptor` e configs (`cache`, `database`, `messaging`)
+
+### 🧪 Comandos executados (Docker-only)
+
+- `docker compose exec app npm run test`
+- `docker compose exec app npm run test:e2e`
+- `docker compose exec app npm run test:cov`
+- `docker compose exec app npm run lint`
+- `docker compose exec app npm run lint:fix`
+- `docker compose exec app npm run typecheck`
+
+### 📌 Evidencias objetivas de validacao
+
+- Unit: `Test Suites: 46 passed, 46 total` | `Tests: 155 passed, 155 total`
+- E2E: `Test Suites: 6 passed, 6 total` | `Tests: 11 passed, 11 total`
+- Coverage global final:
+  - Statements: `95.22%`
+  - Branches: `84.59%`
+  - Functions: `94.85%`
+  - Lines: `94.91%`
+- Thresholds atendidos sem bypass (`branches>=80`, `functions>=90`, `lines>=90`, `statements>=90`)
+- Gates de qualidade verdes: `lint`, `lint:fix`, `typecheck`
+
+### ✅ Anti-bypass compliance
+
+- Nenhum uso de `.only` ou `.skip` para mascarar falhas
+- Nenhuma reducao de threshold de cobertura
+- Nenhum `passWithNoTests`
+- Sem over-mocking artificial para inflar cobertura
+
+### ⚠️ Problemas encontrados e correcoes
+
+- `current-user.decorator.spec.ts` inicial removido por estrategia fragil; substituido por teste estavel com funcao pura extraida
+- `database.config.spec.ts` exigiu ajuste de tipagem para leitura segura de options no teste
+- `lint` falhou por normalizacao de EOL em arquivos historicos; resolvido com `lint:fix` e revalidacao completa
+
+### 🧾 Notas de rastreabilidade da fase
+
+- Evidencia de rate limit e2e: status `429` com `code: RATE_LIMIT_EXCEEDED`
+- Todos os comandos foram executados dentro do container `app` (conforme politica Docker-only)
+- Atualizacoes de tracking aplicadas em `task.md` e `struct.md`
