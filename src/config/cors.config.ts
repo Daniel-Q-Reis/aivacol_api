@@ -3,11 +3,13 @@ export interface CorsConfig {
 }
 
 function splitCsv(value: string): string[] {
-  return value
-    .split(',')
-    .map((entry) => entry.trim())
-    // Ignore accidental empty entries from trailing commas.
-    .filter((entry) => entry.length > 0);
+  return (
+    value
+      .split(',')
+      .map((entry) => entry.trim())
+      // Ignore accidental empty entries from trailing commas.
+      .filter((entry) => entry.length > 0)
+  );
 }
 
 export function getCorsConfig(): CorsConfig {

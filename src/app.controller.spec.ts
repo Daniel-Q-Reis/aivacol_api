@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return health status', () => {
-      expect(appController.getHealth()).toEqual({ status: 'ok' });
+    it('should return status endpoint payload', () => {
+      expect(appController.getStatus()).toEqual({ status: 'ok' });
     });
   });
 });
