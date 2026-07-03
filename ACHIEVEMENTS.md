@@ -208,3 +208,70 @@
 ---
 
 _Adicionar novas seções ao final deste arquivo para manter ordem cronológica crescente._
+
+---
+
+## Fase 4 — Domain Layer (Entidades, Portas, Exceções, Value Objects) (2026-07-03)
+
+### ✅ O que foi implementado
+
+- Excecoes de dominio finalizadas em `src/common/domain/exceptions/` com hierarquia pura TypeScript: `DomainException` (abstrata), `EntityNotFoundException`, `BusinessRuleViolationException`, `EntityValidationException` e `DuplicateEntityException`
+- Portas compartilhadas de dominio criadas em `src/common/domain/interfaces/` com tokens `Symbol`: `ICacheService`, `IEventPublisher`, `IAuditLogger`
+- Value Objects obrigatorios criados e aplicados no dominio: `LicensePlate`, `Chassis`, `Renavam` em `src/common/domain/value-objects/`
+- Entidades puras com invariantes e `validate()` implementadas em `src/modules/*/domain/entities/`: `Vehicle`, `Model`, `Brand`, `User`
+- Portas de repositorio por modulo implementadas em `src/modules/*/domain/interfaces/` com tokens `Symbol`: `IVehicleRepository`, `IModelRepository`, `IBrandRepository`, `IUserRepository`
+- Aplicacao explicita dos VOs no dominio de veiculos: `Vehicle` recebe `licensePlate: LicensePlate`, `chassis: Chassis`, `renavam: Renavam` (nao via DTO)
+- Comentarios tecnicos de alto valor adicionados nos pontos nao obvios: normalizacao/legado do Renavam, restricoes de charset de chassi e regra de ano do veiculo
+
+### 🧪 Comandos executados
+
+- Protocolo inicial: leitura de `MASTER.md`, `implementation_plan.md`, `task.md`, `struct.md`, `ACHIEVEMENTS.md`, ADRs e runbook
+- `git status`
+- `git log --oneline -5`
+- `git checkout main && git pull origin main && git checkout -b feat/phase-4-domain`
+- `docker compose run --rm app npm run lint`
+- `docker compose run --rm app npm run lint:fix`
+- `docker compose run --rm app npm run typecheck`
+- `docker compose run --rm app npm run lint` (revalidacao apos `lint:fix`)
+- `docker compose run --rm app npm run test`
+- `docker compose run --rm app npm run test:cov`
+- Buscas de pureza de dominio com `grep` para imports proibidos em `src/common/domain/**` e `src/modules/**/domain/**`
+
+### 📌 Evidencias dos gates
+
+- Gate `npm run lint`: **OK**
+- Gate `npm run lint:fix`: **OK**
+- Gate `npm run typecheck`: **OK**
+
+### ✅ QA adicional executado apos review
+
+- `npm run test`: **OK** (2 suites, 2 testes)
+- `npm run test:cov`: **FALHOU no gate global de cobertura**, apesar dos testes verdes
+  - Statements: `2.02%` (threshold `90%`)
+  - Branches: `0%` (threshold `80%`)
+  - Lines: `1.49%` (threshold `90%`)
+  - Functions: `2.29%` (threshold `90%`)
+- Causa principal: projeto ainda em fase inicial de implementacao (Fase 4 concluida, Fases 5-7 ainda nao entregues), com poucas specs cobrindo apenas scaffold/base.
+- Acao recomendada para fechamento de QA forte: executar Fase 7 (suite unit + e2e completa) antes de considerar cobertura conforme meta global.
+
+### 🔎 Evidencias de pureza de dominio
+
+- `src/common/domain/**`: sem imports de `@nestjs/*`, `typeorm`, `mongoose`, `ioredis`, `amqplib`
+- `src/modules/**/domain/**`: sem imports de `@nestjs/*`, `typeorm`, `mongoose`, `ioredis`, `amqplib`
+- Validacao objetiva executada via busca regex no codigo com retorno `No files found` para todos os padroes proibidos dentro dos paths de dominio
+
+### ⚠️ Problemas encontrados e correcoes
+
+- **Lint inicial falhando por terminacao de linha (CRLF historico em arquivos existentes)**: resolvido com `npm run lint:fix` no container e reexecucao de `npm run lint` para fechar gate de qualidade
+- **Tick pendente no task.md (commit da Fase 4)**: corrigido, item marcado com `[x]`
+- **Densidade de comentarios tecnicos abaixo do esperado para manutencao humana**: reforco aplicado com comentarios adicionais em VOs, entidades e contrato de porta de eventos (seguindo secao 5.7)
+
+### 🔜 Proximos passos (Fase 5)
+
+- Implementar adapters de infraestrutura (TypeORM/Redis/RabbitMQ/MongoDB) consumindo as portas de dominio criadas nesta fase
+- Entregar ORM entities, repositories concretos, listeners resilientes e migrations com indices unicos filtrados no SQL Server
+
+### 🧾 Nota sobre variaveis de ambiente
+
+- Politica de env (referencia de governanca): **N/A nesta fase**
+- Justificativa: a Fase 4 foi estritamente de dominio puro (entidades, VOs, portas e excecoes), sem introducao/alteracao de configuracao externa ou variaveis de ambiente
