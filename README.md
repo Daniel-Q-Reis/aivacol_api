@@ -1,44 +1,103 @@
 # Aivacol Fleet Management API
 
-Backend de gestão de frota com NestJS, Clean Architecture estrita e foco em qualidade de entrega.
+Backend do módulo de Gestão de Frota da Aivacol, desenvolvido para o teste técnico de Backend.
 
-## ✅ Checklist do Desafio
+> Este projeto foi conduzido para atender integralmente o escopo original (nível pleno), com implementação de diferenciais técnicos para elevar robustez, testabilidade e previsibilidade operacional dentro da janela de tempo disponível.
 
-| Requisito                         | Status       | Evidência objetiva                                                |
-| --------------------------------- | ------------ | ----------------------------------------------------------------- |
-| Clean Architecture e DIP          | ✅ Concluído | Domínio sem imports de framework; portas e adapters implementados |
-| CRUD Vehicles                     | ✅ Concluído | Endpoints, services, testes unit/e2e e Swagger                    |
-| CRUD Models                       | ✅ Concluído | Endpoints, associação com brand, testes e Swagger                 |
-| CRUD Brands                       | ✅ Concluído | Endpoints, testes e Swagger                                       |
-| Users + relacionamento            | ✅ Concluído | Seed `aivacol`, `created_by`, consultas protegidas                |
-| JWT nas rotas protegidas          | ✅ Concluído | Guard global; única rota pública `POST /api/v1/auth/login`        |
-| Redis cache em vehicles           | ✅ Concluído | Cache em lista/item + invalidação por pattern                     |
-| RabbitMQ para events de vehicles  | ✅ Concluído | Publicação em `vehicle.created` e `vehicle.updated`               |
-| Auditoria MongoDB                 | ✅ Concluído | `audit.service_interaction` para `AUTH`, `READ` e `MUTATION`      |
-| Soft delete + unicidade de ativos | ✅ Concluído | Índices únicos filtrados em migrations SQL raw                    |
-| Swagger/OpenAPI                   | ✅ Concluído | `/api/docs` com contratos e respostas de erro                     |
-| Postman collection final          | ✅ Concluído | `aivacol-postman-collection.json` na raiz                         |
-| Benchmark cache quente vs frio    | ✅ Concluído | `scripts/benchmark.ps1` com comparação Warm x Cold                |
-| Docker multistage + Compose       | ✅ Concluído | Stack completa + profile `tools`                                  |
-| Testes e cobertura                | ✅ Concluído | `test`, `test:e2e`, `test:cov` com thresholds atendidos           |
-| CI GitHub Actions                 | ✅ Concluído | `.github/workflows/ci.yml` com lint/typecheck/test                |
-| Rate limiting global              | ✅ Concluído | Guard global + erro `RATE_LIMIT_EXCEEDED`                         |
+## ✅ Checklist do Desafio (Escopo Original)
+
+| Critério | Status | Observação |
+|---|---|---|
+| Node.js 18+ | ✅ | Runtime em container |
+| NestJS 10+ | ✅ | Framework principal da API |
+| TypeORM + SQL Server | ✅ | Persistência relacional com migrations |
+| JWT obrigatório | ✅ | Login e proteção das rotas de negócio |
+| Seed com usuário padrão `aivacol` | ✅ | Seed idempotente |
+| Tabela `models` (obrigatória) | ✅ | CRUD completo + metadados |
+| Tabela `vehicles` (obrigatória) | ✅ | CRUD completo + metadados |
+| Metadados obrigatórios (`created_at`, `updated_at`, `created_by`) | ✅ | Aplicados nas entidades persistidas |
+| Gestão de `models` (criar/atualizar/consultar/remover) | ✅ | Endpoints e regras implementados |
+| Gestão de `vehicles` (registrar/atualizar/listar/remover) | ✅ | Endpoints, validações e soft delete |
+| Cache Redis em consultas de veículos | ✅ | Cache em listagem e busca por ID |
+| Expiração de cache via variável de ambiente | ✅ | TTL configurável por env |
+| Invalidação automática do cache de veículos | ✅ | Em create/update/delete |
+| Testes automatizados com Jest | ✅ | Unit + E2E |
+| Cobertura mínima de regras/serviços/validações/integrações | ✅ | Thresholds atendidos |
+| Tratamento de erros e exceções | ✅ | Filtro global + catálogo estável de erros |
+| Boas práticas REST (status codes/contratos) | ✅ | Contratos padronizados |
+| `seed_vehicles.json` no repositório | ✅ | Arquivo presente na raiz |
+| README com instruções claras | ✅ | Execução, testes, benchmark e arquitetura documentados |
+| Scripts de execução | ✅ | Scripts PowerShell para ciclo local |
+
+## 🚀 Bônus e Diferenciais Implementados
+
+| Item | Status | Observação |
+|---|---|---|
+| Gestão de `brands` (bônus) | ✅ | CRUD completo + associação com `models` |
+| Gestão de `users` (bônus) | ✅ | Consultas protegidas + relacionamento por `created_by` |
+| Mensageria (RabbitMQ) | ✅ | Eventos de veículos (`vehicle.created`, `vehicle.updated`) |
+| Auditoria em banco não relacional | ✅ | MongoDB para trilha de interações de serviço |
+| Dockerfile multistage | ✅ | Ambientes dev/build/prod |
+| Docker Compose completo | ✅ | app + SQL Server + Redis + RabbitMQ + MongoDB + benchmark runner |
+| Swagger/OpenAPI | ✅ | `/api/docs` |
+| Coleção Postman final | ✅ | Fluxo com token automático |
+| CI (GitHub Actions) | ✅ | `lint`, `typecheck`, `test` em push/PR para `main` |
+| Benchmark cache quente vs frio | ✅ | Execução oficial e resultados documentados |
+
+### Por que optei por esses extras?
+
+Os itens bônus foram implementados para reduzir risco técnico e aumentar a qualidade de manutenção do projeto:
+
+- Mensageria e auditoria melhoram rastreabilidade e desacoplamento de responsabilidades.
+- CI e suíte de testes robusta aumentam confiança para evolução contínua.
+- Swagger e Postman melhoram experiência de validação para recrutador/avaliador.
+- Benchmark estruturado permite evidenciar impacto real de cache em desempenho.
+
+Essas decisões estão alinhadas ao planejamento (`MASTER.md`, `implementation_plan.md`, `task.md`) e aos ADRs do projeto.
+
+## Sumário
+
+- [1) Visão geral](#1-visão-geral)
+- [2) Arquitetura e decisões](#2-arquitetura-e-decisões)
+- [3) Tecnologias](#3-tecnologias)
+- [4) Como executar (rápido)](#4-como-executar-rápido)
+- [5) Scripts para o recrutador](#5-scripts-para-o-recrutador)
+- [6) Migrations e seed](#6-migrations-e-seed)
+- [7) Testes e qualidade](#7-testes-e-qualidade)
+- [8) Benchmark](#8-benchmark)
+- [9) Endpoints principais](#9-endpoints-principais)
+- [10) Variáveis de ambiente](#10-variáveis-de-ambiente)
+- [11) Catálogo de erros](#11-catálogo-de-erros)
+- [12) CI/CD](#12-cicd)
+- [13) Postman](#13-postman)
+- [14) Rastreabilidade e documentação](#14-rastreabilidade-e-documentação)
 
 ## 1) Visão geral
 
-- Escopo funcional: autenticação JWT, CRUD de `vehicles`, `models`, `brands`, consulta protegida de `users` e health check protegido.
-- Dados e integrações: SQL Server (principal), Redis (cache), RabbitMQ (eventos), MongoDB (auditoria).
-- Observabilidade: correlation ID, logging interceptor, exception filter global e catálogo de erros estável.
-- Qualidade: suites unitárias e e2e com cobertura global ≥ 90% em lines/functions/statements.
+A API entrega:
 
-## 2) Arquitetura
+- Autenticação JWT.
+- CRUD de `vehicles` e `models` (escopo obrigatório).
+- CRUD de `brands` e consulta protegida de `users` (bônus).
+- Cache Redis em consultas de veículos.
+- Eventos de veículos via RabbitMQ.
+- Auditoria de interações de serviço via MongoDB.
+- Contrato de erro estável com `code` e mensagens em PT-BR.
+
+## 2) Arquitetura e decisões
+
+Arquitetura baseada em Clean Architecture com separação de responsabilidades:
+
+- **Domain**: entidades, value objects, regras de negócio e portas.
+- **Application**: casos de uso, DTOs e orquestração.
+- **Presentation**: controllers e contratos HTTP.
+- **Infrastructure**: TypeORM, Redis, RabbitMQ, MongoDB e integrações externas.
 
 ```mermaid
 flowchart TD
-  A[Presentation\nControllers Guards Interceptors] --> B[Application\nServices DTOs Mappers]
-  B --> C[Domain\nEntities Value Objects Ports]
-  D[Infrastructure\nTypeORM Redis RabbitMQ MongoDB JWT] --> C
-
+  A[Presentation<br/>Controllers/Guards/Interceptors] --> B[Application<br/>Services/DTOs]
+  B --> C[Domain<br/>Entities/VOs/Ports]
+  D[Infrastructure<br/>TypeORM/Redis/RabbitMQ/MongoDB] --> C
   B --> E[(SQL Server)]
   B --> F[[EventEmitter2]]
   F --> G[(RabbitMQ)]
@@ -46,43 +105,52 @@ flowchart TD
   B --> I[(Redis Cache)]
 ```
 
-ADRs relacionados:
+### ADRs (decisões arquiteturais)
 
 - `docs/adr/ADR-001-clean-architecture.md`
 - `docs/adr/ADR-002-event-driven-decoupling.md`
 - `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
 - `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md`
 
-## 3) Tecnologias e versões principais
+## 3) Tecnologias
 
-| Componente          | Versão              |
-| ------------------- | ------------------- |
-| Node.js (container) | 18                  |
-| NestJS              | 10.4.20             |
-| TypeScript          | 5.5.4               |
-| TypeORM             | 0.3.20              |
-| SQL Server (Docker) | 2022-latest         |
-| Redis (Docker)      | 7-alpine            |
-| RabbitMQ (Docker)   | 3-management-alpine |
-| MongoDB (Docker)    | 7                   |
-| Jest                | 29.7.0              |
-| Autocannon          | 7.14.0              |
+- Node.js 18+
+- NestJS 10+
+- TypeORM
+- SQL Server
+- Redis
+- RabbitMQ
+- MongoDB
+- JWT
+- Jest
 
-## 4) Pré-requisitos
-
-- Docker Desktop
-- Git
-- PowerShell 7.5+
-
-## 5) Como subir o ambiente
+## 4) Como executar (rápido)
 
 ```powershell
 docker compose up --build -d
 docker compose ps
 ```
 
+Acessos:
+
 - API: `http://localhost:3000/api/v1`
 - Swagger: `http://localhost:3000/api/docs`
+
+## 5) Scripts para o recrutador
+
+Para facilitar validação rápida, os principais scripts PowerShell já estão prontos:
+
+| Script | Finalidade |
+|---|---|
+| `scripts/dev.ps1` | Sobe o ambiente completo |
+| `scripts/stop.ps1` | Para o ambiente |
+| `scripts/logs.ps1` | Exibe logs do app |
+| `scripts/lint.ps1` | Executa `lint` + `lint:fix` + `typecheck` |
+| `scripts/test.ps1` | Executa testes com cobertura |
+| `scripts/test-e2e.ps1` | Executa testes E2E |
+| `scripts/migrate.ps1` | Executa migrations |
+| `scripts/seed.ps1` | Executa seed idempotente |
+| `scripts/benchmark.ps1` | Executa benchmark (runner dedicado) |
 
 ## 6) Migrations e seed
 
@@ -91,12 +159,12 @@ docker compose run --rm app npm run migration:run
 docker compose run --rm app npm run seed
 ```
 
-Usuário seed padrão:
+Usuário seed padrão (local):
 
 - `nickname`: `aivacol`
 - `password`: valor de `SEED_USER_PASSWORD` no `.env`
 
-## 7) Qualidade, testes e cobertura
+## 7) Testes e qualidade
 
 ```powershell
 docker compose exec app npm run lint
@@ -107,105 +175,106 @@ docker compose exec app npm run test:e2e
 docker compose exec app npm run test:cov
 ```
 
-Thresholds:
+Cobertura final atingida:
 
-- Branches ≥ 80%
-- Functions ≥ 90%
-- Lines ≥ 90%
-- Statements ≥ 90%
+- Statements: **95.22%**
+- Branches: **84.59%**
+- Functions: **94.85%**
+- Lines: **94.91%**
 
-## 8) Benchmark oficial
+## 8) Benchmark
 
-Ponto de entrada:
+Ponto de entrada oficial:
 
 ```powershell
 ./scripts/benchmark.ps1
 ```
 
-Fluxo do benchmark:
+Execução em runner dedicado (`benchmark-runner`) com target interno `http://app:3000`.
 
-- Runner dedicado `benchmark-runner` (`docker compose --profile tools run --rm ...`)
-- Target interno `http://app:3000`
-- Cenários: `warm cache` e `cold cache`
-
-Resultado oficial da Fase 8 (última execução válida):
+Resultado oficial (execução local):
 
 - Warm cache: `requestsAvg=764`, `p50=37ms`, `p99=60ms`, `errors=0`, `non2xx=0`
 - Cold cache: `requestsAvg=696.8`, `p50=33ms`, `p99=132ms`, `errors=0`, `non2xx=0`
-- Diferença: throughput `+8.8%` no warm cache e p99 significativamente menor (`60ms` vs `132ms`)
+- Diferença: throughput warm `+8.8%`, com p99 significativamente melhor em warm.
 
-### Observação sobre throttling dinâmico por ambiente
+### Nota sobre rate limiting e benchmark
 
-- `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT` devem ser calibrados por demanda de cada ambiente.
-- Em benchmark/carga sintética, é aceitável elevar temporariamente `THROTTLE_LIMIT` para evitar `429` artificiais.
-- Após o benchmark, o valor padrão deve ser restaurado.
-- Nesta entrega final, o `.env` está com padrão restaurado: `THROTTLE_LIMIT=100`.
+O throttling é configurável por ambiente via `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`.
+
+- Em uso normal da API, use limites conservadores (ex.: `THROTTLE_LIMIT=100`).
+- Em benchmark/carga sintética, pode ser necessário elevar temporariamente (ex.: `THROTTLE_LIMIT=50000`) para evitar `429` artificiais durante a medição.
+- Após benchmark, restaure o valor padrão do ambiente.
 
 ## 9) Endpoints principais
 
 Base: `/api/v1`
 
-| Grupo    | Método | Endpoint        | Auth   |
-| -------- | ------ | --------------- | ------ |
-| Auth     | POST   | `/auth/login`   | Public |
-| Vehicles | GET    | `/vehicles`     | Bearer |
-| Vehicles | GET    | `/vehicles/:id` | Bearer |
-| Vehicles | POST   | `/vehicles`     | Bearer |
-| Vehicles | PATCH  | `/vehicles/:id` | Bearer |
-| Vehicles | DELETE | `/vehicles/:id` | Bearer |
-| Models   | GET    | `/models`       | Bearer |
-| Models   | GET    | `/models/:id`   | Bearer |
-| Models   | POST   | `/models`       | Bearer |
-| Models   | PATCH  | `/models/:id`   | Bearer |
-| Models   | DELETE | `/models/:id`   | Bearer |
-| Brands   | GET    | `/brands`       | Bearer |
-| Brands   | GET    | `/brands/:id`   | Bearer |
-| Brands   | POST   | `/brands`       | Bearer |
-| Brands   | PATCH  | `/brands/:id`   | Bearer |
-| Brands   | DELETE | `/brands/:id`   | Bearer |
-| Users    | GET    | `/users`        | Bearer |
-| Users    | GET    | `/users/:id`    | Bearer |
-| Health   | GET    | `/health`       | Bearer |
+- `POST /auth/login` (público)
+- `GET/POST/PATCH/DELETE /vehicles` (Bearer)
+- `GET/POST/PATCH/DELETE /models` (Bearer)
+- `GET/POST/PATCH/DELETE /brands` (Bearer)
+- `GET /users` e `GET /users/:id` (Bearer)
+- `GET /health` (Bearer)
 
 ## 10) Variáveis de ambiente
 
-Consulte `.env.example` para o template completo e os placeholders seguros.
+Referência completa em `.env.example`.
 
-Variáveis críticas de rate limiting:
+Principais:
 
-- `THROTTLE_TTL_SECONDS` (default: `60`)
-- `THROTTLE_LIMIT` (default: `100`)
+- App: `APP_PORT`, `NODE_ENV`, `CORS_ORIGINS`
+- SQL Server: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`
+- Redis: `REDIS_HOST`, `REDIS_PORT`, `CACHE_TTL`
+- RabbitMQ: `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USER`, `RABBITMQ_PASS`
+- MongoDB: `MONGO_URI`
+- Auth: `JWT_SECRET`, `JWT_EXPIRES_IN`
+- Throttling: `THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT`
+- Seed: `SEED_USER_NICKNAME`, `SEED_USER_EMAIL`, `SEED_USER_PASSWORD`
+- Benchmark: `BENCHMARK_BASE_URL`, `BENCHMARK_DURATION_SECONDS`, `BENCHMARK_CONNECTIONS`
 
 ## 11) Catálogo de erros
 
-| Code                      | HTTP | Message                                                      |
-| ------------------------- | ---- | ------------------------------------------------------------ |
-| `INVALID_CREDENTIALS`     | 401  | Nickname ou senha inválidos                                  |
-| `UNAUTHORIZED`            | 401  | Token ausente ou inválido                                    |
-| `FORBIDDEN`               | 403  | Você não tem permissão para este recurso                     |
-| `VEHICLE_NOT_FOUND`       | 404  | Veículo não encontrado                                       |
-| `MODEL_NOT_FOUND`         | 404  | Modelo não encontrado                                        |
-| `BRAND_NOT_FOUND`         | 404  | Marca não encontrada                                         |
-| `USER_NOT_FOUND`          | 404  | Usuário não encontrado                                       |
-| `DUPLICATE_LICENSE_PLATE` | 409  | Placa já cadastrada                                          |
-| `DUPLICATE_CHASSIS`       | 409  | Chassi já cadastrado                                         |
-| `DUPLICATE_RENAVAM`       | 409  | Renavam já cadastrado                                        |
-| `DUPLICATE_MODEL_NAME`    | 409  | Modelo já cadastrado para esta marca                         |
-| `DUPLICATE_BRAND_NAME`    | 409  | Marca já cadastrada                                          |
-| `RATE_LIMIT_EXCEEDED`     | 429  | Limite de requisições excedido, tente novamente em instantes |
-| `INTERNAL_SERVER_ERROR`   | 500  | Erro interno do servidor                                     |
+Códigos estáveis de referência:
 
-## 🚀 Diferenciais de Engenharia
+- `INVALID_CREDENTIALS` (401)
+- `UNAUTHORIZED` (401)
+- `VEHICLE_NOT_FOUND` (404)
+- `MODEL_NOT_FOUND` (404)
+- `BRAND_NOT_FOUND` (404)
+- `USER_NOT_FOUND` (404)
+- `DUPLICATE_LICENSE_PLATE` (409)
+- `DUPLICATE_CHASSIS` (409)
+- `DUPLICATE_RENAVAM` (409)
+- `DUPLICATE_MODEL_NAME` (409)
+- `DUPLICATE_BRAND_NAME` (409)
+- `RATE_LIMIT_EXCEEDED` (429)
+- `INTERNAL_SERVER_ERROR` (500)
 
-- Contrato de erro estável por `code`, com padronização de resposta e rastreabilidade.
-- Resiliência por design: falhas de Redis/Rabbit/Mongo não derrubam a transação principal no SQL Server.
-- Eventos desacoplados com `EventEmitter2`, `correlationId` e `eventId`.
-- Soft delete com unicidade de ativos por índices filtrados (ADR-004).
-- Benchmark executado em runner dedicado para reduzir distorções.
-- Governança de fase com trilha em `task.md`, `struct.md` e `ACHIEVEMENTS.md`.
+## 12) CI/CD
 
-## CI da Fase 8
+Pipeline em `.github/workflows/ci.yml`:
 
-- Workflow: `.github/workflows/ci.yml`
-- Trigger: push e pull_request para `main`
-- Etapas: `checkout -> setup-node -> npm ci -> lint -> typecheck -> test`
+- Trigger: `push` e `pull_request` para `main`
+- Etapas: `npm ci` -> `lint` -> `typecheck` -> `test`
+
+## 13) Postman
+
+Coleção final na raiz:
+
+- `aivacol-postman-collection.json`
+
+Contém:
+
+- variáveis (`base_url`, `nickname`, `password`, `token`);
+- pre-request script para auto-login/token;
+- pastas por domínio;
+- exemplos de respostas de sucesso e erro.
+
+## 14) Rastreabilidade e documentação
+
+- Planejamento e governança: `MASTER.md`, `implementation_plan.md`, `task.md`
+- Mapa estrutural: `struct.md`
+- Registro de execução por fase: `ACHIEVEMENTS.md`
+- ADRs: `docs/adr/*`
+- Runbook operacional: `docs/runbooks/infra-contingency.md`
