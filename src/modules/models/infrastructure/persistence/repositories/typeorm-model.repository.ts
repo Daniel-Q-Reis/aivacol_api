@@ -22,6 +22,7 @@ export class TypeOrmModelRepository implements IModelRepository {
   }
 
   async findAll(): Promise<Model[]> {
+    // Ordered lists keep pagination and cache snapshots stable across equivalent reads.
     const models = await this.repository.find({
       where: { deletedAt: IsNull() },
       order: { name: 'ASC' },

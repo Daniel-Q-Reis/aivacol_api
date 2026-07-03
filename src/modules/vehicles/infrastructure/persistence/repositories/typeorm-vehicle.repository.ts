@@ -36,6 +36,7 @@ export class TypeOrmVehicleRepository implements IVehicleRepository {
     const safeLimit = Math.max(1, query.limit);
     const skip = (safePage - 1) * safeLimit;
 
+    // The mapper constrains sortable fields, preventing arbitrary column injection through query params.
     const [items, total] = await this.repository.findAndCount({
       where: { deletedAt: IsNull() },
       order: { [VEHICLE_SORT_FIELD_MAP[query.sort]]: query.order.toUpperCase() as 'ASC' | 'DESC' },
@@ -89,6 +90,7 @@ export class TypeOrmVehicleRepository implements IVehicleRepository {
   }
 
   async delete(id: string): Promise<void> {
+    // Soft delete preserves historical uniqueness context required by filtered indexes and audit trails.
     await this.repository.softDelete({ id });
   }
 }

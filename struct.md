@@ -28,75 +28,144 @@ aivacol_api/                                     # Raiz do repositorio backend u
 ├── .agents/                                     # Artefatos auxiliares gerados por ferramentas de execucao
 ├── docs/                                        # Base documental de decisoes e runbooks
 │   ├── adr/                                     # ADRs de arquitetura e trade-offs tecnicos
-│   │   ├── ADR-001-clean-architecture.md        # Decisao de Clean Architecture com ports/adapters
-│   │   ├── ADR-002-event-driven-decoupling.md   # Decisao de desacoplamento interno via eventos
-│   │   ├── ADR-003-data-lifecycle-soft-delete-and-audit.md # Ciclo de vida de dados e auditoria
-│   │   └── ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md # Indices filtrados no SQL Server
-│   └── runbooks/                                # Guias operacionais para suporte/contingencia
-│       └── infra-contingency.md                 # Runbook para falhas de infraestrutura local
-├── src/                                         # Codigo-fonte da aplicacao NestJS
-│   ├── config/                                  # Factories de configuracao por dominio tecnico
-│   │   ├── audit.config.ts                      # Configuracao fail-fast de auditoria MongoDB
-│   │   ├── auth.config.ts                       # Configuracao fail-fast de autenticacao JWT
-│   │   ├── cache.config.ts                      # Configuracao fail-fast de cache Redis
-│   │   ├── cors.config.ts                       # Parse e validacao de allowlist CORS
-│   │   ├── database.config.ts                   # Configuracao TypeORM/SQL Server + DataSource
-│   │   ├── messaging.config.ts                  # Configuracao fail-fast de RabbitMQ
-│   │   └── throttle.config.ts                   # Configuracao fail-fast de throttling
-│   ├── modules/                                 # Modulos de feature (placeholders da Fase 2)
-│   │   ├── auth/
-│   │   │   └── auth.module.ts                   # Placeholder do modulo Auth
-│   │   ├── brands/
-│   │   │   └── brands.module.ts                 # Placeholder do modulo Brands
-│   │   ├── models/
-│   │   │   └── models.module.ts                 # Placeholder do modulo Models
-│   │   ├── users/
-│   │   │   └── users.module.ts                  # Placeholder do modulo Users
-│   │   └── vehicles/
-│   │       └── vehicles.module.ts               # Placeholder do modulo Vehicles
-│   ├── app.controller.spec.ts                   # Teste unitario inicial do controller
-│   ├── app.controller.ts                        # Endpoint basico de health
-│   ├── app.module.ts                            # Modulo raiz com imports globais e infraestrutura base
-│   ├── app.service.ts                           # Service basico de health
-│   └── main.ts                                  # Bootstrap NestJS (pipes, Swagger, CORS, prefixo, shutdown)
-├── test/                                        # Testes end-to-end
-│   └── app.e2e-spec.ts                          # Teste e2e inicial da rota de health
+│   │   ├── ADR-001-clean-architecture.md
+│   │   ├── ADR-002-event-driven-decoupling.md
+│   │   ├── ADR-003-data-lifecycle-soft-delete-and-audit.md
+│   │   └── ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md
+│   └── runbooks/
+│       └── infra-contingency.md
 ├── scripts/                                     # Automacoes PowerShell/Node para ciclo de desenvolvimento
-│   ├── benchmark.ps1                            # Executa benchmark no runner dedicado (profile tools)
-│   ├── benchmark.ts                             # Script de carga (cache quente/frio) para Autocannon
-│   ├── container-healthcheck.js                 # Healthcheck HTTP do container da app
-│   ├── dev-container-start.js                   # Boot da app com wait-for-deps e fallback da Fase 1
-│   ├── dev.ps1                                  # Sobe stack Docker com build
-│   ├── lint.ps1                                 # Executa lint/lint:fix/typecheck no container app
-│   ├── logs.ps1                                 # Exibe logs de servico no Docker Compose
-│   ├── migrate.ps1                              # Executa migrations no container app
-│   ├── placeholder-app.js                       # Servidor placeholder para manter app healthy na Fase 1
-│   ├── seed.ps1                                 # Executa seed no container app
-│   ├── stop.ps1                                 # Desliga stack e remove orfaos
-│   ├── test-e2e.ps1                             # Executa testes end-to-end no container app
-│   ├── test.ps1                                 # Executa cobertura de testes no container app
-│   └── wait-for-deps.js                         # Espera ativa das dependencias antes do bootstrap
-├── .dockerignore                                # Exclusoes de contexto de build Docker
-├── .eslintrc.js                                 # Configuracao ESLint com TypeScript + Prettier
-├── .env.example                                 # Template de variaveis sem segredos
-├── .gitignore                                   # Regras de exclusao de artefatos locais
-├── .prettierrc                                  # Regras de formatacao Prettier
-├── ACHIEVEMENTS.md                              # Registro de entregas e evidencias por fase
-├── Dockerfile                                   # Build multistage para desenvolvimento e producao
-├── MASTER.md                                    # Fonte de verdade de arquitetura, regras e governanca
-├── README.md                                    # Guia geral do projeto
-├── docker-compose.yml                           # Orquestracao de servicos da stack local
-├── implementation_plan.md                       # Plano macro de implementacao por fases
-├── jest-e2e.config.ts                           # Configuracao Jest para testes e2e
-├── jest.config.ts                               # Configuracao Jest para testes unitarios/cobertura
-├── nest-cli.json                                # Configuracao do Nest CLI com plugin Swagger
-├── objetivos.md                                 # Requisitos originais do desafio
-├── package-lock.json                            # Lockfile npm para reproducibilidade de dependencias
-├── package.json                                 # Manifesto npm com scripts e dependencias fixas
-├── struct.md                                    # Mapa de arquivos + esqueleto de navegacao humano
-├── task.md                                      # Checklist de execucao por fase
-├── tsconfig.build.json                          # Configuracao TypeScript para build
-└── tsconfig.json                                # Configuracao TypeScript strict com aliases
+│   ├── benchmark.ps1
+│   ├── benchmark.ts
+│   ├── container-healthcheck.js
+│   ├── dev-container-start.js
+│   ├── dev.ps1
+│   ├── lint.ps1
+│   ├── logs.ps1
+│   ├── migrate.ps1
+│   ├── placeholder-app.js
+│   ├── seed.ps1
+│   ├── stop.ps1
+│   ├── test-e2e.ps1
+│   ├── test.ps1
+│   └── wait-for-deps.js
+├── src/
+│   ├── common/
+│   │   ├── constants/
+│   │   │   └── http-context.constants.ts
+│   │   ├── controllers/
+│   │   │   └── health.controller.ts
+│   │   ├── decorators/
+│   │   │   ├── current-user.decorator.ts
+│   │   │   └── public.decorator.ts
+│   │   ├── domain/
+│   │   │   ├── exceptions/
+│   │   │   ├── interfaces/
+│   │   │   └── value-objects/
+│   │   ├── errors/
+│   │   │   └── error-catalog.ts
+│   │   ├── filters/
+│   │   │   ├── global-exception.filter.ts
+│   │   │   └── throttler-exception.filter.ts
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── throttler.guard.ts
+│   │   ├── interfaces/
+│   │   │   └── authenticated-request.interface.ts
+│   │   ├── interceptors/
+│   │   │   ├── correlation-id.interceptor.ts
+│   │   │   └── logging.interceptor.ts
+│   │   └── middleware/
+│   │       └── correlation-id.middleware.ts
+│   ├── config/
+│   │   ├── audit.config.ts
+│   │   ├── auth.config.ts
+│   │   ├── cache.config.ts
+│   │   ├── cors.config.ts
+│   │   ├── database.config.ts
+│   │   ├── messaging.config.ts
+│   │   └── throttle.config.ts
+│   ├── infrastructure/
+│   │   ├── audit/
+│   │   │   ├── listeners/
+│   │   │   │   └── service-audit.listener.ts
+│   │   │   ├── schemas/
+│   │   │   │   └── audit-log.schema.ts
+│   │   │   ├── audit.module.ts
+│   │   │   └── mongo-audit-logger.ts
+│   │   ├── cache/
+│   │   │   ├── cache.module.ts
+│   │   │   └── redis-cache.service.ts
+│   │   ├── database/
+│   │   │   ├── migrations/
+│   │   │   │   ├── 1761900000000-CreateUsersTable.ts
+│   │   │   │   ├── 1761900001000-CreateBrandsTable.ts
+│   │   │   │   ├── 1761900002000-CreateModelsTable.ts
+│   │   │   │   └── 1761900003000-CreateVehiclesTable.ts
+│   │   │   └── seeds/
+│   │   │       └── seed.ts
+│   │   ├── lifecycle/
+│   │   │   └── graceful-shutdown.service.ts
+│   │   └── messaging/
+│   │       ├── messaging.module.ts
+│   │       └── rabbitmq-event-publisher.ts
+│   ├── modules/
+│   │   ├── auth/
+│   │   │   ├── infrastructure/
+│   │   │   │   └── strategies/
+│   │   │   │       └── jwt.strategy.ts
+│   │   │   └── auth.module.ts
+│   │   ├── brands/
+│   │   │   ├── application/mappers/brand.mapper.ts
+│   │   │   ├── domain/
+│   │   │   ├── infrastructure/persistence/
+│   │   │   └── brands.module.ts
+│   │   ├── models/
+│   │   │   ├── application/mappers/model.mapper.ts
+│   │   │   ├── domain/
+│   │   │   ├── infrastructure/persistence/
+│   │   │   └── models.module.ts
+│   │   ├── users/
+│   │   │   ├── application/mappers/user.mapper.ts
+│   │   │   ├── domain/
+│   │   │   ├── infrastructure/persistence/
+│   │   │   └── users.module.ts
+│   │   └── vehicles/
+│   │       ├── application/mappers/vehicle.mapper.ts
+│   │       ├── domain/
+│   │       ├── infrastructure/
+│   │       │   ├── listeners/vehicle-messaging.listener.ts
+│   │       │   └── persistence/
+│   │       └── vehicles.module.ts
+│   ├── app.controller.spec.ts
+│   ├── app.controller.ts
+│   ├── app.module.ts
+│   ├── app.service.ts
+│   └── main.ts
+├── test/
+│   └── app.e2e-spec.ts
+├── .dockerignore
+├── .eslintrc.js
+├── .env.example
+├── .gitignore
+├── .prettierrc
+├── ACHIEVEMENTS.md
+├── Dockerfile
+├── MASTER.md
+├── README.md
+├── docker-compose.yml
+├── implementation_plan.md
+├── jest-e2e.config.ts
+├── jest.config.ts
+├── nest-cli.json
+├── objetivos.md
+├── package-lock.json
+├── package.json
+├── seed_vehicles.json
+├── struct.md
+├── task.md
+├── tsconfig.build.json
+└── tsconfig.json
 ```
 
 ---

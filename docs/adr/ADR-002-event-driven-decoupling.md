@@ -47,9 +47,27 @@ Para primeira versao em padrao de producao:
 - Chamada direta de RabbitMQ/MongoDB dentro dos services
 - Uso de outbox pattern ja na primeira versao
 
+### Trade-off de biblioteca RabbitMQ no NestJS
+
+- Opcao adotada: `@golevelup/nestjs-rabbitmq`
+- Alternativa avaliada: `@nestjs/microservices`
+
+Justificativa pratica para este contexto:
+
+- `@golevelup/nestjs-rabbitmq` oferece ergonomia melhor para publicacao orientada a exchange/routing key,
+  incluindo configuracao direta de topology e caminho mais objetivo para confirm/retry/DLQ na borda de publicacao.
+- `@nestjs/microservices` padroniza transporte no ecossistema Nest, mas neste caso exigiria mais adaptacao
+  para chegar ao mesmo nivel de controle de publicacao resiliente exigido no projeto.
+
+Consequencia:
+
+- Mantemos a abstracao no dominio por `IEventPublisher`, preservando a possibilidade de troca futura de biblioteca
+  sem impacto na camada de regras de negocio.
+
 Chamada direta foi rejeitada por acoplamento alto.
 
 **Outbox Pattern** — Garantiria exactly-once delivery via tabela `outbox` + polling/CDC. Rejeitado nesta versao porque:
+
 - Adiciona latencia minima ao CRUD (transacao + insert na outbox)
 - Exige consumer separado ou Debezium para ler a outbox
 - Para o SLA deste projeto, perda eventual de eventos de auditoria e aceitavel (regra de negocio nao depende deles)
@@ -60,6 +78,7 @@ Chamada direta foi rejeitada por acoplamento alto.
 O modelo com EventEmitter2 e **at-most-once**: se o processo Node.js morrer entre o `emit()` e o listener executar, o evento e perdido.
 
 Isto e uma escolha consciente:
+
 - Eventos de auditoria e mensageria sao **efeitos secundarios**, nao parte da transacao principal
 - A regra de negocio (CRUD de veiculos) e consistente por si so no SQL Server
 - Para o escopo do desafio, perda eventual de eventos e aceitavel

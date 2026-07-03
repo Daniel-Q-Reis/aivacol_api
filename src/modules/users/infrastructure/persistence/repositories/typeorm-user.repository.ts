@@ -14,6 +14,7 @@ export class TypeOrmUserRepository implements IUserRepository {
   ) {}
 
   async findById(id: string): Promise<User | null> {
+    // password_hash is opt-in (`select: false`) and only fetched in auth-oriented repository paths.
     const user = await this.repository
       .createQueryBuilder('user')
       .addSelect('user.password_hash')
@@ -27,6 +28,7 @@ export class TypeOrmUserRepository implements IUserRepository {
   async findByNickname(nickname: string): Promise<User | null> {
     const normalizedNickname = nickname.trim().toLowerCase();
 
+    // Normalized lookup keeps authentication deterministic regardless of input casing.
     const user = await this.repository
       .createQueryBuilder('user')
       .addSelect('user.password_hash')

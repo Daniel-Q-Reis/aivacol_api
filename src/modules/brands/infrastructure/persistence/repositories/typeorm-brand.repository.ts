@@ -22,6 +22,7 @@ export class TypeOrmBrandRepository implements IBrandRepository {
   }
 
   async findAll(): Promise<Brand[]> {
+    // Stable ordering avoids subtle diffs in UI/API consumers that reconcile full collections.
     const brands = await this.repository.find({
       where: { deletedAt: IsNull() },
       order: { name: 'ASC' },

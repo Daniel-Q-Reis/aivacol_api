@@ -363,3 +363,12 @@ Comprovacao de que a unicidade vale apenas para registro ativo.
 - Implementar camada Application + Presentation (services, DTOs, controllers e auth/login)
 - Integrar emissoes de eventos de auditoria e mensageria a partir dos casos de uso
 - Documentar contratos Swagger completos e respostas padronizadas por `error code`
+
+### 🔄 Reconciliacao de tracking pós-Fase 5
+
+- Ajuste de rastreabilidade aplicado no `task.md` para marcar itens ja implementados e comprovados:
+  - documentacao de `password_hash` no `README.md`
+  - trade-off `@golevelup/nestjs-rabbitmq` vs `@nestjs/microservices` em README + ADR
+  - commit da fase 5 com mensagem prevista no checklist
+- `struct.md` atualizado tambem no bloco **Esqueleto de Navegacao (Humano)** para refletir a arvore real apos os arquivos criados na fase
+- Reforco adicional de comentarios tecnicos pontuais (secao 5.7) em repositories para melhorar manutencao humana sem poluicao de codigo

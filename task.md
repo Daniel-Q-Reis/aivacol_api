@@ -379,7 +379,7 @@
   - [x] `@Entity('brands')`
 - [x] `src/modules/users/infrastructure/persistence/entities/user.orm-entity.ts`
   - [x] `@Entity('users')` com `nickname`, `name`, `email`, metadados (`created_at`, `updated_at`, `created_by`) e campo técnico `password_hash`
-  - [ ] Documentar no README que `password_hash` é extensão técnica para autenticação JWT e não faz parte do contrato público
+  - [x] Documentar no README que `password_hash` é extensão técnica para autenticação JWT e não faz parte do contrato público
 
 ### Mappers (Domain ↔ ORM)
 
@@ -416,7 +416,7 @@
 - [x] `src/infrastructure/messaging/rabbitmq-event-publisher.ts`
   - [x] Implementa `IEventPublisher`
   - [x] Usa `@golevelup/nestjs-rabbitmq` (`AmqpConnection`)
-  - [ ] Registrar trade-off da escolha (`@golevelup/nestjs-rabbitmq` vs `@nestjs/microservices`) em ADR e README
+  - [x] Registrar trade-off da escolha (`@golevelup/nestjs-rabbitmq` vs `@nestjs/microservices`) em ADR e README
   - [x] Publica em exchange `fleet-events` com routing key por tipo de evento
   - [x] Publisher confirms habilitado para confirmação de entrega
   - [x] Publicação com roteamento obrigatório e tratamento de unroutable messages
@@ -490,7 +490,7 @@
 - [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [x] Atualizar `struct.md`
 - [x] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `feat: add infrastructure layer (TypeORM, Redis, RabbitMQ, MongoDB)`
+- [x] Commit: `feat: add infrastructure layer (TypeORM, Redis, RabbitMQ, MongoDB)`
 
 ---
 
