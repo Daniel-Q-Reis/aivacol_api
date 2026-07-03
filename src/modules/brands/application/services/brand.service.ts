@@ -29,6 +29,7 @@ export class BrandService {
     userId: string,
     correlationId?: string,
   ): Promise<BrandResponseDto> {
+    // Enforce business uniqueness here so conflict code remains stable across persistence adapters.
     await this.ensureUniqueName(dto.name);
 
     const brand = BrandMapper.createDomainFromPrimitives({
@@ -129,6 +130,7 @@ export class BrandService {
   }
 
   private async ensureUniqueName(name: string, ignoreBrandId?: string): Promise<void> {
+    // Normalized comparison avoids duplicate brands that differ only by case/whitespace.
     const all = await this.brandRepository.findAll();
     const normalized = name.trim().toLowerCase();
     const duplicate = all.find(

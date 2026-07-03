@@ -80,6 +80,7 @@ export class UserService {
       metadata?: Record<string, unknown>;
     },
   ): void {
+    // User reads are audited for traceability even though module is read-only in current scope.
     this.eventEmitter.emit('audit.service_interaction', {
       action: 'READ',
       entity: 'USER',

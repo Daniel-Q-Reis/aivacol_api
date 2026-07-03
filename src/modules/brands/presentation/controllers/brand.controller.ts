@@ -46,6 +46,7 @@ export class BrandController {
     @CurrentUser('sub') sub: string,
     @Headers('x-correlation-id') correlationId?: string,
   ): Promise<BrandResponseDto> {
+    // Service receives a stable actor id regardless of JWT claim versioning.
     return this.brandService.create(dto, userId ?? sub, correlationId);
   }
 

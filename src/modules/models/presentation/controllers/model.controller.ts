@@ -47,6 +47,7 @@ export class ModelController {
     @CurrentUser('sub') sub: string,
     @Headers('x-correlation-id') correlationId?: string,
   ): Promise<ModelResponseDto> {
+    // Controller keeps token-claim compatibility (`userId`/`sub`) and forwards normalized actor id.
     return this.modelService.create(dto, userId ?? sub, correlationId);
   }
 

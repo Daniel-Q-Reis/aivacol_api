@@ -34,6 +34,7 @@ export class ModelService {
     userId: string,
     correlationId?: string,
   ): Promise<ModelResponseDto> {
+    // Validate parent aggregate first to return domain-specific PT-BR error contract.
     await this.assertBrandExists(dto.brandId);
     await this.ensureUniqueNameByBrand(dto.name, dto.brandId);
 
@@ -156,6 +157,7 @@ export class ModelService {
     brandId: string,
     ignoreModelId?: string,
   ): Promise<void> {
+    // Uniqueness scope is brand-bound: same model name may exist under different brands.
     const all = await this.modelRepository.findAll();
     const normalized = name.trim().toLowerCase();
     const duplicate = all.find(

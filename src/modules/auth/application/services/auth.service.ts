@@ -23,6 +23,7 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto): Promise<AuthTokenResponse> {
+    // Normalize at boundary to keep repository lookup and JWT claims deterministic.
     const nickname = dto.nickname.trim().toLowerCase();
     const user = await this.userRepository.findByNickname(nickname);
 
@@ -52,6 +53,7 @@ export class AuthService {
   }
 
   private invalidCredentials(): UnauthorizedException {
+    // Error code remains stable for clients; message stays PT-BR at API boundary.
     const error = ERROR_CATALOG.INVALID_CREDENTIALS;
     return new UnauthorizedException({
       code: error.code,
@@ -64,6 +66,7 @@ export class AuthService {
     userId?: string,
     metadata?: Record<string, unknown>,
   ): void {
+    // Audit is emitted as fire-and-forget; auth flow must not wait on Mongo availability.
     this.eventEmitter.emit('audit.service_interaction', {
       action: 'AUTH',
       entity: 'AUTH',

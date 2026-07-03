@@ -51,6 +51,7 @@ export class VehicleService {
     userId: string,
     correlationId?: string,
   ): Promise<VehicleResponseDto> {
+    // Referential validation in service keeps 404 contract stable before DB-level FK errors.
     await this.assertModelExists(dto.modelId);
     await this.ensureNoDuplicates(dto.licensePlate, dto.chassis, dto.renavam);
 
@@ -101,6 +102,7 @@ export class VehicleService {
     const cached = await this.cacheService.get<VehicleListResponseDto>(cacheKey);
 
     if (cached) {
+      // Cache hits are audited too, so READ observability reflects real API demand.
       this.emitAudit('READ', 'VEHICLE', {
         userId: context?.userId,
         correlationId: context?.correlationId,
@@ -263,6 +265,7 @@ export class VehicleService {
       this.vehicleRepository.findByRenavam(renavam),
     ]);
 
+    // SQL Server UUID casing can vary; normalize both sides to avoid false duplicate conflicts.
     const normalizedIgnoreVehicleId = ignoreVehicleId?.toLowerCase();
     const isSameVehicle = (candidateId: string): boolean =>
       normalizedIgnoreVehicleId !== undefined &&
@@ -314,6 +317,7 @@ export class VehicleService {
     const safeOrder = query.order?.toLowerCase() === 'asc' ? 'asc' : 'desc';
 
     return {
+      // Defensive caps prevent unbounded cache cardinality and abusive page sizes.
       page: Math.max(1, page),
       limit: Math.max(1, Math.min(limit, VEHICLE_MAX_LIMIT)),
       sort: safeSort,
@@ -372,6 +376,7 @@ export class VehicleService {
       changes?: Record<string, unknown>;
     },
   ): void {
+    // correlationId is mirrored into async audit metadata for end-to-end traceability.
     this.eventEmitter.emit('audit.service_interaction', {
       action,
       entity,

@@ -51,6 +51,7 @@ export class VehicleController {
     @CurrentUser('sub') sub: string,
     @Headers('x-correlation-id') correlationId?: string,
   ): Promise<VehicleResponseDto> {
+    // `sub` fallback preserves compatibility with JWTs minted before `userId` claim standardization.
     const actorId = userId ?? sub;
     return this.vehicleService.create(dto, actorId, correlationId);
   }
@@ -108,6 +109,7 @@ export class VehicleController {
     @CurrentUser('sub') sub: string,
     @Headers('x-correlation-id') correlationId?: string,
   ): Promise<VehicleResponseDto> {
+    // Keep actor resolution centralized at controller boundary to avoid duplicated claim checks in services.
     const actorId = userId ?? sub;
     return this.vehicleService.update(id, dto, actorId, correlationId);
   }
@@ -126,6 +128,7 @@ export class VehicleController {
     @CurrentUser('sub') sub: string,
     @Headers('x-correlation-id') correlationId?: string,
   ): Promise<{ message: string }> {
+    // Delete contract returns PT-BR business confirmation while internal codes remain in English.
     const actorId = userId ?? sub;
     await this.vehicleService.delete(id, actorId, correlationId);
     return {

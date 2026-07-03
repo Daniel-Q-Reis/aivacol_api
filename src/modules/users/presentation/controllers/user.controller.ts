@@ -35,6 +35,7 @@ export class UserController {
     @CurrentUser('userId') userId?: string,
     @Headers('x-correlation-id') correlationId?: string,
   ): Promise<UserResponseDto> {
+    // Endpoint remains read-only and intentionally omits any credential-related fields by design.
     return this.userService.findById(id, { userId, correlationId });
   }
 }
