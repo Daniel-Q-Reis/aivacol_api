@@ -52,9 +52,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     timestamp: string,
   ): ErrorHttpResponse {
     if (exception instanceof DomainException) {
+      const catalogEntry = this.getCatalogByCode(exception.code);
+
       return {
-        statusCode: exception.statusCode,
-        message: exception.message,
+        statusCode: catalogEntry?.statusCode ?? exception.statusCode,
+        message: catalogEntry?.message ?? exception.message,
         timestamp,
         path,
         correlationId,
@@ -165,5 +167,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       default:
         return null;
     }
+  }
+
+  private getCatalogByCode(code: string): (typeof ERROR_CATALOG)[ErrorCode] | null {
+    if (code in ERROR_CATALOG) {
+      return ERROR_CATALOG[code as ErrorCode];
+    }
+
+    return null;
   }
 }

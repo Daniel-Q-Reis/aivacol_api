@@ -1,4 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { join } from 'node:path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
 function getRequiredEnv(name: string): string {
@@ -34,6 +35,8 @@ export function getDatabaseConfig(): DataSourceOptions {
   const poolMax = getNumberEnv('DB_POOL_MAX', 10);
   const connectionTimeout = getNumberEnv('DB_CONNECTION_TIMEOUT_MS', 30000);
 
+  const baseDir = __dirname.includes('dist') ? __dirname : join(process.cwd(), 'src', 'config');
+
   return {
     type: 'mssql',
     host: getRequiredEnv('DB_HOST'),
@@ -43,12 +46,9 @@ export function getDatabaseConfig(): DataSourceOptions {
     database: getRequiredEnv('DB_DATABASE'),
     synchronize: false,
     logging: false,
-    // Keep both TS/JS globs so CLI migrations work in ts-node and runtime works from dist.
-    entities: ['src/**/*.orm-entity.ts', 'dist/**/*.orm-entity.js'],
-    migrations: [
-      'src/infrastructure/database/migrations/*.ts',
-      'dist/infrastructure/database/migrations/*.js',
-    ],
+    // Resolve paths from current runtime context to avoid requiring TS files in plain Node runtime.
+    entities: [join(baseDir, '..', '**', '*.orm-entity.{ts,js}')],
+    migrations: [join(baseDir, '..', 'infrastructure', 'database', 'migrations', '*.{ts,js}')],
     options: {
       // Local Docker SQL Server runs with self-signed cert by default.
       encrypt: false,

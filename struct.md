@@ -324,6 +324,32 @@ aivacol_api/                                     # Raiz do repositorio backend u
 | `src/modules/vehicles/infrastructure/persistence/entities/vehicle.orm-entity.ts`             | ORM Entity TypeORM de `vehicles` com FK `model_id` e soft delete                            |
 | `src/modules/vehicles/infrastructure/persistence/repositories/typeorm-vehicle.repository.ts` | Repositorio TypeORM concreto para a porta `IVehicleRepository`                              |
 
+### Entradas adicionadas (append) — Fase 6
+
+| Arquivo                                                               | Propósito                                                                                               |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `src/modules/auth/application/dtos/login.dto.ts`                      | DTO de autenticacao por nickname/senha com validacao e schema Swagger                                   |
+| `src/modules/auth/application/services/auth.service.ts`               | Caso de uso de login com bcrypt, JWT e emissao de auditoria `AUTH`                                      |
+| `src/modules/auth/presentation/controllers/auth.controller.ts`        | Controller da rota publica `POST /api/v1/auth/login` com contrato Swagger completo                      |
+| `src/modules/vehicles/application/dtos/create-vehicle.dto.ts`         | DTO de criacao de veiculo com validacoes de contrato HTTP e exemplos Swagger                            |
+| `src/modules/vehicles/application/dtos/update-vehicle.dto.ts`         | DTO parcial para atualizacao de veiculo usando `PartialType`                                            |
+| `src/modules/vehicles/application/dtos/vehicle-response.dto.ts`       | DTOs de serializacao de resposta de veiculos (item e listagem paginada)                                 |
+| `src/modules/vehicles/application/services/vehicle.service.ts`        | Casos de uso CRUD de veiculos com cache Redis, eventos RabbitMQ e auditoria de servico                  |
+| `src/modules/vehicles/presentation/controllers/vehicle.controller.ts` | Endpoints REST de veiculos com paginacao defensiva, JWT e respostas Swagger 200/201/400/401/404/409/429 |
+| `src/modules/models/application/dtos/create-model.dto.ts`             | DTO de criacao de modelo associado a `brandId`                                                          |
+| `src/modules/models/application/dtos/update-model.dto.ts`             | DTO parcial de atualizacao de modelo                                                                    |
+| `src/modules/models/application/dtos/model-response.dto.ts`           | DTO de resposta publica para modelos                                                                    |
+| `src/modules/models/application/services/model.service.ts`            | Casos de uso CRUD de modelos com validacao de associacao de marca e auditoria                           |
+| `src/modules/models/presentation/controllers/model.controller.ts`     | Endpoints REST de modelos com contratos Swagger e seguranca JWT                                         |
+| `src/modules/brands/application/dtos/create-brand.dto.ts`             | DTO de criacao de marca com validacao de nome                                                           |
+| `src/modules/brands/application/dtos/update-brand.dto.ts`             | DTO parcial de atualizacao de marca                                                                     |
+| `src/modules/brands/application/dtos/brand-response.dto.ts`           | DTO de resposta publica para marcas                                                                     |
+| `src/modules/brands/application/services/brand.service.ts`            | Casos de uso CRUD de marcas com auditoria de leitura/mutacao                                            |
+| `src/modules/brands/presentation/controllers/brand.controller.ts`     | Endpoints REST de marcas com cobertura Swagger completa                                                 |
+| `src/modules/users/application/dtos/user-response.dto.ts`             | DTO de resposta de usuarios sem exposicao de `password_hash`                                            |
+| `src/modules/users/application/services/user.service.ts`              | Casos de uso de consulta protegida de usuarios com auditoria `READ`                                     |
+| `src/modules/users/presentation/controllers/user.controller.ts`       | Endpoints `GET /users` e `GET /users/:id` protegidos por JWT e documentados no Swagger                  |
+
 ---
 
 ## Atualizacao de Ciclo
@@ -343,5 +369,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Data: 2026-07-03
 - Fase: Fase 5 — Infrastructure Layer (Adapters, Migrations, Seed)
 - Acao: append de novos arquivos de ORM entities, mappers, repositories concretos, adapters Redis/RabbitMQ/Mongo, listeners resilientes, migrations SQL Server e seed idempotente
+
+- Data: 2026-07-03
+- Fase: Fase 6 — Application + Presentation Layer
+- Acao: append de novos arquivos de services/DTOs/controllers de Auth, Vehicles, Models, Brands e Users com contratos Swagger, cache/eventos/auditoria e erros estaveis
 
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._
