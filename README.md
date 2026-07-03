@@ -102,7 +102,7 @@ Se voce vai continuar este projeto com apoio de IA e quer minimizar alucinacao, 
 5. Leia -> `ACHIEVEMENTS.md`
 6. Execute -> `git status`
 7. Execute -> `git log --oneline -5`
-8. Revise -> Secao 12 de `MASTER.md` (Qualidade e Governanca)
+8. Revise -> Secao 12 e 5 de `MASTER.md` (Qualidade e Governanca e Convenções)
 
 Referencias praticas:
 
