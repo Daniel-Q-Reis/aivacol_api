@@ -9,6 +9,8 @@ const healthPath = '/api/v1/health';
 const loginPath = '/api/v1/auth/login';
 const duration = Number(process.env.BENCHMARK_DURATION_SECONDS ?? '15');
 const connections = Number(process.env.BENCHMARK_CONNECTIONS ?? '20');
+const capacityDuration = Number(process.env.BENCHMARK_CAPACITY_DURATION_SECONDS ?? '30');
+const capacityConnections = Number(process.env.BENCHMARK_CAPACITY_CONNECTIONS ?? '120');
 const warmupRequests = Number(process.env.BENCHMARK_WARMUP_REQUESTS ?? '3');
 const nickname = process.env.BENCHMARK_NICKNAME ?? process.env.SEED_USER_NICKNAME ?? 'aivacol';
 const password = process.env.BENCHMARK_PASSWORD ?? process.env.SEED_USER_PASSWORD ?? 'aivacol';
@@ -24,6 +26,7 @@ interface ScenarioSummary {
   label: string;
   requestsAvg: number;
   latencyP50: number;
+  latencyP95: number;
   latencyP99: number;
   throughputBytes: number;
   errors: number;
@@ -32,10 +35,43 @@ interface ScenarioSummary {
 
 interface CliAutocannonResult {
   requests?: { average?: number };
-  latency?: { p50?: number; p99?: number };
+  latency?: {
+    p50?: number;
+    p90?: number;
+    p95?: number;
+    p97_5?: number;
+    p99?: number;
+  };
   throughput?: { average?: number };
   errors?: number;
   non2xx?: number;
+}
+
+interface ScenarioConfig {
+  label: string;
+  connections: number;
+  duration: number;
+  coldMode: boolean;
+}
+
+function getLatencyP95(latency: CliAutocannonResult['latency']): number {
+  if (!latency) {
+    return 0;
+  }
+
+  if (typeof latency.p95 === 'number') {
+    return latency.p95;
+  }
+
+  const p90 = latency.p90;
+  const p97_5 = latency.p97_5;
+
+  if (typeof p90 === 'number' && typeof p97_5 === 'number') {
+    const interpolated = p90 + ((95 - 90) / (97.5 - 90)) * (p97_5 - p90);
+    return Number(interpolated.toFixed(2));
+  }
+
+  return 0;
 }
 
 function request(
@@ -119,22 +155,18 @@ async function assertHealth(token: string): Promise<void> {
   }
 }
 
-function executeAutocannon(
-  label: string,
-  token: string,
-  coldMode: boolean,
-): Promise<CliAutocannonResult> {
+function executeAutocannon(config: ScenarioConfig, token: string): Promise<CliAutocannonResult> {
   return new Promise((resolve, reject) => {
-    console.log(`\n[benchmark] ${label}`);
+    console.log(`\n[benchmark] ${config.label}`);
 
     const args = [
       '-y',
       'autocannon',
       '--json',
       '--connections',
-      String(connections),
+      String(config.connections),
       '--duration',
-      String(duration),
+      String(config.duration),
       '-H',
       `Authorization=Bearer ${token}`,
       `${baseUrl}${endpointPath}?page=1&limit=20&sort=createdAt&order=desc`,
@@ -142,7 +174,7 @@ function executeAutocannon(
 
     const child = spawn('npx', args, { stdio: ['ignore', 'pipe', 'pipe'] });
     const coldFlushInterval =
-      coldMode &&
+      config.coldMode &&
       setInterval(() => {
         void flushRedis(false).catch(() => undefined);
       }, 250);
@@ -171,7 +203,9 @@ function executeAutocannon(
 
       if (code !== 0) {
         reject(
-          new Error(`[benchmark] autocannon failed (${label}) with exit code ${code}: ${stderr}`),
+          new Error(
+            `[benchmark] autocannon failed (${config.label}) with exit code ${code}: ${stderr}`,
+          ),
         );
         return;
       }
@@ -180,7 +214,7 @@ function executeAutocannon(
         const parsed = JSON.parse(stdout) as CliAutocannonResult;
         resolve(parsed);
       } catch {
-        reject(new Error(`[benchmark] could not parse autocannon JSON output (${label})`));
+        reject(new Error(`[benchmark] could not parse autocannon JSON output (${config.label})`));
       }
     });
   });
@@ -191,6 +225,7 @@ function toSummary(label: string, result: CliAutocannonResult): ScenarioSummary 
     label,
     requestsAvg: Number(result.requests?.average ?? 0),
     latencyP50: Number(result.latency?.p50 ?? 0),
+    latencyP95: getLatencyP95(result.latency),
     latencyP99: Number(result.latency?.p99 ?? 0),
     throughputBytes: Number(result.throughput?.average ?? 0),
     errors: Number(result.errors ?? 0),
@@ -246,14 +281,64 @@ async function flushRedis(logSuccess = true): Promise<void> {
 
   if (logSuccess) {
     console.log('[benchmark] redis FLUSHDB executed before cold scenario');
+    const dbSize = await getRedisDbSize();
+    console.log(`[benchmark] redis DBSIZE after FLUSHDB: ${dbSize}`);
   }
 }
 
-function printComparison(warm: ScenarioSummary, cold: ScenarioSummary): void {
+async function getRedisDbSize(): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const socket = new Socket();
+    const command = '*1\r\n$6\r\nDBSIZE\r\n';
+
+    socket.setTimeout(5000);
+    socket.connect(redisPort, redisHost, () => {
+      socket.write(command);
+    });
+
+    socket.on('data', (data) => {
+      const response = data.toString('utf8').trim();
+      socket.destroy();
+
+      if (!response.startsWith(':')) {
+        reject(new Error(`[benchmark] redis DBSIZE failed with response: ${response}`));
+        return;
+      }
+
+      const size = Number(response.slice(1));
+      if (!Number.isFinite(size)) {
+        reject(new Error(`[benchmark] redis DBSIZE returned invalid value: ${response}`));
+        return;
+      }
+
+      resolve(size);
+    });
+
+    socket.on('timeout', () => {
+      socket.destroy();
+      reject(new Error('[benchmark] redis DBSIZE timed out'));
+    });
+
+    socket.on('error', (error) => {
+      socket.destroy();
+      reject(error);
+    });
+  });
+}
+
+function printComparison(
+  warm: ScenarioSummary,
+  cold: ScenarioSummary,
+  capacity: ScenarioSummary,
+): void {
   const throughputDeltaPct =
     warm.requestsAvg > 0 ? ((warm.requestsAvg - cold.requestsAvg) / warm.requestsAvg) * 100 : 0;
   const latencyDeltaPct =
     warm.latencyP50 > 0 ? ((cold.latencyP50 - warm.latencyP50) / warm.latencyP50) * 100 : 0;
+  const capacityThroughputDeltaPct =
+    warm.requestsAvg > 0 ? ((capacity.requestsAvg - warm.requestsAvg) / warm.requestsAvg) * 100 : 0;
+  const capacityLatencyP99DeltaPct =
+    warm.latencyP99 > 0 ? ((capacity.latencyP99 - warm.latencyP99) / warm.latencyP99) * 100 : 0;
 
   console.log('\n[benchmark] summary');
   console.log(
@@ -261,9 +346,12 @@ function printComparison(warm: ScenarioSummary, cold: ScenarioSummary): void {
       {
         warm,
         cold,
+        capacity,
         comparison: {
           throughputDeltaPct: Number(throughputDeltaPct.toFixed(2)),
           latencyP50DeltaPct: Number(latencyDeltaPct.toFixed(2)),
+          capacityThroughputVsWarmPct: Number(capacityThroughputDeltaPct.toFixed(2)),
+          capacityLatencyP99VsWarmPct: Number(capacityLatencyP99DeltaPct.toFixed(2)),
         },
       },
       null,
@@ -284,18 +372,45 @@ async function main() {
   const token = await authenticate();
   await assertHealth(token);
 
-  await warmCache(token);
-  const warmResult = await executeAutocannon('Scenario 1/2 - warm cache', token, false);
-
   await flushRedis();
-  const coldResult = await executeAutocannon('Scenario 2/2 - cold cache', token, true);
+  const coldResult = await executeAutocannon(
+    {
+      label: `Scenario 1/3 - cold cache (${connections} conn, ${duration}s)`,
+      connections,
+      duration,
+      coldMode: true,
+    },
+    token,
+  );
+
+  await warmCache(token);
+  const warmResult = await executeAutocannon(
+    {
+      label: `Scenario 2/3 - warm cache (${connections} conn, ${duration}s)`,
+      connections,
+      duration,
+      coldMode: false,
+    },
+    token,
+  );
+
+  const capacityResult = await executeAutocannon(
+    {
+      label: `Scenario 3/3 - high-load capacity (${capacityConnections} conn, ${capacityDuration}s)`,
+      connections: capacityConnections,
+      duration: capacityDuration,
+      coldMode: false,
+    },
+    token,
+  );
 
   const warmSummary = toSummary('warm', warmResult);
   const coldSummary = toSummary('cold', coldResult);
+  const capacitySummary = toSummary('capacity', capacityResult);
 
   assertNoRateLimit(warmSummary);
   assertNoRateLimit(coldSummary);
-  printComparison(warmSummary, coldSummary);
+  printComparison(warmSummary, coldSummary, capacitySummary);
 
   console.log('\n[benchmark] completed');
 }
