@@ -405,3 +405,76 @@ Motivo do descarte nesta etapa:
 
 - Decisao atual: priorizar estabilidade, rastreabilidade e ganho comprovavel.
 - Resultado esperado: menor risco de regressao funcional com melhora de performance orientada por evidencia.
+
+## Baseline Limpo Revalidado (Rodadas Canonicas)
+
+Contexto da medicao:
+
+- ambiente limpo apos restore seletivo;
+- benchmark completo (`cold`, `warm`, `capacity`, `write-focused`);
+- `THROTTLE_LIMIT=1000000` para evitar vies por `429`;
+- 3 rodadas para leitura por mediana.
+
+Mediana das 3 rodadas executadas:
+
+| Cenario                            | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio |
+| ---------------------------------- | -------: | -------: | -------: | --------: |
+| Cold (30 conn, 15s)                |       45 |   144.67 |      180 |    505.14 |
+| Warm (30 conn, 15s)                |       38 |    52.00 |       59 |    758.00 |
+| Capacity (120 conn, 30s)           |      138 |   210.67 |      254 |    828.90 |
+| Write-focused PATCH (40 conn, 20s) |      538 |   811.00 |      967 |     70.25 |
+
+Observacao:
+
+- o benchmark sempre gera `p50`, `p95` e `p99`; quando algum relatorio resumido omitiu `p50`, foi apenas omissao de comunicacao, nao falta de metrica no script.
+
+## Ajuste Operacional de Duracao do Benchmark
+
+Para reduzir ciclo de desenvolvimento, foi testado ajuste de duracao:
+
+- `BENCHMARK_DURATION_SECONDS`: `15` -> `10`
+- `BENCHMARK_CAPACITY_DURATION_SECONDS`: `30` -> `18`
+- conexoes mantidas (`30` read e `120` capacity)
+
+Resultado da rodada de validacao com tempos reduzidos:
+
+| Cenario                            | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio |
+| ---------------------------------- | -------: | -------: | -------: | --------: |
+| Cold (30 conn, 10s)                |       39 |   127.67 |      174 |    573.00 |
+| Warm (30 conn, 10s)                |       34 |    44.00 |       60 |    845.46 |
+| Capacity (120 conn, 18s)           |      137 |   167.00 |      181 |    863.89 |
+| Write-focused PATCH (40 conn, 20s) |      303 |   410.67 |      467 |    126.35 |
+
+Leitura comparativa com a mediana canonica (15s/30s):
+
+- houve variacoes acima de 5% em multiplas metricas, principalmente em `write` e nos cenarios cold/capacity;
+- conclusao: os tempos reduzidos sao uteis para feedback rapido local, mas **nao** substituem baseline oficial comparavel da fase.
+
+## Benchmark de Write Desacoplado (Consistencia)
+
+Devido a variacao abrupta observada no write quando executado ao final da suite de leitura, o write passou a ser tratado como benchmark separado para evitar contaminacao de fase anterior.
+
+Script dedicado:
+
+- `scripts/benchmark-write.ts`
+
+Protocolo:
+
+- manter `writeDuration=20s` e `writeConnections=40`;
+- executar em rodada isolada (sem cold/warm/capacity antes);
+- registrar p50/p95/p99 e RPS com `errors=0` e `non2xx=0`.
+
+Objetivo:
+
+- obter baseline de escrita com menor variancia para comparacao before/after de otimizacoes.
+
+Resultado inicial do write isolado (20s, 40 conexoes):
+
+| Cenario          | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio | errors | non2xx |
+| ---------------- | -------: | -------: | -------: | --------: | -----: | -----: |
+| Write-only PATCH |      304 |   396.33 |      428 |    125.65 |      0 |      0 |
+
+Leitura:
+
+- comparado ao write executado no fim da suite mista, a variancia cai e o p99 deixa de oscilar em saltos anormais;
+- este formato passa a ser a referencia para auditoria de escrita, mantendo a suite mista focada na leitura.
