@@ -1,0 +1,600 @@
+{
+  "info": {
+    "_postman_id": "4c4f0a5e-8cb0-4d80-9a1d-98db8a0d5b12",
+    "name": "Aivacol Fleet API - Final",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const loginPath = '/api/v1/auth/login';",
+          "const token = pm.collectionVariables.get('token');",
+          "const expiryRaw = pm.collectionVariables.get('token_expires_at');",
+          "const expiry = expiryRaw ? Number(expiryRaw) : 0;",
+          "const now = Date.now();",
+          "const currentPath = pm.request.url.getPath();",
+          "const mustSkip = currentPath.endsWith(loginPath);",
+          "",
+          "if (mustSkip) {",
+          "  return;",
+          "}",
+          "",
+          "if (token && expiry > now + 15000) {",
+          "  return;",
+          "}",
+          "",
+          "const baseUrl = pm.collectionVariables.get('base_url');",
+          "const nickname = pm.collectionVariables.get('nickname');",
+          "const password = pm.collectionVariables.get('password');",
+          "",
+          "pm.sendRequest({",
+          "  url: `${baseUrl}${loginPath}`,",
+          "  method: 'POST',",
+          "  header: { 'Content-Type': 'application/json' },",
+          "  body: {",
+          "    mode: 'raw',",
+          "    raw: JSON.stringify({ nickname, password })",
+          "  }",
+          "}, (err, res) => {",
+          "  if (err || !res || res.code >= 300) {",
+          "    throw new Error(`Failed to auto-fetch token: ${err ? err.message : res ? res.code : 'unknown error'}`);",
+          "  }",
+          "",
+          "  const data = res.json();",
+          "  if (!data.access_token) {",
+          "    throw new Error('Login response does not include access_token');",
+          "  }",
+          "",
+          "  pm.collectionVariables.set('token', data.access_token);",
+          "  pm.collectionVariables.set('token_expires_at', String(Date.now() + 55 * 60 * 1000));",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "nickname",
+      "value": "aivacol"
+    },
+    {
+      "key": "password",
+      "value": "Aivacol_Seed_Str0ng!2026"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "token_expires_at",
+      "value": "0"
+    },
+    {
+      "key": "vehicle_id",
+      "value": ""
+    },
+    {
+      "key": "model_id",
+      "value": ""
+    },
+    {
+      "key": "brand_id",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nickname\": \"{{nickname}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          },
+          "response": [
+            {
+              "name": "201 Login success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{base_url}}/api/v1/auth/login"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"access_token\": \"<jwt-token>\"\n}"
+            },
+            {
+              "name": "401 Invalid credentials",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{base_url}}/api/v1/auth/login"
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 401,\n  \"code\": \"INVALID_CREDENTIALS\",\n  \"message\": \"Nickname ou senha inválidos\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "List vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles?page=1&limit=20&sort=createdAt&order=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "order",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 Vehicles listed",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"items\": [],\n  \"page\": 1,\n  \"limit\": 20,\n  \"total\": 0\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 401,\n  \"code\": \"UNAUTHORIZED\",\n  \"message\": \"Token ausente ou inválido\"\n}"
+            },
+            {
+              "name": "429 Rate limit",
+              "status": "Too Many Requests",
+              "code": 429,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 429,\n  \"code\": \"RATE_LIMIT_EXCEEDED\",\n  \"message\": \"Limite de requisições excedido, tente novamente em instantes\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get vehicle by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles/{{vehicle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles", "{{vehicle_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "404 Vehicle not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 404,\n  \"code\": \"VEHICLE_NOT_FOUND\",\n  \"message\": \"Veículo não encontrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"licensePlate\": \"ABC1D23\",\n  \"chassis\": \"9BWZZZ377VT004251\",\n  \"renavam\": \"00123456789\",\n  \"year\": 2024,\n  \"modelId\": \"{{model_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles"]
+            }
+          },
+          "response": [
+            {
+              "name": "409 Duplicate license plate",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 409,\n  \"code\": \"DUPLICATE_LICENSE_PLATE\",\n  \"message\": \"Placa já cadastrada\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update vehicle",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year\": 2025\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles/{{vehicle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles", "{{vehicle_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete vehicle",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles/{{vehicle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles", "{{vehicle_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Models",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "List models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/models",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "models"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create model",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Modelo API\",\n  \"brandId\": \"{{brand_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/models",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "models"]
+            }
+          },
+          "response": [
+            {
+              "name": "404 Brand not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 404,\n  \"code\": \"BRAND_NOT_FOUND\",\n  \"message\": \"Marca não encontrada\"\n}"
+            },
+            {
+              "name": "409 Duplicate model name",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 409,\n  \"code\": \"DUPLICATE_MODEL_NAME\",\n  \"message\": \"Modelo já cadastrado para esta marca\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get model by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/models/{{model_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "models", "{{model_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update model",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Modelo API Atualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/models/{{model_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "models", "{{model_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete model",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/models/{{model_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "models", "{{model_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Brands",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "List brands",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marca API\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands"]
+            }
+          },
+          "response": [
+            {
+              "name": "409 Duplicate brand",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 409,\n  \"code\": \"DUPLICATE_BRAND_NAME\",\n  \"message\": \"Marca já cadastrada\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get brand by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", "{{brand_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update brand",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marca API Atualizada\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", "{{brand_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete brand",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", "{{brand_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get user by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "{{user_id}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "404 User not found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"statusCode\": 404,\n  \"code\": \"USER_NOT_FOUND\",\n  \"message\": \"Usuário não encontrado\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,116 +1,280 @@
 # Aivacol Fleet Management API
 
-Backend para o modulo de Gestao de Frota da Aivacol, planejado com Clean Architecture estrita, foco em seguranca, observabilidade, escalabilidade e qualidade de entrega.
+Backend do módulo de Gestão de Frota da Aivacol, desenvolvido para o teste técnico de Backend.
 
-Status atual: fase de planejamento concluida e calibrada. A implementacao comeca pela Fase 1 do `task.md`.
+> Este projeto foi conduzido para atender integralmente o escopo original (nível pleno), com implementação de diferenciais técnicos para elevar robustez, testabilidade e previsibilidade operacional dentro da janela de tempo disponível.
 
-Importante: este repositorio esta em fase de planejamento. Nenhum codigo de aplicacao foi implementado ate este ponto.
+## ✅ Checklist do Desafio (Escopo Original)
 
-## Visao Geral
+| Critério | Status | Observação |
+|---|---|---|
+| Node.js 18+ | ✅ | Runtime em container |
+| NestJS 10+ | ✅ | Framework principal da API |
+| TypeORM + SQL Server | ✅ | Persistência relacional com migrations |
+| JWT obrigatório | ✅ | Login e proteção das rotas de negócio |
+| Seed com usuário padrão `aivacol` | ✅ | Seed idempotente |
+| Tabela `models` (obrigatória) | ✅ | CRUD completo + metadados |
+| Tabela `vehicles` (obrigatória) | ✅ | CRUD completo + metadados |
+| Metadados obrigatórios (`created_at`, `updated_at`, `created_by`) | ✅ | Aplicados nas entidades persistidas |
+| Gestão de `models` (criar/atualizar/consultar/remover) | ✅ | Endpoints e regras implementados |
+| Gestão de `vehicles` (registrar/atualizar/listar/remover) | ✅ | Endpoints, validações e soft delete |
+| Cache Redis em consultas de veículos | ✅ | Cache em listagem e busca por ID |
+| Expiração de cache via variável de ambiente | ✅ | TTL configurável por env |
+| Invalidação automática do cache de veículos | ✅ | Em create/update/delete |
+| Testes automatizados com Jest | ✅ | Unit + E2E |
+| Cobertura mínima de regras/serviços/validações/integrações | ✅ | Thresholds atendidos |
+| Tratamento de erros e exceções | ✅ | Filtro global + catálogo estável de erros |
+| Boas práticas REST (status codes/contratos) | ✅ | Contratos padronizados |
+| `seed_vehicles.json` no repositório | ✅ | Arquivo presente na raiz |
+| README com instruções claras | ✅ | Execução, testes, benchmark e arquitetura documentados |
+| Scripts de execução | ✅ | Scripts PowerShell para ciclo local |
 
-- Arquitetura: Clean Architecture (Ports and Adapters)
-- Stack alvo: NestJS 10+, TypeORM, SQL Server, Redis, RabbitMQ, MongoDB, JWT, Jest
-- Entidades principais: vehicles, models, brands, users
-- Requisitos de qualidade: cobertura >= 90%, Swagger em `/api/docs`, Docker Compose completo, CI de qualidade, throttling global
+## 🚀 Bônus e Diferenciais Implementados
 
-## Como o projeto sera executado
+| Item | Status | Observação |
+|---|---|---|
+| Gestão de `brands` (bônus) | ✅ | CRUD completo + associação com `models` |
+| Gestão de `users` (bônus) | ✅ | Consultas protegidas + relacionamento por `created_by` |
+| Mensageria (RabbitMQ) | ✅ | Eventos de veículos (`vehicle.created`, `vehicle.updated`) |
+| Auditoria em banco não relacional | ✅ | MongoDB para trilha de interações de serviço |
+| Dockerfile multistage | ✅ | Ambientes dev/build/prod |
+| Docker Compose completo | ✅ | app + SQL Server + Redis + RabbitMQ + MongoDB + benchmark runner |
+| Swagger/OpenAPI | ✅ | `/api/docs` |
+| Coleção Postman final | ✅ | Fluxo com token automático |
+| CI (GitHub Actions) | ✅ | `lint`, `typecheck`, `test` em push/PR para `main` |
+| Benchmark cache quente vs frio | ✅ | Execução oficial e resultados documentados |
 
-- Ambiente alvo: Windows 11 + PowerShell 7.5+ + Docker Desktop
-- Desenvolvimento: 100% via Docker Compose
-- Rotas da API: prefixo versionado em `/api/v1`
-- Documentacao interativa: `/api/docs`
+### Por que optei por esses extras?
 
-Politica final de autenticacao e Swagger:
+Os itens bônus foram implementados para reduzir risco técnico e aumentar a qualidade de manutenção do projeto:
 
-- Unica rota publica da API: `POST /api/v1/auth/login`.
-- Todas as rotas de `/api/v1/**` exigem JWT e retornam `401` sem token valido.
-- O Swagger em `/api/docs` permanece acessivel para avaliacao, mas a execucao dos endpoints exige Bearer token.
+- Mensageria e auditoria melhoram rastreabilidade e desacoplamento de responsabilidades.
+- CI e suíte de testes robusta aumentam confiança para evolução contínua.
+- Swagger e Postman melhoram experiência de validação para recrutador/avaliador.
+- Benchmark estruturado permite evidenciar impacto real de cache em desempenho.
 
-## ✅ Checklist do Desafio
+Essas decisões estão alinhadas ao planejamento (`MASTER.md`, `implementation_plan.md`, `task.md`) e aos ADRs do projeto.
 
-| Criterio                      | Status       | Observacao                                                     |
-| ----------------------------- | ------------ | -------------------------------------------------------------- |
-| Arquitetura limpa             | 📋 Planejado | Definida no `MASTER.md` com DIP e portas                       |
-| CRUD Vehicles                 | 📋 Planejado | Fases 4-7                                                      |
-| CRUD Models                   | 📋 Planejado | Fases 4-7                                                      |
-| CRUD Brands                   | 📋 Planejado | Fases 4-7                                                      |
-| Users e relacionamento        | 📋 Planejado | Seed, autenticacao e consultas protegidas                      |
-| JWT em rotas                  | 📋 Planejado | Guard global + `@Public()` apenas login                        |
-| Redis cache em vehicles       | 📋 Planejado | TTL configuravel + invalidacao automatica                      |
-| Swagger/OpenAPI               | 📋 Planejado | `/api/docs` com decorators obrigatorios                        |
-| Postman collection            | 📋 Planejado | Entrega prevista na raiz                                       |
-| Observabilidade               | 📋 Planejado | Correlation ID, logging interceptor e filter global            |
-| RabbitMQ                      | 📋 Planejado | Estrategia de producao: confirmacao, retry, DLQ e idempotencia |
-| Auditoria MongoDB             | 📋 Planejado | Todas as interacoes de servico: AUTH, READ e MUTATION          |
-| Docker multistage + Compose   | 📋 Planejado | Fase 1                                                         |
-| Testes >= 90%                 | 📋 Planejado | Fase 7                                                         |
-| Benchmark                     | 📋 Planejado | Autocannon em runner dedicado                                  |
-| CI (GitHub Actions)           | 📋 Planejado | lint + typecheck + test                                        |
-| Lint, lint:fix, typecheck     | 📋 Planejado | Scripts e gates por fase                                       |
-| Catálogo de erros versionável | 📋 Planejado | `code` estável por erro + tabela no README                     |
-| Throttling / Rate limiting    | 📋 Planejado | Limites por env + retorno `429`                                |
+## Sumário
 
-## 🚀 Diferenciais de Engenharia
+- [1) Visão geral](#1-visão-geral)
+- [2) Arquitetura e decisões](#2-arquitetura-e-decisões)
+- [3) Tecnologias](#3-tecnologias)
+- [4) Como executar (rápido)](#4-como-executar-rápido)
+- [5) Scripts para o recrutador](#5-scripts-para-o-recrutador)
+- [6) Migrations e seed](#6-migrations-e-seed)
+- [7) Testes e qualidade](#7-testes-e-qualidade)
+- [8) Benchmark](#8-benchmark)
+- [9) Endpoints principais](#9-endpoints-principais)
+- [10) Variáveis de ambiente](#10-variáveis-de-ambiente)
+- [11) Catálogo de erros](#11-catálogo-de-erros)
+- [12) CI/CD](#12-cicd)
+- [13) Postman](#13-postman)
+- [14) Rastreabilidade e documentação](#14-rastreabilidade-e-documentação)
 
-- Decisoes arquiteturais registradas em ADRs desde o inicio para reduzir ambiguidade de execucao.
-- Estrategia de resiliencia: falha de RabbitMQ/MongoDB nao interrompe CRUD no SQL Server.
-- Estrategia de ciclo de vida de dados: soft delete no relacional para historico e compliance, com politica de unicidade para registros ativos.
-- Planejamento orientado a evidencia (Definition of Done por fase + `struct.md` como fonte de verdade de arquivos).
-- Versionamento de API e paginacao previstos desde a base para evolucao sem breaking changes.
-- `scripts/benchmark.ps1` e o entrypoint oficial e delega a carga para `scripts/benchmark.ts`, evitando ambiguidade entre shell e script de benchmark.
-- Campo tecnico `password_hash` em users foi adicionado apenas para viabilizar JWT, sem exposicao no contrato publico.
-- Trade-off de mensageria documentado: `@golevelup/nestjs-rabbitmq` priorizado sobre `@nestjs/microservices` para melhor ergonomia com confirm, retry e DLQ.
+## 1) Visão geral
 
-### Nota tecnica sobre `users.password_hash`
+A API entrega:
 
-- O campo `password_hash` existe exclusivamente para autenticacao JWT e nunca deve ser exposto em contratos publicos da API.
-- Entidade de dominio e repositorio tratam esse campo como detalhe tecnico de credencial interna.
+- Autenticação JWT.
+- CRUD de `vehicles` e `models` (escopo obrigatório).
+- CRUD de `brands` e consulta protegida de `users` (bônus).
+- Cache Redis em consultas de veículos.
+- Eventos de veículos via RabbitMQ.
+- Auditoria de interações de serviço via MongoDB.
+- Contrato de erro estável com `code` e mensagens em PT-BR.
 
-### Observacao operacional sobre healthcheck
+## 2) Arquitetura e decisões
 
-Para aderencia literal ao desafio (`todas as rotas devem ser protegidas`), o endpoint de health permanece protegido por JWT; liveness da infraestrutura e feito por healthchecks de container/processo, enquanto a verificacao funcional de dependencias ocorre via endpoint autenticado em testes internos.
+Arquitetura baseada em Clean Architecture com separação de responsabilidades:
 
-### Benchmark runner
+- **Domain**: entidades, value objects, regras de negócio e portas.
+- **Application**: casos de uso, DTOs e orquestração.
+- **Presentation**: controllers e contratos HTTP.
+- **Infrastructure**: TypeORM, Redis, RabbitMQ, MongoDB e integrações externas.
 
-- O benchmark usa runner dedicado no Docker (`benchmark-runner`) para evitar interferencia no processo da API.
-- O alvo padrao do Autocannon e `http://app:3000` na rede interna do Compose.
+```mermaid
+flowchart TD
+  A[Presentation<br/>Controllers/Guards/Interceptors] --> B[Application<br/>Services/DTOs]
+  B --> C[Domain<br/>Entities/VOs/Ports]
+  D[Infrastructure<br/>TypeORM/Redis/RabbitMQ/MongoDB] --> C
+  B --> E[(SQL Server)]
+  B --> F[[EventEmitter2]]
+  F --> G[(RabbitMQ)]
+  F --> H[(MongoDB Audit)]
+  B --> I[(Redis Cache)]
+```
 
-### Postman collection (padrao de entrega)
+### ADRs (decisões arquiteturais)
 
-- Variaveis obrigatorias: `base_url`, `nickname`, `password`, `token`.
-- Pre-request script em nivel de collection para obter/renovar token automaticamente.
-- Exemplos de request/response para cenarios de sucesso e principais erros.
+- `docs/adr/ADR-001-clean-architecture.md`
+- `docs/adr/ADR-002-event-driven-decoupling.md`
+- `docs/adr/ADR-003-data-lifecycle-soft-delete-and-audit.md`
+- `docs/adr/ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md`
 
-### Erros e limites
+## 3) Tecnologias
 
-- O projeto mantera catalogo de erros versionavel com `code` estavel por contrato.
-- Conflitos de unicidade (placa/chassi/renavam) serao tratados como `409 Conflict`.
-- Rate limiting global sera aplicado com retorno `429` (`RATE_LIMIT_EXCEEDED`) quando o limite for excedido.
+- Node.js 18+
+- NestJS 10+
+- TypeORM
+- SQL Server
+- Redis
+- RabbitMQ
+- MongoDB
+- JWT
+- Jest
 
-## Artefatos de planejamento
+## 4) Como executar (rápido)
 
-- `MASTER.md`
-- `implementation_plan.md`
-- `task.md`
-- `struct.md`
-- `ACHIEVEMENTS.md`
-- `docs/adr/`
+```powershell
+docker compose up --build -d
+docker compose ps
+```
 
-## Contexto rapido para IA (recomendado)
+Acessos:
 
-Se voce vai continuar este projeto com apoio de IA e quer minimizar alucinacao, retrabalho e consumo de contexto, inicie cada sessao com este protocolo:
+- API: `http://localhost:3000/api/v1`
+- Swagger: `http://localhost:3000/api/docs`
 
-1. Leia -> `MASTER.md`
-2. Leia -> `implementation_plan.md`
-3. Leia -> `task.md`
-4. Leia -> `struct.md`
-5. Leia -> `ACHIEVEMENTS.md`
-6. Execute -> `git status`
-7. Execute -> `git log --oneline -5`
-8. Revise -> Secao 12 e 5 de `MASTER.md` (Qualidade e Governanca e Convenções)
+## 5) Scripts para o recrutador
 
-Referencias praticas:
+Para facilitar validação rápida, os principais scripts PowerShell já estão prontos:
 
-- Contexto total aproximado dos documentos-base: ~1700 linhas
-- Janela de contexto estimada: ~15000 tokens
-- Beneficios: melhor aderencia a arquitetura, menos criacao de arquivos indevidos, menor risco de contradicoes entre fases
+| Script | Finalidade |
+|---|---|
+| `scripts/dev.ps1` | Sobe o ambiente completo |
+| `scripts/stop.ps1` | Para o ambiente |
+| `scripts/logs.ps1` | Exibe logs do app |
+| `scripts/lint.ps1` | Executa `lint` + `lint:fix` + `typecheck` |
+| `scripts/test.ps1` | Executa testes com cobertura |
+| `scripts/test-e2e.ps1` | Executa testes E2E |
+| `scripts/migrate.ps1` | Executa migrations |
+| `scripts/seed.ps1` | Executa seed idempotente |
+| `scripts/benchmark.ps1` | Executa benchmark (runner dedicado) |
+
+## 6) Migrations e seed
+
+```powershell
+docker compose run --rm app npm run migration:run
+docker compose run --rm app npm run seed
+```
+
+Usuário seed padrão (local):
+
+- `nickname`: `aivacol`
+- `password`: valor de `SEED_USER_PASSWORD` no `.env`
+
+## 7) Testes e qualidade
+
+```powershell
+docker compose exec app npm run lint
+docker compose exec app npm run lint:fix
+docker compose exec app npm run typecheck
+docker compose exec app npm run test
+docker compose exec app npm run test:e2e
+docker compose exec app npm run test:cov
+```
+
+Cobertura final atingida:
+
+- Statements: **95.22%**
+- Branches: **84.59%**
+- Functions: **94.85%**
+- Lines: **94.91%**
+
+## 8) Benchmark
+
+Ponto de entrada oficial:
+
+```powershell
+./scripts/benchmark.ps1
+```
+
+Execução em runner dedicado (`benchmark-runner`) com target interno `http://app:3000`.
+
+Resultado oficial (execução local):
+
+- Warm cache: `requestsAvg=764`, `p50=37ms`, `p99=60ms`, `errors=0`, `non2xx=0`
+- Cold cache: `requestsAvg=696.8`, `p50=33ms`, `p99=132ms`, `errors=0`, `non2xx=0`
+- Diferença: throughput warm `+8.8%`, com p99 significativamente melhor em warm.
+
+### Nota sobre rate limiting e benchmark
+
+O throttling é configurável por ambiente via `THROTTLE_TTL_SECONDS` e `THROTTLE_LIMIT`.
+
+- Em uso normal da API, use limites conservadores (ex.: `THROTTLE_LIMIT=100`).
+- Em benchmark/carga sintética, pode ser necessário elevar temporariamente (ex.: `THROTTLE_LIMIT=50000`) para evitar `429` artificiais durante a medição.
+- Após benchmark, restaure o valor padrão do ambiente.
+
+## 9) Endpoints principais
+
+Base: `/api/v1`
+
+- `POST /auth/login` (público)
+- `GET/POST/PATCH/DELETE /vehicles` (Bearer)
+- `GET/POST/PATCH/DELETE /models` (Bearer)
+- `GET/POST/PATCH/DELETE /brands` (Bearer)
+- `GET /users` e `GET /users/:id` (Bearer)
+- `GET /health` (Bearer)
+
+## 10) Variáveis de ambiente
+
+Referência completa em `.env.example`.
+
+Principais:
+
+- App: `APP_PORT`, `NODE_ENV`, `CORS_ORIGINS`
+- SQL Server: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`
+- Redis: `REDIS_HOST`, `REDIS_PORT`, `CACHE_TTL`
+- RabbitMQ: `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USER`, `RABBITMQ_PASS`
+- MongoDB: `MONGO_URI`
+- Auth: `JWT_SECRET`, `JWT_EXPIRES_IN`
+- Throttling: `THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT`
+- Seed: `SEED_USER_NICKNAME`, `SEED_USER_EMAIL`, `SEED_USER_PASSWORD`
+- Benchmark: `BENCHMARK_BASE_URL`, `BENCHMARK_DURATION_SECONDS`, `BENCHMARK_CONNECTIONS`
+
+## 11) Catálogo de erros
+
+Códigos estáveis de referência:
+
+- `INVALID_CREDENTIALS` (401)
+- `UNAUTHORIZED` (401)
+- `VEHICLE_NOT_FOUND` (404)
+- `MODEL_NOT_FOUND` (404)
+- `BRAND_NOT_FOUND` (404)
+- `USER_NOT_FOUND` (404)
+- `DUPLICATE_LICENSE_PLATE` (409)
+- `DUPLICATE_CHASSIS` (409)
+- `DUPLICATE_RENAVAM` (409)
+- `DUPLICATE_MODEL_NAME` (409)
+- `DUPLICATE_BRAND_NAME` (409)
+- `RATE_LIMIT_EXCEEDED` (429)
+- `INTERNAL_SERVER_ERROR` (500)
+
+## 12) CI/CD
+
+Pipeline em `.github/workflows/ci.yml`:
+
+- Trigger: `push` e `pull_request` para `main`
+- Etapas: `npm ci` -> `lint` -> `typecheck` -> `test`
+
+## 13) Postman
+
+Coleção final na raiz:
+
+- `aivacol-postman-collection.json`
+
+Contém:
+
+- variáveis (`base_url`, `nickname`, `password`, `token`);
+- pre-request script para auto-login/token;
+- pastas por domínio;
+- exemplos de respostas de sucesso e erro.
+
+## 14) Rastreabilidade e documentação
+
+- Planejamento e governança: `MASTER.md`, `implementation_plan.md`, `task.md`
+- Mapa estrutural: `struct.md`
+- Registro de execução por fase: `ACHIEVEMENTS.md`
+- ADRs: `docs/adr/*`
+- Runbook operacional: `docs/runbooks/infra-contingency.md`

@@ -519,3 +519,64 @@ Comprovacao de que a unicidade vale apenas para registro ativo.
 - Evidencia de rate limit e2e: status `429` com `code: RATE_LIMIT_EXCEEDED`
 - Todos os comandos foram executados dentro do container `app` (conforme politica Docker-only)
 - Atualizacoes de tracking aplicadas em `task.md` e `struct.md`
+
+---
+
+## Fase 8 — Documentação, Benchmark, CI e Finalização (2026-07-03)
+
+### ✅ Entregas concluídas
+
+- README final revisado em PT-BR com ortografia corrigida, typo do topo removido e seção `## ✅ Checklist do Desafio` reposicionada no início do arquivo
+- Seção explícita adicionada no README para throttling dinâmico por ambiente (`THROTTLE_TTL_SECONDS`, `THROTTLE_LIMIT`), incluindo uso temporário em benchmark e restauração do padrão
+- Workflow CI confirmado em `.github/workflows/ci.yml` com gatilhos em push/PR para `main` e etapas `checkout -> setup-node -> npm ci -> lint -> typecheck -> test`
+- Coleção final `aivacol-postman-collection.json` validada com variáveis obrigatórias (`base_url`, `nickname`, `password`, `token`), pre-request de auto-login/token, pastas por domínio e exemplos de respostas
+- Benchmark oficial executado via `scripts/benchmark.ps1` com evidência warm vs cold cache
+- `tsconfig.json` ajustado de forma mínima/segura para deprecações: `ignoreDeprecations` aplicado em valor suportado no TypeScript atual e `baseUrl` mantido para aliases sem regressão
+- Tracking atualizado em `task.md` e `struct.md` com consistência de fase
+
+### 🧪 Comandos executados (fechamento)
+
+- `docker compose up --build -d`
+- `docker compose exec app npm run lint`
+- `docker compose exec app npm run lint:fix`
+- `docker compose exec app npm run typecheck`
+- `docker compose exec app npm run test`
+- `docker compose exec app npm run test:e2e`
+- `docker compose exec app npm run test:cov`
+- `pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/benchmark.ps1`
+- `docker compose exec app node -e "fetch('http://localhost:3000/api/docs')..."` (validação de `/api/docs`)
+- Validação estrutural da coleção Postman (vars, pre-request, pastas e exemplos) via `node -e ...`
+- Smoke de API equivalente ao fluxo Postman (login + endpoints protegidos) via `docker compose exec app node -e ...`
+
+### 📌 Evidências objetivas
+
+- Lint: **OK**
+- Lint fix: **OK**
+- Typecheck: **OK**
+- Testes unitários: **46/46 suites, 155/155 testes**
+- Testes e2e: **6/6 suites, 11/11 testes**
+- Cobertura global: **Statements 95.22% | Branches 84.59% | Functions 94.85% | Lines 94.91%**
+- Swagger `/api/docs`: **HTTP 200**
+- Postman (validação estrutural): **POSTMAN_OK vars/folders/prerequest/examples**
+- Postman (smoke funcional): **POSTMAN_SMOKE_OK**
+
+### ⚡ Benchmark oficial (Warm vs Cold Cache)
+
+- Warm: `requestsAvg=764`, `p50=37ms`, `p99=60ms`, `errors=0`, `non2xx=0`
+- Cold: `requestsAvg=696.8`, `p50=33ms`, `p99=132ms`, `errors=0`, `non2xx=0`
+- Comparativo: throughput `+8.8%` em warm e p99 significativamente menor em warm (`60ms` vs `132ms`)
+
+### ⚠️ Problemas encontrados e correções
+
+- Benchmark falhou inicialmente com `429` quando `THROTTLE_LIMIT=100` durante carga sintética
+  - Correção operacional: aumento temporário para benchmark (`THROTTLE_LIMIT=50000`) apenas durante execução oficial
+  - Pós-benchmark: restauração obrigatória para padrão (`THROTTLE_LIMIT=100`) e restart da app
+- `tsconfig` com ajuste inicial inválido de `ignoreDeprecations` e remoção indevida de `baseUrl`
+  - Correção: valor compatível (`ignoreDeprecations: "5.0"`) e manutenção de `baseUrl: "./"` para preservar aliases e estabilidade
+- App ficou `unhealthy` após mudança de `tsconfig` até restart
+  - Correção: `docker compose restart app` e confirmação de estado `healthy`
+
+### 🧾 Decisão final de prontidão
+
+- **Fase 8 pronta para fechamento** em documentação, benchmark, CI e rastreabilidade.
+- Observação de governança: validação de execução do CI no GitHub depende do push/PR desta branch (pendente no momento deste registro).
