@@ -11,6 +11,10 @@ const duration = Number(process.env.BENCHMARK_DURATION_SECONDS ?? '15');
 const connections = Number(process.env.BENCHMARK_CONNECTIONS ?? '20');
 const capacityDuration = Number(process.env.BENCHMARK_CAPACITY_DURATION_SECONDS ?? '30');
 const capacityConnections = Number(process.env.BENCHMARK_CAPACITY_CONNECTIONS ?? '120');
+const writeDuration = Number(process.env.BENCHMARK_WRITE_DURATION_SECONDS ?? '20');
+const writeConnections = Number(process.env.BENCHMARK_WRITE_CONNECTIONS ?? '40');
+const writeYear = Number(process.env.BENCHMARK_WRITE_YEAR ?? '2030');
+const benchmarkYearCeiling = new Date().getFullYear() + 1;
 const warmupRequests = Number(process.env.BENCHMARK_WARMUP_REQUESTS ?? '3');
 const nickname = process.env.BENCHMARK_NICKNAME ?? process.env.SEED_USER_NICKNAME ?? 'aivacol';
 const password = process.env.BENCHMARK_PASSWORD ?? process.env.SEED_USER_PASSWORD ?? 'aivacol';
@@ -52,6 +56,18 @@ interface ScenarioConfig {
   connections: number;
   duration: number;
   coldMode: boolean;
+  path: string;
+  method?: 'GET' | 'PATCH' | 'POST';
+  body?: string;
+  contentType?: string;
+}
+
+interface VehicleListItem {
+  id: string;
+}
+
+interface VehicleListPayload {
+  items?: VehicleListItem[];
 }
 
 function getLatencyP95(latency: CliAutocannonResult['latency']): number {
@@ -167,10 +183,21 @@ function executeAutocannon(config: ScenarioConfig, token: string): Promise<CliAu
       String(config.connections),
       '--duration',
       String(config.duration),
+      '--method',
+      config.method ?? 'GET',
       '-H',
       `Authorization=Bearer ${token}`,
-      `${baseUrl}${endpointPath}?page=1&limit=20&sort=createdAt&order=desc`,
     ];
+
+    if (config.body) {
+      args.push('--body', config.body);
+    }
+
+    if (config.contentType) {
+      args.push('-H', `Content-Type=${config.contentType}`);
+    }
+
+    args.push(`${baseUrl}${config.path}`);
 
     const child = spawn('npx', args, { stdio: ['ignore', 'pipe', 'pipe'] });
     const coldFlushInterval =
@@ -244,6 +271,39 @@ async function warmCache(token: string): Promise<void> {
       headers,
     );
   }
+}
+
+async function getBenchmarkVehicleId(token: string): Promise<string> {
+  const response = await request(
+    `${baseUrl}${endpointPath}?page=1&limit=1&sort=createdAt&order=desc`,
+    'GET',
+    undefined,
+    { authorization: `Bearer ${token}` },
+  );
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw new Error(
+      `[benchmark] cannot fetch vehicle id for write benchmark (status ${response.statusCode}).`,
+    );
+  }
+
+  let parsed: VehicleListPayload;
+  try {
+    parsed = JSON.parse(response.body) as VehicleListPayload;
+  } catch {
+    throw new Error('[benchmark] vehicle list payload is not valid JSON.');
+  }
+
+  const vehicleId = parsed.items?.[0]?.id;
+  if (!vehicleId) {
+    throw new Error('[benchmark] no vehicles available for write benchmark.');
+  }
+
+  return vehicleId;
+}
+
+function getSafeWriteYear(yearCandidate: number): number {
+  return Math.min(yearCandidate, benchmarkYearCeiling);
 }
 
 async function flushRedis(logSuccess = true): Promise<void> {
@@ -330,6 +390,7 @@ function printComparison(
   warm: ScenarioSummary,
   cold: ScenarioSummary,
   capacity: ScenarioSummary,
+  write: ScenarioSummary,
 ): void {
   const throughputDeltaPct =
     warm.requestsAvg > 0 ? ((warm.requestsAvg - cold.requestsAvg) / warm.requestsAvg) * 100 : 0;
@@ -347,6 +408,7 @@ function printComparison(
         warm,
         cold,
         capacity,
+        write,
         comparison: {
           throughputDeltaPct: Number(throughputDeltaPct.toFixed(2)),
           latencyP50DeltaPct: Number(latencyDeltaPct.toFixed(2)),
@@ -371,6 +433,14 @@ function assertNoRateLimit(summary: ScenarioSummary): void {
 async function main() {
   const token = await authenticate();
   await assertHealth(token);
+  const benchmarkVehicleId = await getBenchmarkVehicleId(token);
+  const safeWriteYear = getSafeWriteYear(writeYear);
+
+  if (safeWriteYear !== writeYear) {
+    console.log(
+      `[benchmark] write year adjusted from ${writeYear} to ${safeWriteYear} to satisfy domain rule`,
+    );
+  }
 
   await flushRedis();
   const coldResult = await executeAutocannon(
@@ -379,6 +449,7 @@ async function main() {
       connections,
       duration,
       coldMode: true,
+      path: `${endpointPath}?page=1&limit=20&sort=createdAt&order=desc`,
     },
     token,
   );
@@ -390,6 +461,7 @@ async function main() {
       connections,
       duration,
       coldMode: false,
+      path: `${endpointPath}?page=1&limit=20&sort=createdAt&order=desc`,
     },
     token,
   );
@@ -400,6 +472,21 @@ async function main() {
       connections: capacityConnections,
       duration: capacityDuration,
       coldMode: false,
+      path: `${endpointPath}?page=1&limit=20&sort=createdAt&order=desc`,
+    },
+    token,
+  );
+
+  const writeResult = await executeAutocannon(
+    {
+      label: `Scenario 4/4 - write-focused PATCH (${writeConnections} conn, ${writeDuration}s)`,
+      connections: writeConnections,
+      duration: writeDuration,
+      coldMode: false,
+      path: `${endpointPath}/${benchmarkVehicleId}`,
+      method: 'PATCH',
+      contentType: 'application/json',
+      body: JSON.stringify({ year: safeWriteYear }),
     },
     token,
   );
@@ -407,10 +494,13 @@ async function main() {
   const warmSummary = toSummary('warm', warmResult);
   const coldSummary = toSummary('cold', coldResult);
   const capacitySummary = toSummary('capacity', capacityResult);
+  const writeSummary = toSummary('writePatch', writeResult);
 
   assertNoRateLimit(warmSummary);
   assertNoRateLimit(coldSummary);
-  printComparison(warmSummary, coldSummary, capacitySummary);
+  assertNoRateLimit(capacitySummary);
+  assertNoRateLimit(writeSummary);
+  printComparison(warmSummary, coldSummary, capacitySummary, writeSummary);
 
   console.log('\n[benchmark] completed');
 }
