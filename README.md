@@ -175,6 +175,7 @@ Ao final da validação, para encerrar todos os contêineres e liberar recursos 
 
 ```powershell
 ./scripts/stop.ps1
+```
 
 ## 5) Evidências objetivas (comandos e resultado esperado)
 
