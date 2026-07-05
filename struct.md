@@ -35,12 +35,15 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   ├── ADR-002-event-driven-decoupling.md   # Decisao de desacoplamento interno via eventos
 │   │   ├── ADR-003-data-lifecycle-soft-delete-and-audit.md # Ciclo de vida de dados e auditoria
 │   │   └── ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md # Indices filtrados no SQL Server
+│   ├── performance-baseline-phase-9.md          # Baseline oficial de performance, tentativas e consolidacao da Fase 9
 │   └── runbooks/                                # Guias operacionais para suporte/contingencia
 │       └── infra-contingency.md                 # Runbook para falhas de infraestrutura local
 ├── scripts/                                     # Automacoes PowerShell/Node para ciclo de desenvolvimento
+│   ├── benchmark-write.ts                       # Script de benchmark de escrita isolada (write-only PATCH)
 │   ├── benchmark.ps1                            # Executa benchmark no runner dedicado (profile tools)
 │   ├── benchmark.ts                             # Script de carga (cache quente/frio) para Autocannon
 │   ├── container-healthcheck.js                 # Healthcheck HTTP do container da app
+│   ├── db.ps1                                   # Consultas SQL assistidas no SQL Server (status/migrations/counts/vehicles/sql)
 │   ├── dev-container-start.js                   # Boot da app com wait-for-deps e fallback da Fase 1
 │   ├── dev.ps1                                  # Sobe stack Docker com build
 │   ├── lint.ps1                                 # Executa lint/lint:fix/typecheck no container app
