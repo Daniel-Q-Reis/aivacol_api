@@ -59,29 +59,31 @@ Backend do módulo de Gestão de Frota da Aivacol, desenvolvido para o teste té
 
 ## 🚀 Bônus e diferenciais implementados
 
-| Item                                      | Status | Observação                                                                                                                           |
-| ----------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Health check protegido                    | ✅     | `/api/v1/health` com validação de conectores                                                                                         |
-| Swagger/OpenAPI                           | ✅     | `/api/docs`                                                                                                                          |
-| Postman collection final                  | ✅     | Fluxo com token automático                                                                                                           |
-| Dockerfile multistage                     | ✅     | `dev`, `builder`, `production`                                                                                                       |
-| Docker Compose completo                   | ✅     | app + SQL Server + Redis + RabbitMQ + MongoDB + benchmark runner                                                                     |
-| CI (GitHub Actions)                       | ✅     | `lint`, `typecheck`, `test` em push/PR para `main`                                                                                   |
-| ADRs + trade-offs/drawbacks               | ✅     | `docs/adr/*`                                                                                                                         |
-| Benchmark quente/frio + stress/capacidade | ✅     | Evidenciado em `docs/performance-baseline-phase-9.md`                                                                                |
-| Baseline/manifesto de performance         | ✅     | `docs/performance-baseline-phase-9.md`                                                                                               |
-| Governança e handoff técnico              | ✅     | `MASTER.md`, `implementation_plan.md`, `task.md`, `struct.md`, `ACHIEVEMENTS.md`                                                     |
-| Linting e qualidade de código             | ✅     | ESLint + lint:fix + typecheck como gate técnico de QA contínuo                                                                       |
-| Mensageria (RabbitMQ)                     | ✅     | Eventos assíncronos de veículos com retry/backoff e fallback em DLQ para integração resiliente `vehicle.created` e `vehicle.updated` |
-| Governança por PR e manifestos de fase    | ✅     | Entregas segmentadas com evidências por etapa `ACHIEVEMENTS.md` e revisão técnica orientada por checklist `task.md`                  |
-| Code review orientado por checklist       | ✅     | Critérios de qualidade, risco e rastreabilidade aplicados antes de merge em main                                                     |
-| Coverage mínimo atingido                  | ✅     | `>=90%` lines/functions/statements e `>=80%` branches                                                                                |
+| Item                                      | Status | Observação                                                                        |
+| ----------------------------------------- | ------ | --------------------------------------------------------------------------------- |
+| Health check protegido                    | ✅     | `/api/v1/health` com validação de conectores                                      |
+| Swagger/OpenAPI                           | ✅     | `/api/docs`                                                                       |
+| Postman collection final                  | ✅     | Fluxo com token automático                                                        |
+| Dockerfile multistage                     | ✅     | Estágios `dev`, `builder` e `production`                                          |
+| Docker Compose completo                   | ✅     | Stack com app, SQL Server, Redis, RabbitMQ, MongoDB e benchmark runner            |
+| CI (GitHub Actions)                       | ✅     | Gates `lint`, `typecheck` e `test` em push/PR para `main`                         |
+| ADRs + trade-offs/drawbacks               | ✅     | Documentados em `docs/adr/*`                                                      |
+| Benchmark quente/frio + stress/capacidade | ✅     | Evidenciado em `docs/performance-baseline-phase-9.md`                             |
+| Baseline/manifesto de performance         | ✅     | Consolidação oficial em `docs/performance-baseline-phase-9.md`                    |
+| Governança e handoff técnico              | ✅     | `MASTER.md`, `implementation_plan.md`, `task.md`, `struct.md`, `ACHIEVEMENTS.md`  |
+| Linting e qualidade de código             | ✅     | ESLint + `lint:fix` + `typecheck` como gate de QA contínuo                        |
+| Mensageria (RabbitMQ)                     | ✅     | Eventos `vehicle.created` e `vehicle.updated` com retry/backoff e fallback em DLQ |
+| Idempotência estrutural                   | ✅     | Seed idempotente, uso de `eventId` e unicidade ativa com soft delete              |
+| Governança por PR e manifestos de fase    | ✅     | Entregas por fase com evidências em `ACHIEVEMENTS.md` e checklist em `task.md`    |
+| Code review orientado por checklist       | ✅     | Critérios de qualidade, risco e rastreabilidade antes do merge                    |
+| Coverage mínimo atingido                  | ✅     | `>=90%` lines/functions/statements e `>=80%` branches                             |
 
 ### Por que optei por esses extras?
 
 Os itens bônus foram implementados para reduzir risco técnico e aumentar a qualidade de manutenção do projeto:
 
 - Mensageria e auditoria melhoram rastreabilidade e desacoplamento de responsabilidades.
+- Idempotência estrutural melhora confiabilidade em retries (seed, eventos e unicidade ativa).
 - CI e suíte de testes robusta aumentam confiança para evolução contínua.
 - Swagger e Postman melhoram experiência de validação para recrutador/avaliador.
 - Benchmark estruturado permite evidenciar impacto real de cache em desempenho.
