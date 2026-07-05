@@ -71,6 +71,7 @@ Essas decisões estão alinhadas ao planejamento (`MASTER.md`, `implementation_p
 - [12) CI/CD](#12-cicd)
 - [13) Postman](#13-postman)
 - [14) Rastreabilidade e documentação](#14-rastreabilidade-e-documentação)
+- [15) Nota de segurança e compliance](#15-nota-de-seguranca-e-compliance)
 
 ## 1) Visão geral
 
@@ -140,17 +141,18 @@ Acessos:
 
 Para facilitar validação rápida, os principais scripts PowerShell já estão prontos:
 
-| Script                  | Finalidade                                |
-| ----------------------- | ----------------------------------------- |
-| `scripts/dev.ps1`       | Sobe o ambiente completo                  |
-| `scripts/stop.ps1`      | Para o ambiente                           |
-| `scripts/logs.ps1`      | Exibe logs do app                         |
-| `scripts/lint.ps1`      | Executa `lint` + `lint:fix` + `typecheck` |
-| `scripts/test.ps1`      | Executa testes com cobertura              |
-| `scripts/test-e2e.ps1`  | Executa testes E2E                        |
-| `scripts/migrate.ps1`   | Executa migrations                        |
-| `scripts/seed.ps1`      | Executa seed idempotente                  |
-| `scripts/benchmark.ps1` | Executa benchmark (runner dedicado)       |
+| Script                  | Finalidade                                                 |
+| ----------------------- | ---------------------------------------------------------- |
+| `scripts/dev.ps1`       | Sobe o ambiente completo                                   |
+| `scripts/stop.ps1`      | Para o ambiente                                            |
+| `scripts/logs.ps1`      | Exibe logs do app                                          |
+| `scripts/lint.ps1`      | Executa `lint` + `lint:fix` + `typecheck`                  |
+| `scripts/test.ps1`      | Executa testes com cobertura                               |
+| `scripts/test-e2e.ps1`  | Executa testes E2E                                         |
+| `scripts/migrate.ps1`   | Executa migrations                                         |
+| `scripts/seed.ps1`      | Executa seed idempotente                                   |
+| `scripts/benchmark.ps1` | Executa benchmark (runner dedicado)                        |
+| `scripts/db.ps1`        | Consulta SQL Server (status/migrations/contagens/veiculos) |
 
 ## 6) Migrations e seed
 
@@ -163,6 +165,16 @@ Usuário seed padrão (local):
 
 - `nickname`: `aivacol`
 - `password`: valor de `SEED_USER_PASSWORD` no `.env`
+
+Consultas rápidas no SQL Server (via container):
+
+```powershell
+./scripts/db.ps1 -Action status
+./scripts/db.ps1 -Action migrations
+./scripts/db.ps1 -Action counts
+./scripts/db.ps1 -Action vehicles -Top 10
+./scripts/db.ps1 -Action sql -Sql "SELECT TOP 5 id, license_plate FROM vehicles ORDER BY created_at DESC"
+```
 
 ## 7) Testes e qualidade
 
@@ -288,3 +300,10 @@ Contém:
 - Registro de execução por fase: `ACHIEVEMENTS.md`
 - ADRs: `docs/adr/*`
 - Runbook operacional: `docs/runbooks/infra-contingency.md`
+
+## 15) Nota de seguranca e compliance
+
+O escopo desta entrega seguiu o desafio a risca (JWT obrigatorio e rotas protegidas).
+Como observacao de engenharia para cenario de produto com usuarios finais, recomenda-se evoluir autorizacao por ownership/tenant para dados de frota (alem da autenticacao), reduzindo risco de exposicao indevida entre contas.
+Tambem e recomendavel evoluir com RBAC (controle por papeis) para limitar acessos por perfil de usuario.
+Essas evolucoes reforcam aderencia a LGPD e boas praticas de compliance no contexto brasileiro.

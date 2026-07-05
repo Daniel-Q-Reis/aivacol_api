@@ -91,6 +91,22 @@
     {
       "key": "user_id",
       "value": ""
+    },
+    {
+      "key": "vehicle_license_plate",
+      "value": ""
+    },
+    {
+      "key": "vehicle_chassis",
+      "value": ""
+    },
+    {
+      "key": "vehicle_renavam",
+      "value": ""
+    },
+    {
+      "key": "vehicle_year",
+      "value": ""
     }
   ],
   "item": [
@@ -161,6 +177,24 @@
       "item": [
         {
           "name": "List vehicles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  const firstId = Array.isArray(data) ? data?.[0]?.id : data?.items?.[0]?.id;",
+                  "  if (firstId) {",
+                  "    pm.collectionVariables.set('vehicle_id', firstId);",
+                  "    pm.environment.set('vehicle_id', firstId);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -235,6 +269,52 @@
         },
         {
           "name": "Create vehicle",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const now = Date.now();",
+                  "const twoDigits = String(now % 100).padStart(2, '0');",
+                  "const oneDigit = twoDigits.slice(-1);",
+                  "const fiveDigits = String(now % 100000).padStart(5, '0');",
+                  "const renavamBase = String(now % 10000000000).padStart(10, '0');",
+                  "const weights = [3, 2, 9, 8, 7, 6, 5, 4, 3, 2];",
+                  "const digits = renavamBase.split('').map(Number);",
+                  "const sum = digits.reduce((acc, digit, index) => acc + digit * weights[index], 0);",
+                  "const remainder = sum % 11;",
+                  "const checkDigit = remainder === 0 || remainder === 1 ? 0 : 11 - remainder;",
+                  "const renavam = `${renavamBase}${checkDigit}`;",
+                  "const plate = `QAT${oneDigit}A${twoDigits}`;",
+                  "const chassis = `9BWZZZ377VT0${fiveDigits}`;",
+                  "pm.collectionVariables.set('vehicle_license_plate', plate);",
+                  "pm.environment.set('vehicle_license_plate', plate);",
+                  "pm.collectionVariables.set('vehicle_chassis', chassis);",
+                  "pm.environment.set('vehicle_chassis', chassis);",
+                  "pm.collectionVariables.set('vehicle_renavam', renavam);",
+                  "pm.environment.set('vehicle_renavam', renavam);",
+                  "pm.collectionVariables.set('vehicle_year', String(new Date().getFullYear()));",
+                  "pm.environment.set('vehicle_year', String(new Date().getFullYear()));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  if (data?.id) {",
+                  "    pm.collectionVariables.set('vehicle_id', data.id);",
+                  "    pm.environment.set('vehicle_id', data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -245,7 +325,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"licensePlate\": \"ABC1D23\",\n  \"chassis\": \"9BWZZZ377VT004251\",\n  \"renavam\": \"00123456789\",\n  \"year\": 2024,\n  \"modelId\": \"{{model_id}}\"\n}"
+              "raw": "{\n  \"licensePlate\": \"{{vehicle_license_plate}}\",\n  \"chassis\": \"{{vehicle_chassis}}\",\n  \"renavam\": \"{{vehicle_renavam}}\",\n  \"year\": {{vehicle_year}},\n  \"modelId\": \"{{model_id}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/vehicles",
@@ -315,6 +395,24 @@
       "item": [
         {
           "name": "List models",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  const firstId = Array.isArray(data) ? data?.[0]?.id : data?.items?.[0]?.id;",
+                  "  if (firstId) {",
+                  "    pm.collectionVariables.set('model_id', firstId);",
+                  "    pm.environment.set('model_id', firstId);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -328,6 +426,23 @@
         },
         {
           "name": "Create model",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  if (data?.id) {",
+                  "    pm.collectionVariables.set('model_id', data.id);",
+                  "    pm.environment.set('model_id', data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -338,7 +453,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Modelo API\",\n  \"brandId\": \"{{brand_id}}\"\n}"
+              "raw": "{\n  \"name\": \"Modelo API {{$timestamp}}\",\n  \"brandId\": \"{{brand_id}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/models",
@@ -428,6 +543,24 @@
       "item": [
         {
           "name": "List brands",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  const firstId = Array.isArray(data) ? data?.[0]?.id : data?.items?.[0]?.id;",
+                  "  if (firstId) {",
+                  "    pm.collectionVariables.set('brand_id', firstId);",
+                  "    pm.environment.set('brand_id', firstId);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -441,6 +574,23 @@
         },
         {
           "name": "Create brand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  if (data?.id) {",
+                  "    pm.collectionVariables.set('brand_id', data.id);",
+                  "    pm.environment.set('brand_id', data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -451,7 +601,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Marca API\"\n}"
+              "raw": "{\n  \"name\": \"Marca API {{$timestamp}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/brands",
@@ -534,6 +684,24 @@
       "item": [
         {
           "name": "List users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  const firstId = Array.isArray(data) ? data?.[0]?.id : data?.items?.[0]?.id;",
+                  "  if (firstId) {",
+                  "    pm.collectionVariables.set('user_id', firstId);",
+                  "    pm.environment.set('user_id', firstId);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
