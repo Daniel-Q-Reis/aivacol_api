@@ -11,6 +11,7 @@ Backend do módulo de Gestão de Frota da Aivacol, desenvolvido para o teste té
 - Implementação em camadas (`Domain`, `Application`, `Presentation`, `Infrastructure`) com desacoplamento por portas/adapters.
 - Domínio sem dependência direta de framework, com regras de negócio isoladas.
 - Decisões arquiteturais formalizadas em ADRs.
+- Mapa estrutural e contexto operacional para continuidade com IA em `struct.md`.
 
 ### 2) Segurança robusta
 
