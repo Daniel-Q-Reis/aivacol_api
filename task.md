@@ -50,7 +50,7 @@
 - [x] **Fase 0 (planejamento)** pode ocorrer diretamente em `main` para acelerar alinhamento inicial
 - [x] **A partir da Fase 1**, todo trabalho deve ocorrer em branch dedicada com PR para `main`
 - [x] CI obrigatório em todo PR: `lint`, `typecheck`, `test` (e `test:e2e` quando aplicável)
-- [ ] Merge em `main` apenas com CI verde e checklist da fase preenchido
+- [x] Merge em `main` apenas com CI verde e checklist da fase preenchido
 
 ### Convenção de branches por fase
 
@@ -59,7 +59,7 @@
 - [x] Fase 3 inicia branch `feat/phase-3-cross-cutting`
 - [x] Fase 4 inicia branch `feat/phase-4-domain`
 - [x] Fase 5 inicia branch `feat/phase-5-infra-adapters`
-- [ ] Fase 6 inicia branch `feat/phase-6-application-presentation`
+- [x] Fase 6 inicia branch `feat/phase-6-application-presentation`
 - [x] Fase 7 inicia branch `feat/phase-7-tests-quality`
 - [x] Fase 8 inicia branch `feat/phase-8-docs-release`
 
@@ -294,7 +294,7 @@
 - [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [x] Atualizar `struct.md`
 - [x] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `feat: add cross-cutting concerns (filters, interceptors, guards)`
+- [x] Commit: `feat: add cross-cutting concerns (filters, interceptors, guards)`
 
 ---
 
@@ -639,9 +639,9 @@
 - [x] Rotas sem token retornam 401
 - [x] Erros retornam formato padronizado
 - [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
-- [ ] Atualizar `struct.md`
-- [ ] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `feat: add application and presentation layers (CRUD, Auth, Swagger)`
+- [x] Atualizar `struct.md`
+- [x] Atualizar `ACHIEVEMENTS.md`
+- [x] Commit: `feat: add application and presentation layers (CRUD, Auth, Swagger)`
 
 ---
 
@@ -729,7 +729,7 @@
 - [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [x] Atualizar `struct.md`
 - [x] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `test: add unit and e2e tests (coverage >= 90%)`
+- [x] Commit: `test: add unit and e2e tests (coverage >= 90%)`
 
 ---
 
@@ -816,7 +816,7 @@
 - [x] ADRs escritos e salvos em `/docs/adr/`
 - [x] Benchmark roda e mostra diferença de performance
 - [x] Postman collection funciona
-- [ ] CI pipeline validado no GitHub (pendente push/PR desta fase)
+- [x] CI pipeline validado no GitHub (pendente push/PR desta fase)
 - [x] Todos os testes passam
 - [x] Coverage ≥ 90%
 - [x] Docker Compose sobe limpo
@@ -824,15 +824,15 @@
 - [x] `npm run lint` + `npm run lint:fix` + `npm run typecheck` passam
 - [x] Atualizar `struct.md`
 - [x] Atualizar `ACHIEVEMENTS.md`
-- [ ] Commit: `docs: add README, ADRs, benchmark, Postman collection, CI`
+- [x] Commit: `docs: add README, ADRs, benchmark, Postman collection, CI`
 
 ---
 
 ## Pós-Entrega
 
-- [ ] Criar repositório no GitHub
-- [ ] Push de toda a base
-- [ ] Verificar que CI roda no GitHub Actions
+- [x] Criar repositório no GitHub
+- [x] Push de toda a base
+- [x] Verificar que CI roda no GitHub Actions
 - [ ] Review final do README
 - [ ] Tag `v1.0.0`
 
