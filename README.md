@@ -62,7 +62,7 @@ Backend do módulo de Gestão de Frota da Aivacol, desenvolvido para o teste té
 | Item                                      | Status | Observação                                                                        |
 | ----------------------------------------- | ------ | --------------------------------------------------------------------------------- |
 | Health check protegido                    | ✅     | `/api/v1/health` com validação de conectores                                      |
-| Swagger/OpenAPI                           | ✅     | `/api/docs`                                                                       |
+| Swagger/OpenAPI                           | ✅     | `/api/docs` web: http://localhost:3000/api/docs                                   |
 | Postman collection final                  | ✅     | Fluxo com token automático                                                        |
 | Dockerfile multistage                     | ✅     | Estágios `dev`, `builder` e `production`                                          |
 | Docker Compose completo                   | ✅     | Stack com app, SQL Server, Redis, RabbitMQ, MongoDB e benchmark runner            |
