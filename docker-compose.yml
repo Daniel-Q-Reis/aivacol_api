@@ -18,7 +18,7 @@ services:
       MONGO_URI: ${MONGO_URI:-mongodb://mongodb:27017/aivacol_audit}
       BENCHMARK_BASE_URL: ${BENCHMARK_BASE_URL:-http://app:3000}
     ports:
-      - '3000:3000'
+      - "3000:3000"
     volumes:
       - .:/usr/src/app
       - app-node-modules:/usr/src/app/node_modules
@@ -32,7 +32,7 @@ services:
       mongodb:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'node', 'scripts/container-healthcheck.js']
+      test: ["CMD", "node", "scripts/container-healthcheck.js"]
       interval: 30s
       timeout: 5s
       retries: 6

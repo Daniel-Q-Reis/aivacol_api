@@ -171,6 +171,11 @@ Acessos rápidos:
 - Swagger: `http://localhost:3000/api/docs`
 - API base: `http://localhost:3000/api/v1`
 
+Ao final da validação, para encerrar todos os contêineres e liberar recursos locais:
+
+```powershell
+./scripts/stop.ps1
+
 ## 5) Evidências objetivas (comandos e resultado esperado)
 
 ```powershell
