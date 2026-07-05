@@ -14,6 +14,8 @@ const capacityConnections = Number(process.env.BENCHMARK_CAPACITY_CONNECTIONS ??
 const writeDuration = Number(process.env.BENCHMARK_WRITE_DURATION_SECONDS ?? '20');
 const writeConnections = Number(process.env.BENCHMARK_WRITE_CONNECTIONS ?? '40');
 const writeYear = Number(process.env.BENCHMARK_WRITE_YEAR ?? '2030');
+const runWriteScenario =
+  (process.env.BENCHMARK_RUN_WRITE ?? 'true').trim().toLowerCase() === 'true';
 const benchmarkYearCeiling = new Date().getFullYear() + 1;
 const warmupRequests = Number(process.env.BENCHMARK_WARMUP_REQUESTS ?? '3');
 const nickname = process.env.BENCHMARK_NICKNAME ?? process.env.SEED_USER_NICKNAME ?? 'aivacol';
@@ -390,7 +392,7 @@ function printComparison(
   warm: ScenarioSummary,
   cold: ScenarioSummary,
   capacity: ScenarioSummary,
-  write: ScenarioSummary,
+  write: ScenarioSummary | null,
 ): void {
   const throughputDeltaPct =
     warm.requestsAvg > 0 ? ((warm.requestsAvg - cold.requestsAvg) / warm.requestsAvg) * 100 : 0;
@@ -477,29 +479,33 @@ async function main() {
     token,
   );
 
-  const writeResult = await executeAutocannon(
-    {
-      label: `Scenario 4/4 - write-focused PATCH (${writeConnections} conn, ${writeDuration}s)`,
-      connections: writeConnections,
-      duration: writeDuration,
-      coldMode: false,
-      path: `${endpointPath}/${benchmarkVehicleId}`,
-      method: 'PATCH',
-      contentType: 'application/json',
-      body: JSON.stringify({ year: safeWriteYear }),
-    },
-    token,
-  );
+  const writeResult = runWriteScenario
+    ? await executeAutocannon(
+        {
+          label: `Scenario 4/4 - write-focused PATCH (${writeConnections} conn, ${writeDuration}s)`,
+          connections: writeConnections,
+          duration: writeDuration,
+          coldMode: false,
+          path: `${endpointPath}/${benchmarkVehicleId}`,
+          method: 'PATCH',
+          contentType: 'application/json',
+          body: JSON.stringify({ year: safeWriteYear }),
+        },
+        token,
+      )
+    : null;
 
   const warmSummary = toSummary('warm', warmResult);
   const coldSummary = toSummary('cold', coldResult);
   const capacitySummary = toSummary('capacity', capacityResult);
-  const writeSummary = toSummary('writePatch', writeResult);
+  const writeSummary = writeResult ? toSummary('writePatch', writeResult) : null;
 
   assertNoRateLimit(warmSummary);
   assertNoRateLimit(coldSummary);
   assertNoRateLimit(capacitySummary);
-  assertNoRateLimit(writeSummary);
+  if (writeSummary) {
+    assertNoRateLimit(writeSummary);
+  }
   printComparison(warmSummary, coldSummary, capacitySummary, writeSummary);
 
   console.log('\n[benchmark] completed');

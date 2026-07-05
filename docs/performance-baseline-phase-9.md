@@ -1,5 +1,95 @@
 # Fase 9 - Performance Baseline (Pre-otimizacoes)
 
+## Resumo Executivo (Estado Atual)
+
+- Foi executada uma bateria ampla de tentativas de P1 ate P4 (diagnostico de queries, tuning ORM, cache strategy, L1/L2, tracing e hardening de benchmark).
+- As tentativas nao entregaram ganho consistente suficiente para manutencao no codigo principal dentro do tempo disponivel.
+- O estado funcional do projeto foi restaurado para baseline estavel, preservando benchmark aprimorado e documentacao.
+- P1-P4 ficaram registrados como trilha de experimentacao; parte das mudancas foi deliberadamente descartada por baixa efetividade/alta variancia.
+- O comportamento atual indica limite pratico com perfil CPU-bound no ambiente local de desenvolvimento.
+
+## Como Rodar Benchmarks (Comandos Oficiais)
+
+Executar benchmark de leitura (cold/warm/capacity):
+
+```powershell
+scripts\benchmark.ps1 -Mode read
+```
+
+Executar benchmark de escrita (write-only PATCH, isolado):
+
+```powershell
+scripts\benchmark.ps1 -Mode write
+```
+
+## Baseline Atual (Dev Rapido)
+
+### Read (modo `read`)
+
+| Cenario                  | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio | errors | non2xx |
+| ------------------------ | -------: | -------: | -------: | --------: | -----: | -----: |
+| Warm (30 conn, 10s)      |       44 |    62.00 |       78 |    760.10 |      0 |      0 |
+| Cold (30 conn, 10s)      |       37 |    94.33 |      123 |    659.40 |      0 |      0 |
+| Capacity (120 conn, 18s) |      148 |   198.67 |      249 |    773.34 |      0 |      0 |
+
+### Write (modo `write`, isolado)
+
+| Cenario                         | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio | errors | non2xx |
+| ------------------------------- | -------: | -------: | -------: | --------: | -----: | -----: |
+| Write-only PATCH (40 conn, 20s) |      319 |   461.33 |      510 |    118.00 |      0 |      0 |
+
+## Leitura de Capacidade e Mercado (Estimativa Operacional)
+
+Premissas observadas/levantadas:
+
+- Saturacao pratica de leitura comecando por volta de ~750 RPS no ambiente atual.
+- Saturacao pratica de escrita comecando por volta de ~125 RPS no benchmark isolado.
+- Em uso real de locadora, escrita e evento raro por ciclo (ordem de 2 a 10 writes/patches por ciclo de locacao).
+- Em leitura, comportamento comum de 1 a 4 requests por minuto por usuario ativo.
+
+Estimativas operacionais (ordem de grandeza, dependentes de campanha/pico e infraestrutura):
+
+- Escrita: suporte aproximado de ate ~10.000 usuarios simultaneos/min em janela critica, com p99 na faixa de ~450-510ms.
+- Leitura: suporte aproximado de ~30.000 a ~45.000 usuarios simultaneos, com p99 ate ~250ms.
+- Leitura com ajuda efetiva de cache Redis em carga mais conservadora: ~15.000 usuarios com p99 abaixo de ~60ms.
+
+Contexto de negocio:
+
+- para um app de recorrencia menor que rede social, esses numeros indicam folga para base mensal ampla (ordem de 1.000.000+), desde que observados picos sazonais (feriados/promocoes).
+
+## Diagnostico de Recurso (Ambiente Local)
+
+- Indicacao de CPU-bound: durante benchmark, um thread chegou a 100% enquanto demais mantiveram baixa utilizacao no host de 20 threads.
+- SSD nao apareceu como gargalo dominante:
+  - leitura: ~1% a 2% de uso.
+  - escrita: ~9% a 10%, com ~6.2 MB/s observado (arquivos pequenos).
+- Hipotese tecnica principal: limite mais associado a serializacao/parsing/transformacao/event-loop do que a I/O de disco.
+
+## Proximos Passos Naturais (Sem Quebra de Contrato)
+
+Para leitura, ainda ha espaco de ganho com:
+
+- reduzir trabalho de serializacao/transformacao (DTO/class-transformer);
+- reduzir payload JSON de resposta;
+- evitar parsing/copy desnecessario;
+- escalar horizontalmente app (`docker compose up --scale app=...`) com balanceamento.
+
+Para resiliencia de pico de escrita:
+
+- usar a mensageria RabbitMQ ja implementada para fluxo assincrono de escrita e retorno `202 Accepted` (ao inves de `200` sincrono), como proxima evolucao caso o tempo permita.
+
+## Nota sobre P1-P4 e Decisao de Reversao
+
+- P1 a P4 foram executados e medidos.
+- P4 (combinacoes L1/L2 e controles adicionais) apresentou degradacao relevante em rodada chave (ordem de ~13% no contexto medido).
+- Dada a variancia e o tempo, as mudancas experimentais foram revertidas para baseline funcional estavel.
+
+---
+
+## Historico Detalhado de Tentativas (Ruido de Desenvolvimento)
+
+As secoes abaixo mantem o historico completo de testes e iteracoes da fase 9. Elas permanecem como trilha de engenharia e governanca, mas nao refletem necessariamente o estado final aprovado de codigo.
+
 ## Objetivo
 
 Registrar baseline inicial de performance antes de diagnostico N+1 e qualquer otimizacao de query/cache.
@@ -458,6 +548,11 @@ Script dedicado:
 
 - `scripts/benchmark-write.ts`
 
+Comandos oficiais via PowerShell:
+
+- `scripts\benchmark.ps1 -Mode read`
+- `scripts\benchmark.ps1 -Mode write`
+
 Protocolo:
 
 - manter `writeDuration=20s` e `writeConnections=40`;
@@ -478,3 +573,66 @@ Leitura:
 
 - comparado ao write executado no fim da suite mista, a variancia cai e o p99 deixa de oscilar em saltos anormais;
 - este formato passa a ser a referencia para auditoria de escrita, mantendo a suite mista focada na leitura.
+
+## Baseline Oficial Atual (Mediana de 2 Passadas)
+
+Data da coleta: `2026-07-05`
+
+Protocolo desta rodada oficial:
+
+- Ambiente limpo apos `git restore` + `git clean` (sem alteracoes locais de codigo).
+- Suite principal: `scripts/benchmark.ts` (cold, warm, capacity, write-focused) executada 2x.
+- Suite de escrita isolada: `scripts/benchmark-write.ts` executada 2x.
+- Mediana com 2 amostras: media aritmetica entre as duas execucoes.
+- Em todas as execucoes: `errors=0` e `non2xx=0`.
+
+### Passadas coletadas (suite principal)
+
+| Passada | Cenario       | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio |
+| ------- | ------------- | -------: | -------: | -------: | --------: |
+| 1       | Cold          |       38 |   102.00 |      151 |    626.00 |
+| 1       | Warm          |       36 |    56.67 |       84 |    756.00 |
+| 1       | Capacity      |      151 |   249.33 |      319 |    757.78 |
+| 1       | Write-focused |      319 |   486.00 |      631 |    118.45 |
+| 2       | Cold          |       50 |   149.33 |      212 |    455.00 |
+| 2       | Warm          |       50 |    92.00 |      134 |    549.00 |
+| 2       | Capacity      |      142 |   307.33 |      336 |    685.50 |
+| 2       | Write-focused |      335 |   495.00 |      598 |    111.50 |
+
+### Baseline oficial (mediana de 2 passadas) - Suite principal
+
+| Cenario       | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio | errors | non2xx |
+| ------------- | -------: | -------: | -------: | --------: | -----: | -----: |
+| Cold          |    44.00 |   125.67 |   181.50 |    540.50 |      0 |      0 |
+| Warm          |    43.00 |    74.34 |   109.00 |    652.50 |      0 |      0 |
+| Capacity      |   146.50 |   278.33 |   327.50 |    721.64 |      0 |      0 |
+| Write-focused |   327.00 |   490.50 |   614.50 |    114.98 |      0 |      0 |
+
+### Passadas coletadas (write isolado)
+
+| Passada | Cenario          | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio |
+| ------- | ---------------- | -------: | -------: | -------: | --------: |
+| 1       | Write-only PATCH |      415 |   610.67 |      705 |     91.85 |
+| 2       | Write-only PATCH |      326 |   510.67 |      596 |    115.65 |
+
+### Baseline oficial (mediana de 2 passadas) - Write isolado
+
+| Cenario          | p50 (ms) | p95 (ms) | p99 (ms) | RPS medio | errors | non2xx |
+| ---------------- | -------: | -------: | -------: | --------: | -----: | -----: |
+| Write-only PATCH |   370.50 |   560.67 |   650.50 |    103.75 |      0 |      0 |
+
+## Registro de Tentativas (Resumo Humano)
+
+Para facilitar leitura humana, as tentativas desta fase ficam resumidas aqui em ordem cronologica, sem apagar o historico detalhado acima.
+
+1. Baseline inicial pre-otimizacao (cold/warm), depois baseline endurecido com capacity.
+2. Tentativas de tuning de leitura (P1, P2, P3) com instrumentacao de query count e comparacoes before/after.
+3. Tentativas de cache/singleflight (P4/P4.1) com ganhos em algumas rodadas e alta variancia entre execucoes.
+4. Decisao de consolidacao: restaurar estado limpo, manter governanca e benchmark mais rastreavel.
+5. Nova coleta oficial apos restore, com protocolo fixo de 2 passadas para baseline atual.
+
+## Estado Atual de Qualidade
+
+- Testes unitarios: passando (`46/46`).
+- Testes e2e: passando (`6/6`) na reexecucao da suite.
+- Benchmarks (suite principal e write isolado): passando com `errors=0` e `non2xx=0`.

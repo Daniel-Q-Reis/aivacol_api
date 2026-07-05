@@ -6,43 +6,43 @@ Backend do módulo de Gestão de Frota da Aivacol, desenvolvido para o teste té
 
 ## ✅ Checklist do Desafio (Escopo Original)
 
-| Critério | Status | Observação |
-|---|---|---|
-| Node.js 18+ | ✅ | Runtime em container |
-| NestJS 10+ | ✅ | Framework principal da API |
-| TypeORM + SQL Server | ✅ | Persistência relacional com migrations |
-| JWT obrigatório | ✅ | Login e proteção das rotas de negócio |
-| Seed com usuário padrão `aivacol` | ✅ | Seed idempotente |
-| Tabela `models` (obrigatória) | ✅ | CRUD completo + metadados |
-| Tabela `vehicles` (obrigatória) | ✅ | CRUD completo + metadados |
-| Metadados obrigatórios (`created_at`, `updated_at`, `created_by`) | ✅ | Aplicados nas entidades persistidas |
-| Gestão de `models` (criar/atualizar/consultar/remover) | ✅ | Endpoints e regras implementados |
-| Gestão de `vehicles` (registrar/atualizar/listar/remover) | ✅ | Endpoints, validações e soft delete |
-| Cache Redis em consultas de veículos | ✅ | Cache em listagem e busca por ID |
-| Expiração de cache via variável de ambiente | ✅ | TTL configurável por env |
-| Invalidação automática do cache de veículos | ✅ | Em create/update/delete |
-| Testes automatizados com Jest | ✅ | Unit + E2E |
-| Cobertura mínima de regras/serviços/validações/integrações | ✅ | Thresholds atendidos |
-| Tratamento de erros e exceções | ✅ | Filtro global + catálogo estável de erros |
-| Boas práticas REST (status codes/contratos) | ✅ | Contratos padronizados |
-| `seed_vehicles.json` no repositório | ✅ | Arquivo presente na raiz |
-| README com instruções claras | ✅ | Execução, testes, benchmark e arquitetura documentados |
-| Scripts de execução | ✅ | Scripts PowerShell para ciclo local |
+| Critério                                                          | Status | Observação                                             |
+| ----------------------------------------------------------------- | ------ | ------------------------------------------------------ |
+| Node.js 18+                                                       | ✅     | Runtime em container                                   |
+| NestJS 10+                                                        | ✅     | Framework principal da API                             |
+| TypeORM + SQL Server                                              | ✅     | Persistência relacional com migrations                 |
+| JWT obrigatório                                                   | ✅     | Login e proteção das rotas de negócio                  |
+| Seed com usuário padrão `aivacol`                                 | ✅     | Seed idempotente                                       |
+| Tabela `models` (obrigatória)                                     | ✅     | CRUD completo + metadados                              |
+| Tabela `vehicles` (obrigatória)                                   | ✅     | CRUD completo + metadados                              |
+| Metadados obrigatórios (`created_at`, `updated_at`, `created_by`) | ✅     | Aplicados nas entidades persistidas                    |
+| Gestão de `models` (criar/atualizar/consultar/remover)            | ✅     | Endpoints e regras implementados                       |
+| Gestão de `vehicles` (registrar/atualizar/listar/remover)         | ✅     | Endpoints, validações e soft delete                    |
+| Cache Redis em consultas de veículos                              | ✅     | Cache em listagem e busca por ID                       |
+| Expiração de cache via variável de ambiente                       | ✅     | TTL configurável por env                               |
+| Invalidação automática do cache de veículos                       | ✅     | Em create/update/delete                                |
+| Testes automatizados com Jest                                     | ✅     | Unit + E2E                                             |
+| Cobertura mínima de regras/serviços/validações/integrações        | ✅     | Thresholds atendidos                                   |
+| Tratamento de erros e exceções                                    | ✅     | Filtro global + catálogo estável de erros              |
+| Boas práticas REST (status codes/contratos)                       | ✅     | Contratos padronizados                                 |
+| `seed_vehicles.json` no repositório                               | ✅     | Arquivo presente na raiz                               |
+| README com instruções claras                                      | ✅     | Execução, testes, benchmark e arquitetura documentados |
+| Scripts de execução                                               | ✅     | Scripts PowerShell para ciclo local                    |
 
 ## 🚀 Bônus e Diferenciais Implementados
 
-| Item | Status | Observação |
-|---|---|---|
-| Gestão de `brands` (bônus) | ✅ | CRUD completo + associação com `models` |
-| Gestão de `users` (bônus) | ✅ | Consultas protegidas + relacionamento por `created_by` |
-| Mensageria (RabbitMQ) | ✅ | Eventos de veículos (`vehicle.created`, `vehicle.updated`) |
-| Auditoria em banco não relacional | ✅ | MongoDB para trilha de interações de serviço |
-| Dockerfile multistage | ✅ | Ambientes dev/build/prod |
-| Docker Compose completo | ✅ | app + SQL Server + Redis + RabbitMQ + MongoDB + benchmark runner |
-| Swagger/OpenAPI | ✅ | `/api/docs` |
-| Coleção Postman final | ✅ | Fluxo com token automático |
-| CI (GitHub Actions) | ✅ | `lint`, `typecheck`, `test` em push/PR para `main` |
-| Benchmark cache quente vs frio | ✅ | Execução oficial e resultados documentados |
+| Item                              | Status | Observação                                                       |
+| --------------------------------- | ------ | ---------------------------------------------------------------- |
+| Gestão de `brands` (bônus)        | ✅     | CRUD completo + associação com `models`                          |
+| Gestão de `users` (bônus)         | ✅     | Consultas protegidas + relacionamento por `created_by`           |
+| Mensageria (RabbitMQ)             | ✅     | Eventos de veículos (`vehicle.created`, `vehicle.updated`)       |
+| Auditoria em banco não relacional | ✅     | MongoDB para trilha de interações de serviço                     |
+| Dockerfile multistage             | ✅     | Ambientes dev/build/prod                                         |
+| Docker Compose completo           | ✅     | app + SQL Server + Redis + RabbitMQ + MongoDB + benchmark runner |
+| Swagger/OpenAPI                   | ✅     | `/api/docs`                                                      |
+| Coleção Postman final             | ✅     | Fluxo com token automático                                       |
+| CI (GitHub Actions)               | ✅     | `lint`, `typecheck`, `test` em push/PR para `main`               |
+| Benchmark cache quente vs frio    | ✅     | Execução oficial e resultados documentados                       |
 
 ### Por que optei por esses extras?
 
@@ -140,17 +140,17 @@ Acessos:
 
 Para facilitar validação rápida, os principais scripts PowerShell já estão prontos:
 
-| Script | Finalidade |
-|---|---|
-| `scripts/dev.ps1` | Sobe o ambiente completo |
-| `scripts/stop.ps1` | Para o ambiente |
-| `scripts/logs.ps1` | Exibe logs do app |
-| `scripts/lint.ps1` | Executa `lint` + `lint:fix` + `typecheck` |
-| `scripts/test.ps1` | Executa testes com cobertura |
-| `scripts/test-e2e.ps1` | Executa testes E2E |
-| `scripts/migrate.ps1` | Executa migrations |
-| `scripts/seed.ps1` | Executa seed idempotente |
-| `scripts/benchmark.ps1` | Executa benchmark (runner dedicado) |
+| Script                  | Finalidade                                |
+| ----------------------- | ----------------------------------------- |
+| `scripts/dev.ps1`       | Sobe o ambiente completo                  |
+| `scripts/stop.ps1`      | Para o ambiente                           |
+| `scripts/logs.ps1`      | Exibe logs do app                         |
+| `scripts/lint.ps1`      | Executa `lint` + `lint:fix` + `typecheck` |
+| `scripts/test.ps1`      | Executa testes com cobertura              |
+| `scripts/test-e2e.ps1`  | Executa testes E2E                        |
+| `scripts/migrate.ps1`   | Executa migrations                        |
+| `scripts/seed.ps1`      | Executa seed idempotente                  |
+| `scripts/benchmark.ps1` | Executa benchmark (runner dedicado)       |
 
 ## 6) Migrations e seed
 
@@ -187,10 +187,20 @@ Cobertura final atingida:
 Ponto de entrada oficial:
 
 ```powershell
-./scripts/benchmark.ps1
+./scripts/benchmark.ps1 -Mode read
+./scripts/benchmark.ps1 -Mode write
 ```
 
 Execução em runner dedicado (`benchmark-runner`) com target interno `http://app:3000`.
+
+Resumo atual (dev rápido):
+
+- Read (`-Mode read`): warm ~`760 RPS` com `p99 ~78ms`; capacity ~`773 RPS` com `p99 ~249ms`.
+- Write (`-Mode write`, isolado): ~`118 RPS` com `p99 ~510ms`.
+
+Documentação completa da Fase 9 (metodologia, histórico de tentativas, baseline oficial/dev e análise de capacidade):
+
+- `docs/performance-baseline-phase-9.md`
 
 Resultado oficial (execução local):
 
