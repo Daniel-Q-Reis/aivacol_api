@@ -18,7 +18,7 @@ services:
       MONGO_URI: ${MONGO_URI:-mongodb://mongodb:27017/aivacol_audit}
       BENCHMARK_BASE_URL: ${BENCHMARK_BASE_URL:-http://app:3000}
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
       - .:/usr/src/app
       - app-node-modules:/usr/src/app/node_modules
@@ -32,8 +32,8 @@ services:
       mongodb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "scripts/container-healthcheck.js"]
-      interval: 10s
+      test: ['CMD', 'node', 'scripts/container-healthcheck.js']
+      interval: 30s
       timeout: 5s
       retries: 6
       start_period: 20s
@@ -45,18 +45,18 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: aivacol-sqlserver
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: "Developer"
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: 'Developer'
       SA_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "1433:1433"
+      - '1433:1433'
     volumes:
       - sqlserver-data:/var/opt/mssql
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -C -Q \"SELECT 1\" >/dev/null 2>&1 || exit 1",
+          'CMD-SHELL',
+          '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -C -Q "SELECT 1" >/dev/null 2>&1 || exit 1',
         ]
       interval: 10s
       timeout: 5s
@@ -69,13 +69,13 @@ services:
   redis:
     image: redis:7-alpine
     container_name: aivacol-redis
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ['redis-server', '--appendonly', 'yes']
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -91,12 +91,12 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '5672:5672'
+      - '15672:15672'
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
       interval: 10s
       timeout: 5s
       retries: 8
@@ -109,11 +109,11 @@ services:
     image: mongo:7
     container_name: aivacol-mongodb
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - mongodb-data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
       retries: 8
@@ -137,7 +137,7 @@ services:
     depends_on:
       app:
         condition: service_healthy
-    command: ["tail", "-f", "/dev/null"]
+    command: ['tail', '-f', '/dev/null']
     networks:
       - aivacol-network
 
