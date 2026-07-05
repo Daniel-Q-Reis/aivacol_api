@@ -163,6 +163,320 @@
       ]
     },
     {
+      "name": "Runner UX - Happy Path (Ordered)",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "1) Login",
+          "auth": {
+            "type": "noauth"
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nickname\": \"{{nickname}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2) Create brand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  if (data?.id) {",
+                  "    pm.collectionVariables.set('brand_id', data.id);",
+                  "    pm.environment.set('brand_id', data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marca UX {{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3) Create model",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const brandId = pm.collectionVariables.get('brand_id');",
+                  "if (!brandId) {",
+                  "  throw new Error(\"Missing brand_id. Run '2) Create brand' first.\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  if (data?.id) {",
+                  "    pm.collectionVariables.set('model_id', data.id);",
+                  "    pm.environment.set('model_id', data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Modelo UX {{$timestamp}}\",\n  \"brandId\": \"{{brand_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/models",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "models"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4) Create vehicle",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const modelId = pm.collectionVariables.get('model_id');",
+                  "if (!modelId) {",
+                  "  throw new Error(\"Missing model_id. Run '3) Create model' first.\");",
+                  "}",
+                  "const now = Date.now();",
+                  "const twoDigits = String(now % 100).padStart(2, '0');",
+                  "const oneDigit = twoDigits.slice(-1);",
+                  "const fiveDigits = String(now % 100000).padStart(5, '0');",
+                  "const renavamBase = String(now % 10000000000).padStart(10, '0');",
+                  "const weights = [3, 2, 9, 8, 7, 6, 5, 4, 3, 2];",
+                  "const digits = renavamBase.split('').map(Number);",
+                  "const sum = digits.reduce((acc, digit, index) => acc + digit * weights[index], 0);",
+                  "const remainder = sum % 11;",
+                  "const checkDigit = remainder === 0 || remainder === 1 ? 0 : 11 - remainder;",
+                  "const renavam = `${renavamBase}${checkDigit}`;",
+                  "const plate = `QAT${oneDigit}A${twoDigits}`;",
+                  "const chassis = `9BWZZZ377VT0${fiveDigits}`;",
+                  "pm.collectionVariables.set('vehicle_license_plate', plate);",
+                  "pm.environment.set('vehicle_license_plate', plate);",
+                  "pm.collectionVariables.set('vehicle_chassis', chassis);",
+                  "pm.environment.set('vehicle_chassis', chassis);",
+                  "pm.collectionVariables.set('vehicle_renavam', renavam);",
+                  "pm.environment.set('vehicle_renavam', renavam);",
+                  "pm.collectionVariables.set('vehicle_year', String(new Date().getFullYear()));",
+                  "pm.environment.set('vehicle_year', String(new Date().getFullYear()));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  if (data?.id) {",
+                  "    pm.collectionVariables.set('vehicle_id', data.id);",
+                  "    pm.environment.set('vehicle_id', data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"licensePlate\": \"{{vehicle_license_plate}}\",\n  \"chassis\": \"{{vehicle_chassis}}\",\n  \"renavam\": \"{{vehicle_renavam}}\",\n  \"year\": {{vehicle_year}},\n  \"modelId\": \"{{model_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5) List vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles?page=1&limit=20&sort=createdAt&order=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "order",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6) Delete vehicle",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vehicleId = pm.collectionVariables.get('vehicle_id');",
+                  "if (!vehicleId) {",
+                  "  throw new Error(\"Missing vehicle_id. Run '4) Create vehicle' first.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vehicles/{{vehicle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vehicles", "{{vehicle_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7) Delete model",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const modelId = pm.collectionVariables.get('model_id');",
+                  "if (!modelId) {",
+                  "  throw new Error(\"Missing model_id. Run '3) Create model' first.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/models/{{model_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "models", "{{model_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8) Delete brand",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const brandId = pm.collectionVariables.get('brand_id');",
+                  "if (!brandId) {",
+                  "  throw new Error(\"Missing brand_id. Run '2) Create brand' first.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", "{{brand_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Vehicles",
       "auth": {
         "type": "bearer",
