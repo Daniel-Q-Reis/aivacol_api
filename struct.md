@@ -504,4 +504,8 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Fase: Fase 8 — Documentacao, Benchmark, CI e Finalizacao
 - Acao: consolidacao final com README revisado em PT-BR (checklist no inicio e benchmark oficial), ajuste de compatibilidade em `tsconfig.json`, restauracao de env padrao (`THROTTLE_LIMIT=100`) e atualizacao de rastreabilidade
 
+- Data: 2026-07-05
+- Fase: Fase 9 — QA e Performance Baseline (append)
+- Acao: append de consolidacao de baseline de performance em `docs/performance-baseline-phase-9.md`, ampliacao de usabilidade da colecao Postman para reduzir passos manuais, expansao de `seed_vehicles.json`, adicao de `scripts/db.ps1` para operacao SQL assistida e ajustes de robustez em scripts (`scripts/lint.ps1` e `scripts/db.ps1`) preservando historico sem remocoes
+
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._

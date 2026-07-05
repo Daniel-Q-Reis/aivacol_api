@@ -18,13 +18,13 @@ if (-not ($hasLint -and $hasLintFix -and $hasTypecheck)) {
   exit 0
 }
 
-Write-Host "[lint] Running lint..." -ForegroundColor Cyan
-docker compose run --rm app npm run lint
-if ($LASTEXITCODE -ne 0) { throw "[lint] lint failed." }
-
 Write-Host "[lint] Running lint:fix..." -ForegroundColor Cyan
 docker compose run --rm app npm run lint:fix
 if ($LASTEXITCODE -ne 0) { throw "[lint] lint:fix failed." }
+
+Write-Host "[lint] Running lint..." -ForegroundColor Cyan
+docker compose run --rm app npm run lint
+if ($LASTEXITCODE -ne 0) { throw "[lint] lint failed." }
 
 Write-Host "[lint] Running typecheck..." -ForegroundColor Cyan
 docker compose run --rm app npm run typecheck

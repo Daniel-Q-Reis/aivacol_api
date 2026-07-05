@@ -72,9 +72,7 @@ function Invoke-Sql {
     $dbName = 'aivacol_db'
   }
 
-  $escapedQuery = $Query.Replace('"', '""')
-  $command = "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$password\" -d \"$dbName\" -C -Q \"$escapedQuery\""
-  docker compose exec -T sqlserver sh -lc $command
+  docker compose exec -T sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$password" -d "$dbName" -C -Q "$Query"
 
   if ($LASTEXITCODE -ne 0) {
     throw "[db] SQL command failed for action '$Action'."
@@ -124,7 +122,7 @@ ORDER BY v.created_at DESC;
   }
   'sql' {
     if (-not $Sql) {
-      throw "[db] Action 'sql' requires -Sql \"SELECT ...\""
+      throw '[db] Action ''sql'' requires -Sql "SELECT ..."'
     }
 
     Write-Host '[db] Running custom SQL' -ForegroundColor Cyan

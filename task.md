@@ -839,3 +839,41 @@
 ---
 
 _Fim do task.md — Este documento deve ser atualizado a cada etapa concluída._
+
+---
+
+## Fase 9 — QA e Performance Baseline (append)
+
+### Objetivo da fase
+
+- [x] Consolidar baseline de performance com evidencias comparaveis (read/write)
+- [x] Endurecer scripts e fluxo de benchmark para reduzir ambiguidade de execucao
+- [x] Manter seguranca de contrato e rotas protegidas durante tuning
+
+### Entregas de QA/Performance
+
+- [x] Benchmark de leitura com cenarios `cold`, `warm` e `capacity`
+- [x] Benchmark de escrita isolada (`write-only`) com script dedicado
+- [x] Registro de resultados e tentativas em `docs/performance-baseline-phase-9.md`
+- [x] Registro de baseline oficial por mediana de 2 passadas
+- [x] Colecao Postman aprimorada para reduzir passos manuais
+- [x] Dataset `seed_vehicles.json` ampliado para validacao mais realista
+
+### Scripts e operacao
+
+- [x] Corrigir `scripts/db.ps1` (parsing/escape PowerShell e acao `sql`)
+- [x] Ajustar `scripts/lint.ps1` para ordem `lint:fix -> lint -> typecheck`
+- [x] Validar scripts principais de ciclo (`dev`, `migrate`, `seed`, `test`, `test-e2e`, `benchmark`, `db`, `stop`)
+
+### Decisao arquitetural documentada
+
+- [x] Registrar na documentacao que a migracao imediata de `PATCH/CREATE` para `202 + RabbitMQ` nao foi aplicada nesta release
+- [x] Justificar decisao por preservacao de contrato HTTP atual e consistencia transacional
+- [x] Registrar evolucao natural: async writes com idempotencia/outbox/status endpoint em etapa futura
+
+### Fechamento
+
+- [x] Atualizar README para v1.0 com contexto de escalabilidade e proximos passos
+- [x] Atualizar `task.md` com append da Fase 9
+- [x] Atualizar `struct.md` com append da Fase 9
+- [x] Abrir PR da branch `qa/perf-baseline` para `main` com resumo tecnico da fase
