@@ -35,12 +35,15 @@ aivacol_api/                                     # Raiz do repositorio backend u
 │   │   ├── ADR-002-event-driven-decoupling.md   # Decisao de desacoplamento interno via eventos
 │   │   ├── ADR-003-data-lifecycle-soft-delete-and-audit.md # Ciclo de vida de dados e auditoria
 │   │   └── ADR-004-sqlserver-filtered-unique-indexes-with-typeorm.md # Indices filtrados no SQL Server
+│   ├── performance-baseline-phase-9.md          # Baseline oficial de performance, tentativas e consolidacao da Fase 9
 │   └── runbooks/                                # Guias operacionais para suporte/contingencia
 │       └── infra-contingency.md                 # Runbook para falhas de infraestrutura local
 ├── scripts/                                     # Automacoes PowerShell/Node para ciclo de desenvolvimento
+│   ├── benchmark-write.ts                       # Script de benchmark de escrita isolada (write-only PATCH)
 │   ├── benchmark.ps1                            # Executa benchmark no runner dedicado (profile tools)
 │   ├── benchmark.ts                             # Script de carga (cache quente/frio) para Autocannon
 │   ├── container-healthcheck.js                 # Healthcheck HTTP do container da app
+│   ├── db.ps1                                   # Consultas SQL assistidas no SQL Server (status/migrations/counts/vehicles/sql)
 │   ├── dev-container-start.js                   # Boot da app com wait-for-deps e fallback da Fase 1
 │   ├── dev.ps1                                  # Sobe stack Docker com build
 │   ├── lint.ps1                                 # Executa lint/lint:fix/typecheck no container app
@@ -503,5 +506,9 @@ aivacol_api/                                     # Raiz do repositorio backend u
 - Data: 2026-07-03
 - Fase: Fase 8 — Documentacao, Benchmark, CI e Finalizacao
 - Acao: consolidacao final com README revisado em PT-BR (checklist no inicio e benchmark oficial), ajuste de compatibilidade em `tsconfig.json`, restauracao de env padrao (`THROTTLE_LIMIT=100`) e atualizacao de rastreabilidade
+
+- Data: 2026-07-05
+- Fase: Fase 9 — QA e Performance Baseline (append)
+- Acao: append de consolidacao de baseline de performance em `docs/performance-baseline-phase-9.md`, ampliacao de usabilidade da colecao Postman para reduzir passos manuais, expansao de `seed_vehicles.json`, adicao de `scripts/db.ps1` para operacao SQL assistida e ajustes de robustez em scripts (`scripts/lint.ps1` e `scripts/db.ps1`) preservando historico sem remocoes
 
 _Consulte este arquivo ANTES de criar qualquer novo arquivo para evitar duplicações._

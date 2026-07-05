@@ -30,5 +30,77 @@
     "year": 2024,
     "brand": "Toyota",
     "model": "Corolla"
+  },
+  {
+    "licensePlate": "QAT1A11",
+    "chassis": "9BWZZZ377VT034111",
+    "renavam": "31058341110",
+    "year": 2024,
+    "brand": "Volkswagen",
+    "model": "Polo"
+  },
+  {
+    "licensePlate": "QAT8A38",
+    "chassis": "9BWZZZ377VT020838",
+    "renavam": "31087208385",
+    "year": 2024,
+    "brand": "Fiat",
+    "model": "Mobi"
+  },
+  {
+    "licensePlate": "QAT0A50",
+    "chassis": "9BWZZZ377VT029750",
+    "renavam": "31111297508",
+    "year": 2024,
+    "brand": "Hyundai",
+    "model": "HB20"
+  },
+  {
+    "licensePlate": "QAT2A32",
+    "chassis": "9BWZZZ377VT065532",
+    "renavam": "31117655325",
+    "year": 2024,
+    "brand": "Renault",
+    "model": "Kwid"
+  },
+  {
+    "licensePlate": "QAT4A54",
+    "chassis": "9BWZZZ377VT079054",
+    "renavam": "31210790547",
+    "year": 2027,
+    "brand": "Nissan",
+    "model": "Kicks"
+  },
+  {
+    "licensePlate": "QAT6A56",
+    "chassis": "9BWZZZ377VT050756",
+    "renavam": "31775507563",
+    "year": 2027,
+    "brand": "Jeep",
+    "model": "Renegade"
+  },
+  {
+    "licensePlate": "QAT4A64",
+    "chassis": "9BWZZZ377VT076064",
+    "renavam": "32105760640",
+    "year": 2024,
+    "brand": "Honda",
+    "model": "Civic"
+  },
+  {
+    "licensePlate": "QAT7A67",
+    "chassis": "9BWZZZ377VT009967",
+    "renavam": "32111099674",
+    "year": 2027,
+    "brand": "Chevrolet",
+    "model": "Tracker"
+  },
+  {
+    "licensePlate": "QAT6A76",
+    "chassis": "9BWZZZ377VT018076",
+    "renavam": "32131180760",
+    "year": 2027,
+    "brand": "Ford",
+    "model": "Ka"
   }
 ]
